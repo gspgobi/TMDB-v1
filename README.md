@@ -19,23 +19,23 @@ Built with **Jetpack Compose**, **Clean Architecture**, **MVVM**, **Hilt**, **Pa
 - **Image Loading:** Coil  
 
 
-# 📐 Architecture Overview
+## 📐 Architecture Overview
 
 This project follows **Android’s recommended app architecture** with a strict separation of concerns.
 
-## 🏗 Layers
+### 🏗 Layers
 
-### 🖥 UI Layer
+#### 🖥 UI Layer
 - Jetpack Compose Screens  
 - ViewModels  
 
-### 🧠 Domain Layer
+#### 🧠 Domain Layer
 - Business Logic  
 - UseCases  
 - Domain Models  
 - Repository Interfaces  
 
-### 💾 Data Layer
+#### 💾 Data Layer
 - Retrofit API Services  
 - Room Database  
 - Repository Implementations  
@@ -43,7 +43,7 @@ This project follows **Android’s recommended app architecture** with a strict 
 > 🗂 **Note:** Room acts as the **Single Source of Truth (SSOT)** in this application.
 
 
-## 🚀 Features
+#### 🚀 Features
 
 - Browse Popular Movies  
 - View Movie Details  
@@ -54,7 +54,7 @@ This project follows **Android’s recommended app architecture** with a strict 
 
 ---
 
-# 🏗 High-Level Architecture Diagram  
+## 🏗 High-Level Architecture Diagram  
 #### (Clean Architecture + MVVM)
 
 ```mermaid
@@ -81,7 +81,7 @@ flowchart TD
 
 ---
 
-# 🔄 Detailed Data Flow
+## 🔄 Detailed Data Flow
 #### 📃 Popular Movies List
 
 ```mermaid
@@ -139,7 +139,7 @@ sequenceDiagram
 
 ---
 
-## 📦 Pagination + Caching Flow  
+### 📦 Pagination + Caching Flow  
 #### (Paging 3 + Room + RemoteMediator)
 
 ```mermaid
@@ -167,7 +167,7 @@ flowchart LR
 
 ---
 
-## 🧭 Navigation Flow
+### 🧭 Navigation Flow
 
 ```mermaid
 flowchart TD
@@ -180,14 +180,14 @@ flowchart TD
 
 ---
 
-## 📸 Screenshots
+### 📸 Screenshots
 
 _Yet to add screenshots here_
 
 ---
 
 
-## 📄 License
+### 📄 License
 
 This project is for educational purposes.
 
