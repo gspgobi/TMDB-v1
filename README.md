@@ -12,7 +12,7 @@ A modern Android application for browsing movies and TV shows using the **TMDB A
 - **Movie Details** — backdrop, genres, runtime, tagline, overview, rating, collection info, a latest review preview, external links (IMDB, Wikidata, social media), a videos carousel (YouTube trailers & teasers), tabbed images gallery (Backdrops / Posters), and a recommendations carousel
 - **Full Cast & Crew** — complete credits with profile images
 - **Movie Reviews** — paginated review list with author avatars and ratings
-- **TV Series** — listing, details (seasons & episodes count, genres, tagline), full cast & crew, external links, tabbed images gallery (Backdrops / Posters), and a recommendations carousel
+- **TV Series** — listing, details (seasons & episodes count, genres, tagline), full cast & crew, external links, a videos carousel (YouTube trailers & teasers), tabbed images gallery (Backdrops / Posters), and a recommendations carousel
 - **Season & Episodes** — season selector on TV details; expandable episode list with load-more pagination
 - **Person Details** — biography, profile image, and combined filmography (movies & TV)
 - **Search** — debounced multi-type search across movies, TV shows, and people; media-type chip on each result
