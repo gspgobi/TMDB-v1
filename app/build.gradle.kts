@@ -44,6 +44,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            versionNameSuffix = "-debug"
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -100,7 +103,6 @@ dependencies {
     // Paging 3
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)
-
 
 
     // Testing
