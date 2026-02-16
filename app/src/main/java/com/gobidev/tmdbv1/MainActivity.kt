@@ -4,44 +4,32 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.gobidev.tmdbv1.ui.theme.TMDBv1Theme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.navigation.compose.rememberNavController
+import com.gobidev.tmdbv1.presentation.navigation.TMDBNavGraph
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Main Activity for the TMDB app.
+ *
+ * @AndroidEntryPoint enables Hilt dependency injection in this Activity.
+ * This allows ViewModels and other dependencies to be injected.
+ */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
-            TMDBv1Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            TMDBTheme {
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    val navController = rememberNavController()
+                    TMDBNavGraph(navController = navController)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TMDBv1Theme {
-        Greeting("Android")
     }
 }
