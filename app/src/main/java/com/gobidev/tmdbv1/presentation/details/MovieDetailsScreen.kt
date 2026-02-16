@@ -39,6 +39,7 @@ import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.presentation.util.MovieDetailsUiState
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
+import java.util.Locale
 
 /**
  * Movie Details Screen - displays detailed information about a movie.
@@ -218,7 +219,7 @@ fun MovieDetailsContent(
                     // Rating
                     InfoRow(
                         label = "Rating",
-                        value = "⭐ ${String.format("%.1f", movie.rating)} (${movie.voteCount})"
+                        value = "⭐ ${String.format(Locale.getDefault(), "%.1f", movie.rating)} (${movie.voteCount})"
                     )
 
                     // Status

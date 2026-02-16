@@ -39,6 +39,7 @@ import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import kotlinx.coroutines.flow.flowOf
+import java.util.Locale
 
 /**
  * Popular Movies Screen - displays a paginated list of popular movies.
@@ -246,7 +247,7 @@ fun MovieItem(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = String.format("%.1f", movie.rating),
+                        text = String.format(Locale.getDefault(), "%.1f", movie.rating),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.width(4.dp))
