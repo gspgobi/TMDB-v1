@@ -220,7 +220,13 @@ fun MovieDetailsContent(
                     // Rating
                     InfoRow(
                         label = "Rating",
-                        value = "⭐ ${String.format(Locale.getDefault(), "%.1f", movie.rating)} (${movie.voteCount})"
+                        value = "⭐ ${
+                            String.format(
+                                Locale.getDefault(),
+                                "%.1f",
+                                movie.rating
+                            )
+                        } (${movie.voteCount})"
                     )
 
                     // Status
@@ -311,7 +317,14 @@ fun MovieDetailsScreenPreview() {
         runtime = 120,
         tagline = "An epic sample movie.",
         status = "Released",
-        genres = listOf(Genre(1, "Action"), Genre(2, "Adventure"))
+        genres = listOf(
+            Genre(1, "Action"),
+            Genre(2, "Adventure"),
+            Genre(1, "Action"),
+            Genre(2, "Adventure"),
+            Genre(1, "Action"),
+            Genre(2, "Adventure"),
+        )
     )
     TMDBTheme {
         MovieDetailsScreen(
