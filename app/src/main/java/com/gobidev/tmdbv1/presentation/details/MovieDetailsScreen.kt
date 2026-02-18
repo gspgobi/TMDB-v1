@@ -3,6 +3,7 @@ package com.gobidev.tmdbv1.presentation.details
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -219,7 +220,13 @@ fun MovieDetailsContent(
                     // Rating
                     InfoRow(
                         label = "Rating",
-                        value = "⭐ ${String.format(Locale.getDefault(), "%.1f", movie.rating)} (${movie.voteCount})"
+                        value = "⭐ ${
+                            String.format(
+                                Locale.getDefault(),
+                                "%.1f",
+                                movie.rating
+                            )
+                        } (${movie.voteCount})"
                     )
 
                     // Status
@@ -241,7 +248,7 @@ fun MovieDetailsContent(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -310,7 +317,14 @@ fun MovieDetailsScreenPreview() {
         runtime = 120,
         tagline = "An epic sample movie.",
         status = "Released",
-        genres = listOf(Genre(1, "Action"), Genre(2, "Adventure"))
+        genres = listOf(
+            Genre(1, "Action"),
+            Genre(2, "Adventure"),
+            Genre(1, "Action"),
+            Genre(2, "Adventure"),
+            Genre(1, "Action"),
+            Genre(2, "Adventure"),
+        )
     )
     TMDBTheme {
         MovieDetailsScreen(
