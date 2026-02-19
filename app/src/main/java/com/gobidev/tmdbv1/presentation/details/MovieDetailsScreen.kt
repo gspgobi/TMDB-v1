@@ -4,14 +4,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -22,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -29,15 +35,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.presentation.util.MovieCastUiState
 import com.gobidev.tmdbv1.presentation.util.MovieDetailsUiState
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
@@ -50,6 +60,7 @@ import java.util.Locale
  * - Title, tagline, and overview
  * - Genres, release date, rating
  * - Runtime and status
+ * - Cast members
  * - Loading and error states
  *
  * @param onBackClick Callback when back button is clicked
@@ -62,13 +73,15 @@ fun MovieDetailsScreen(
     viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    MovieDetailsScreen(uiState = uiState, onBackClick = onBackClick)
+    val castState by viewModel.castState.collectAsStateWithLifecycle()
+    MovieDetailsScreen(uiState = uiState, castState = castState, onBackClick = onBackClick)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailsScreen(
     uiState: MovieDetailsUiState,
+    castState: MovieCastUiState,
     onBackClick: () -> Unit
 ) {
     Scaffold(
@@ -90,7 +103,7 @@ fun MovieDetailsScreen(
             )
         }
     ) { paddingValues ->
-        when (uiState) {
+        when (val state = uiState) {
             is MovieDetailsUiState.Loading -> {
                 Box(
                     modifier = Modifier
@@ -104,7 +117,8 @@ fun MovieDetailsScreen(
 
             is MovieDetailsUiState.Success -> {
                 MovieDetailsContent(
-                    movie = uiState.movie,
+                    movie = state.movie,
+                    castState = castState,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -121,7 +135,7 @@ fun MovieDetailsScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = uiState.message,
+                            text = state.message,
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center
@@ -139,6 +153,7 @@ fun MovieDetailsScreen(
 @Composable
 fun MovieDetailsContent(
     movie: MovieDetails,
+    castState: MovieCastUiState,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -273,7 +288,11 @@ fun MovieDetailsContent(
                     text = movie.overview,
                     style = MaterialTheme.typography.bodyMedium
                 )
+                Spacer(modifier = Modifier.height(16.dp))
             }
+
+            // Cast Section
+            CastSection(castState = castState)
         }
     }
 }
@@ -302,6 +321,136 @@ fun InfoRow(
     }
 }
 
+/**
+ * Cast section displaying movie cast members.
+ * Handles different states: Loading, Success, Error, and Idle.
+ */
+@Composable
+fun CastSection(
+    castState: MovieCastUiState,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        when (castState) {
+            is MovieCastUiState.Loading -> {
+                Text(
+                    text = "Cast",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            is MovieCastUiState.Success -> {
+                if (castState.cast.isNotEmpty()) {
+                    Text(
+                        text = "Cast",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(end = 16.dp)
+                    ) {
+                        items(castState.cast) { castMember ->
+                            CastMemberItem(castMember = castMember)
+                        }
+                    }
+                }
+            }
+
+            is MovieCastUiState.Error -> {
+                Text(
+                    text = "Cast",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Unable to load cast information",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            is MovieCastUiState.Idle -> {
+                // Don't show anything in idle state
+            }
+        }
+    }
+}
+
+/**
+ * Individual cast member card with profile image, name, and character.
+ */
+@Composable
+fun CastMemberItem(
+    castMember: CastMember,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.width(100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Profile Image
+        if (castMember.profileUrl != null) {
+            AsyncImage(
+                model = castMember.profileUrl,
+                contentDescription = castMember.name,
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            // Placeholder for cast members without profile images
+            Surface(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = castMember.name.take(1),
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Cast Member Name
+        Text(
+            text = castMember.name,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+
+        // Character Name
+        Text(
+            text = castMember.character,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun MovieDetailsScreenPreview() {
@@ -326,9 +475,33 @@ fun MovieDetailsScreenPreview() {
             Genre(2, "Adventure"),
         )
     )
+    val sampleCast = listOf(
+        CastMember(
+            id = 1,
+            name = "Dwayne Johnson",
+            character = "Black Adam",
+            profileUrl = "https://image.tmdb.org/t/p/w185/cgoy7tU1f0YlJ7ADEjR4sFweI2b.jpg",
+            order = 1
+        ),
+        CastMember(
+            id = 2,
+            name = "Sarah Shahi",
+            character = "Adrianna Tomaz",
+            profileUrl = "https://image.tmdb.org/t/p/w185/fIra32G1SUn4S83G2H7l8T25a2.jpg",
+            order = 2
+        ),
+        CastMember(
+            id = 3,
+            name = "Pierce Brosnan",
+            character = "Dr. Fate",
+            profileUrl = "https://image.tmdb.org/t/p/w185/d8sQ1jmv2iQ5cN2sFmrI2Iwnc6C.jpg",
+            order = 3
+        )
+    )
     TMDBTheme {
         MovieDetailsScreen(
             uiState = MovieDetailsUiState.Success(sampleMovie),
+            castState = MovieCastUiState.Success(sampleCast),
             onBackClick = {}
         )
     }
