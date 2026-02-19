@@ -1,19 +1,25 @@
 package com.gobidev.tmdbv1.data.remote.mapper
 
+import com.gobidev.tmdbv1.data.remote.dto.CastMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
+import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieDto
+import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 
 /**
  * Base URL for TMDB images.
  * Using w500 for posters and w780 for backdrops as recommended by TMDB.
+ * Using w185 for profile images (cast members).
  */
 private const val IMAGE_BASE_URL = "https://image.tmdb.org/t/p/"
 private const val POSTER_SIZE = "w500"
 private const val BACKDROP_SIZE = "w780"
+private const val PROFILE_SIZE = "w185"
 
 /**
  * Extension function to map MovieDto to domain Movie model.
@@ -60,5 +66,30 @@ fun GenreDto.toGenre(): Genre {
     return Genre(
         id = id,
         name = name
+    )
+}
+
+/**
+ * Extension function to map MovieCreditsDto to domain MovieCredits model.
+ * Converts cast members and constructs full profile image URLs.
+ */
+fun MovieCreditsDto.toMovieCredits(): MovieCredits {
+    return MovieCredits(
+        id = id,
+        cast = cast.map { it.toCastMember() }
+    )
+}
+
+/**
+ * Extension function to map CastMemberDto to domain CastMember model.
+ * Constructs full profile image URL.
+ */
+fun CastMemberDto.toCastMember(): CastMember {
+    return CastMember(
+        id = id,
+        name = name,
+        character = character,
+        profileUrl = profilePath?.let { "$IMAGE_BASE_URL$PROFILE_SIZE$it" },
+        order = order
     )
 }
