@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.data.remote.api
 
+import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsDto
 import com.gobidev.tmdbv1.data.remote.dto.PopularMoviesResponse
 import retrofit2.http.GET
@@ -39,4 +40,17 @@ interface TMDBApiService {
         @Path("movie_id") movieId: Int,
         @Query("language") language: String = "en-US"
     ): MovieDetailsDto
+
+    /**
+     * Fetch cast and crew credits for a specific movie.
+     *
+     * @param movieId The ID of the movie to fetch credits for
+     * @param language Language code (default: en-US)
+     * @return Movie credits containing cast and crew information
+     */
+    @GET("movie/{movie_id}/credits")
+    suspend fun getMovieCredits(
+        @Path("movie_id") movieId: Int,
+        @Query("language") language: String = "en-US"
+    ): MovieCreditsDto
 }

@@ -41,3 +41,24 @@ data class Genre(
     val id: Int,
     val name: String
 )
+
+/**
+ * Domain model for cast member information.
+ * Represents an actor/actress in a movie.
+ */
+data class CastMember(
+    val id: Int,
+    val name: String,
+    val character: String,
+    val profileUrl: String?,
+    val order: Int
+)
+
+/**
+ * Domain model for movie credits (cast and crew).
+ * Contains list of cast members for a movie.
+ */
+data class MovieCredits(
+    val id: Int,
+    val cast: List<CastMember>
+)

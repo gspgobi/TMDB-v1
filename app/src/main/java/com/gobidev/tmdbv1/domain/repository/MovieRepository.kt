@@ -2,6 +2,7 @@ package com.gobidev.tmdbv1.domain.repository
 
 import androidx.paging.PagingData
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.util.Result
 import kotlinx.coroutines.flow.Flow
@@ -29,4 +30,12 @@ interface MovieRepository {
      * @return Result containing MovieDetails or an error
      */
     suspend fun getMovieDetails(movieId: Int): Result<MovieDetails>
+
+    /**
+     * Get cast and crew credits for a specific movie.
+     *
+     * @param movieId The ID of the movie
+     * @return Result containing MovieCredits or an error
+     */
+    suspend fun getMovieCredits(movieId: Int): Result<MovieCredits>
 }

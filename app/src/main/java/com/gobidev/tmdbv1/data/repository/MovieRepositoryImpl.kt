@@ -5,8 +5,10 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.gobidev.tmdbv1.data.paging.PopularMoviesPagingSource
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
+import com.gobidev.tmdbv1.data.remote.mapper.toMovieCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieDetails
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.repository.MovieRepository
 import com.gobidev.tmdbv1.domain.util.Result
@@ -57,6 +59,19 @@ class MovieRepositoryImpl @Inject constructor(
         return safeCall {
             val response = api.getMovieDetails(movieId)
             response.toMovieDetails()
+        }
+    }
+
+    /**
+     * Get cast and crew credits for a specific movie.
+     *
+     * Uses safeCall to wrap the API call and handle exceptions,
+     * converting them to Result.Error.
+     */
+    override suspend fun getMovieCredits(movieId: Int): Result<MovieCredits> {
+        return safeCall {
+            val response = api.getMovieCredits(movieId)
+            response.toMovieCredits()
         }
     }
 }

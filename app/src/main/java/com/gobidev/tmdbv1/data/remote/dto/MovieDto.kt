@@ -138,3 +138,65 @@ data class GenreDto(
     @SerializedName("name")
     val name: String
 )
+
+/**
+ * Data Transfer Object for movie credits API response.
+ * Contains cast and crew information.
+ */
+data class MovieCreditsDto(
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("cast")
+    val cast: List<CastMemberDto>,
+
+    @SerializedName("crew")
+    val crew: List<CrewMemberDto>?
+)
+
+/**
+ * Data Transfer Object for cast member information.
+ */
+data class CastMemberDto(
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("name")
+    val name: String,
+
+    @SerializedName("character")
+    val character: String,
+
+    @SerializedName("profile_path")
+    val profilePath: String?,
+
+    @SerializedName("order")
+    val order: Int,
+
+    @SerializedName("cast_id")
+    val castId: Int?,
+
+    @SerializedName("gender")
+    val gender: Int?
+)
+
+/**
+ * Data Transfer Object for crew member information.
+ * Not used in current implementation but included for completeness.
+ */
+data class CrewMemberDto(
+    @SerializedName("id")
+    val id: Int,
+
+    @SerializedName("name")
+    val name: String,
+
+    @SerializedName("job")
+    val job: String,
+
+    @SerializedName("department")
+    val department: String,
+
+    @SerializedName("profile_path")
+    val profilePath: String?
+)
