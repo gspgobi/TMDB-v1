@@ -55,10 +55,23 @@ data class CastMember(
 )
 
 /**
+ * Domain model for crew member information.
+ * Represents a crew member (director, writer, etc.) in a movie.
+ */
+data class CrewMember(
+    val id: Int,
+    val name: String,
+    val job: String,
+    val department: String,
+    val profileUrl: String?
+)
+
+/**
  * Domain model for movie credits (cast and crew).
- * Contains list of cast members for a movie.
+ * Contains lists of cast and crew members for a movie.
  */
 data class MovieCredits(
     val id: Int,
-    val cast: List<CastMember>
+    val cast: List<CastMember>,
+    val crew: List<CrewMember>
 )
