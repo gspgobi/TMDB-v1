@@ -1,11 +1,13 @@
 package com.gobidev.tmdbv1.data.remote.mapper
 
 import com.gobidev.tmdbv1.data.remote.dto.CastMemberDto
+import com.gobidev.tmdbv1.data.remote.dto.CrewMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieDto
 import com.gobidev.tmdbv1.domain.model.CastMember
+import com.gobidev.tmdbv1.domain.model.CrewMember
 import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieCredits
@@ -71,12 +73,13 @@ fun GenreDto.toGenre(): Genre {
 
 /**
  * Extension function to map MovieCreditsDto to domain MovieCredits model.
- * Converts cast members and constructs full profile image URLs.
+ * Converts cast and crew members and constructs full profile image URLs.
  */
 fun MovieCreditsDto.toMovieCredits(): MovieCredits {
     return MovieCredits(
         id = id,
-        cast = cast.map { it.toCastMember() }
+        cast = cast.map { it.toCastMember() },
+        crew = crew?.map { it.toCrewMember() } ?: emptyList()
     )
 }
 
@@ -93,3 +96,18 @@ fun CastMemberDto.toCastMember(): CastMember {
         order = order
     )
 }
+
+/**
+ * Extension function to map CrewMemberDto to domain CrewMember model.
+ * Constructs full profile image URL.
+ */
+fun CrewMemberDto.toCrewMember(): CrewMember {
+    return CrewMember(
+        id = id,
+        name = name,
+        job = job,
+        department = department,
+        profileUrl = profilePath?.let { "$IMAGE_BASE_URL$PROFILE_SIZE$it" }
+    )
+}
+
