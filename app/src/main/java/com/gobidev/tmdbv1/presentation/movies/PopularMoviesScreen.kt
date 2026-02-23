@@ -32,13 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
-import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
-import kotlinx.coroutines.flow.flowOf
 import java.util.Locale
 
 /**
@@ -61,18 +60,6 @@ fun PopularMoviesScreen(
 ) {
     val movies = viewModel.movies.collectAsLazyPagingItems()
 
-    PopularMoviesScreen(
-        movies = movies,
-        onMovieClick = onMovieClick
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PopularMoviesScreen(
-    movies: LazyPagingItems<Movie>,
-    onMovieClick: (Int) -> Unit
-) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -290,38 +277,44 @@ fun ErrorItem(
     }
 }
 
-@Preview
-@Composable
-private fun PopularMoviesScreenPreview() {
-    val movies = listOf(
-        Movie(
-            id = 1,
-            title = "Movie Title 1",
-            overview = "Overview for movie 1",
-            posterUrl = "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
-            backdropUrl = "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
-            releaseDate = "2023-01-01",
-            rating = 8.5,
-            voteCount = 1200
-        ),
-        Movie(
-            id = 2,
-            title = "Movie Title 2",
-            overview = "Overview for movie 2",
-            posterUrl = "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
-            backdropUrl = "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg",
-            releaseDate = "2023-02-02",
-            rating = 7.8,
-            voteCount = 800
-        )
-    )
-    val pagingData = PagingData.from(movies)
-    val lazyPagingItems = flowOf(pagingData).collectAsLazyPagingItems()
+// ==================== Previews ====================
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewMovieItem() {
     TMDBTheme {
-        PopularMoviesScreen(
-            movies = lazyPagingItems,
-            onMovieClick = {}
+        MovieItem(
+            movie = PreviewData.sampleMovie,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMovieItemList() {
+    TMDBTheme {
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(3) { index ->
+                MovieItem(
+                    movie = PreviewData.sampleMovies[index],
+                    onClick = {}
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewErrorItem() {
+    TMDBTheme {
+        ErrorItem(
+            message = "Failed to load movies. Please check your connection.",
+            onRetry = {}
         )
     }
 }

@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -45,10 +46,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.CastMember
-import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.MovieDetails
-import com.gobidev.tmdbv1.presentation.util.MovieCastUiState
-import com.gobidev.tmdbv1.presentation.util.MovieDetailsUiState
+import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
 
@@ -64,26 +63,19 @@ import java.util.Locale
  * - Loading and error states
  *
  * @param onBackClick Callback when back button is clicked
+ * @param onViewFullCastClick Callback when "View Full Cast & Crew" button is clicked
  * @param viewModel ViewModel provided by Hilt
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailsScreen(
     onBackClick: () -> Unit,
+    onViewFullCastClick: (movieId: Int, movieTitle: String) -> Unit,
     viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val castState by viewModel.castState.collectAsStateWithLifecycle()
-    MovieDetailsScreen(uiState = uiState, castState = castState, onBackClick = onBackClick)
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MovieDetailsScreen(
-    uiState: MovieDetailsUiState,
-    castState: MovieCastUiState,
-    onBackClick: () -> Unit
-) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -119,6 +111,9 @@ fun MovieDetailsScreen(
                 MovieDetailsContent(
                     movie = state.movie,
                     castState = castState,
+                    onViewFullCastClick = {
+                        onViewFullCastClick(state.movie.id, state.movie.title)
+                    },
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -154,6 +149,7 @@ fun MovieDetailsScreen(
 fun MovieDetailsContent(
     movie: MovieDetails,
     castState: MovieCastUiState,
+    onViewFullCastClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -292,7 +288,10 @@ fun MovieDetailsContent(
             }
 
             // Cast Section
-            CastSection(castState = castState)
+            CastSection(
+                castState = castState,
+                onViewFullCastClick = onViewFullCastClick
+            )
         }
     }
 }
@@ -328,6 +327,7 @@ fun InfoRow(
 @Composable
 fun CastSection(
     castState: MovieCastUiState,
+    onViewFullCastClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -350,10 +350,19 @@ fun CastSection(
 
             is MovieCastUiState.Success -> {
                 if (castState.cast.isNotEmpty()) {
-                    Text(
-                        text = "Cast",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Cast",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        TextButton(onClick = onViewFullCastClick) {
+                            Text("View Full Cast & Crew")
+                        }
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -377,10 +386,6 @@ fun CastSection(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
                 )
-            }
-
-            is MovieCastUiState.Idle -> {
-                // Don't show anything in idle state
             }
         }
     }
@@ -451,58 +456,59 @@ fun CastMemberItem(
     }
 }
 
+// ==================== Previews ====================
+
 @Preview(showBackground = true)
 @Composable
-fun MovieDetailsScreenPreview() {
-    val sampleMovie = MovieDetails(
-        id = 1,
-        title = "Sample Movie Title",
-        overview = "This is a sample movie overview. It's a great movie, you should watch it.",
-        posterUrl = "https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgE2Ellis.jpg",
-        backdropUrl = "https://image.tmdb.org/t/p/w1280/5a4JdoFwll5DRtKMe7JLuGQ9yJm.jpg",
-        rating = 7.8,
-        voteCount = 1234,
-        releaseDate = "2023-10-26",
-        runtime = 120,
-        tagline = "An epic sample movie.",
-        status = "Released",
-        genres = listOf(
-            Genre(1, "Action"),
-            Genre(2, "Adventure"),
-            Genre(1, "Action"),
-            Genre(2, "Adventure"),
-            Genre(1, "Action"),
-            Genre(2, "Adventure"),
-        )
-    )
-    val sampleCast = listOf(
-        CastMember(
-            id = 1,
-            name = "Dwayne Johnson",
-            character = "Black Adam",
-            profileUrl = "https://image.tmdb.org/t/p/w185/cgoy7tU1f0YlJ7ADEjR4sFweI2b.jpg",
-            order = 1
-        ),
-        CastMember(
-            id = 2,
-            name = "Sarah Shahi",
-            character = "Adrianna Tomaz",
-            profileUrl = "https://image.tmdb.org/t/p/w185/fIra32G1SUn4S83G2H7l8T25a2.jpg",
-            order = 2
-        ),
-        CastMember(
-            id = 3,
-            name = "Pierce Brosnan",
-            character = "Dr. Fate",
-            profileUrl = "https://image.tmdb.org/t/p/w185/d8sQ1jmv2iQ5cN2sFmrI2Iwnc6C.jpg",
-            order = 3
-        )
-    )
+fun PreviewMovieDetailsContent() {
     TMDBTheme {
-        MovieDetailsScreen(
-            uiState = MovieDetailsUiState.Success(sampleMovie),
-            castState = MovieCastUiState.Success(sampleCast),
-            onBackClick = {}
+        MovieDetailsContent(
+            movie = PreviewData.sampleMovieDetails,
+            castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+            onViewFullCastClick = {}
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMovieDetailsContentLoading() {
+    TMDBTheme {
+        MovieDetailsContent(
+            movie = PreviewData.sampleMovieDetails,
+            castState = MovieCastUiState.Loading,
+            onViewFullCastClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewCastMemberItem() {
+    TMDBTheme {
+        CastMemberItem(castMember = PreviewData.sampleCastMembers[0])
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewCastMemberItemNoImage() {
+    TMDBTheme {
+        CastMemberItem(castMember = PreviewData.sampleCastMembers[3])
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360)
+@Composable
+fun PreviewCastSection() {
+    TMDBTheme {
+        Surface {
+            Column(modifier = Modifier.padding(16.dp)) {
+                CastSection(
+                    castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+                    onViewFullCastClick = {}
+                )
+            }
+        }
     }
 }
