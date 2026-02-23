@@ -3,6 +3,7 @@ package com.gobidev.tmdbv1.presentation.details
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +49,7 @@ import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
+import java.util.Locale
 
 /**
  * Movie Details Screen - displays detailed information about a movie.
@@ -229,7 +231,13 @@ fun MovieDetailsContent(
                     // Rating
                     InfoRow(
                         label = "Rating",
-                        value = "⭐ ${String.format("%.1f", movie.rating)} (${movie.voteCount})"
+                        value = "⭐ ${
+                            String.format(
+                                Locale.getDefault(),
+                                "%.1f",
+                                movie.rating
+                            )
+                        } (${movie.voteCount})"
                     )
 
                     // Status
@@ -251,7 +259,7 @@ fun MovieDetailsContent(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
