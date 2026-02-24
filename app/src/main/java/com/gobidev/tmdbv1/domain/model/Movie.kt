@@ -75,3 +75,18 @@ data class MovieCredits(
     val cast: List<CastMember>,
     val crew: List<CrewMember>
 )
+
+/**
+ * Domain model for movie review.
+ * Represents a user review from TMDB.
+ */
+data class Review(
+    val id: String,
+    val author: String,
+    val authorUsername: String,
+    val authorAvatarUrl: String?,
+    val content: String,
+    val rating: Double?,
+    val createdAt: String,
+    val updatedAt: String
+)
