@@ -72,7 +72,7 @@ data class MovieDto(
  * Data Transfer Object for movie details API response.
  * Contains additional fields not present in the list response.
  */
-data class MovieDetailsDto(
+data class MovieDetailsResponse(
     @SerializedName("id")
     val id: Int,
 
@@ -143,7 +143,7 @@ data class GenreDto(
  * Data Transfer Object for movie credits API response.
  * Contains cast and crew information.
  */
-data class MovieCreditsDto(
+data class MovieCreditsResponse(
     @SerializedName("id")
     val id: Int,
 

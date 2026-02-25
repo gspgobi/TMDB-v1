@@ -3,8 +3,8 @@ package com.gobidev.tmdbv1.data.remote.mapper
 import com.gobidev.tmdbv1.data.remote.dto.CastMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.CrewMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
-import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsDto
-import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsDto
+import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
+import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDto
 import com.gobidev.tmdbv1.data.remote.dto.ReviewDto
 import com.gobidev.tmdbv1.domain.model.CastMember
@@ -46,7 +46,7 @@ fun MovieDto.toMovie(): Movie {
  * Extension function to map MovieDetailsDto to domain MovieDetails model.
  * Includes genre mapping and additional fields specific to details view.
  */
-fun MovieDetailsDto.toMovieDetails(): MovieDetails {
+fun MovieDetailsResponse.toMovieDetails(): MovieDetails {
     return MovieDetails(
         id = id,
         title = title,
@@ -77,7 +77,7 @@ fun GenreDto.toGenre(): Genre {
  * Extension function to map MovieCreditsDto to domain MovieCredits model.
  * Converts cast and crew members and constructs full profile image URLs.
  */
-fun MovieCreditsDto.toMovieCredits(): MovieCredits {
+fun MovieCreditsResponse.toMovieCredits(): MovieCredits {
     return MovieCredits(
         id = id,
         cast = cast.map { it.toCastMember() },

@@ -1,7 +1,7 @@
 package com.gobidev.tmdbv1.data.remote.api
 
-import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsDto
-import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsDto
+import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
+import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieReviewsResponse
 import com.gobidev.tmdbv1.data.remote.dto.PopularMoviesResponse
 import retrofit2.http.GET
@@ -40,7 +40,7 @@ interface TMDBApiService {
     suspend fun getMovieDetails(
         @Path("movie_id") movieId: Int,
         @Query("language") language: String = "en-US"
-    ): MovieDetailsDto
+    ): MovieDetailsResponse
 
     /**
      * Fetch cast and crew credits for a specific movie.
@@ -53,7 +53,7 @@ interface TMDBApiService {
     suspend fun getMovieCredits(
         @Path("movie_id") movieId: Int,
         @Query("language") language: String = "en-US"
-    ): MovieCreditsDto
+    ): MovieCreditsResponse
 
     /**
      * Fetch user reviews for a specific movie with pagination.
