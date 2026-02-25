@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.Review
+import com.gobidev.tmdbv1.domain.usecase.GetLatestReviewUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieDetailsUseCase
 import com.gobidev.tmdbv1.domain.util.Result
@@ -24,43 +26,22 @@ import javax.inject.Inject
  * - Composable-friendly: Works well with Compose's recomposition
  */
 sealed class MovieDetailsUiState {
-    /**
-     * Initial state or when loading data.
-     */
     data object Loading : MovieDetailsUiState()
-
-    /**
-     * Successfully loaded movie details.
-     */
     data class Success(val movie: MovieDetails) : MovieDetailsUiState()
-
-    /**
-     * An error occurred while loading.
-     */
     data class Error(val message: String) : MovieDetailsUiState()
 }
 
-/**
- * Sealed class representing the UI state for movie cast.
- *
- * Separate from MovieDetailsUiState to allow independent loading states
- * for movie details and cast information.
- */
 sealed class MovieCastUiState {
-    /**
-     * Initial state or when loading cast data.
-     */
     data object Loading : MovieCastUiState()
-
-    /**
-     * Successfully loaded cast members.
-     */
     data class Success(val cast: List<CastMember>) : MovieCastUiState()
-
-    /**
-     * An error occurred while loading cast.
-     */
     data class Error(val message: String) : MovieCastUiState()
+}
+
+sealed class MovieReviewUiState {
+    data object Loading : MovieReviewUiState()
+    data class Success(val review: Review) : MovieReviewUiState()
+    data object NoReviews : MovieReviewUiState()
+    data class Error(val message: String) : MovieReviewUiState()
 }
 
 /**
@@ -82,38 +63,30 @@ sealed class MovieCastUiState {
 class MovieDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getMovieDetailsUseCase: GetMovieDetailsUseCase,
-    private val getMovieCreditsUseCase: GetMovieCreditsUseCase
+    private val getMovieCreditsUseCase: GetMovieCreditsUseCase,
+    private val getLatestReviewUseCase: GetLatestReviewUseCase
 ) : ViewModel() {
 
-    // StateFlow for movie details UI state
     private val _uiState = MutableStateFlow<MovieDetailsUiState>(MovieDetailsUiState.Loading)
     val uiState: StateFlow<MovieDetailsUiState> = _uiState.asStateFlow()
 
-    // StateFlow for cast UI state
     private val _castState = MutableStateFlow<MovieCastUiState>(MovieCastUiState.Loading)
     val castState: StateFlow<MovieCastUiState> = _castState.asStateFlow()
 
+    private val _reviewState = MutableStateFlow<MovieReviewUiState>(MovieReviewUiState.Loading)
+    val reviewState: StateFlow<MovieReviewUiState> = _reviewState.asStateFlow()
+
     init {
-        // Get movieId from navigation arguments
         val movieId = savedStateHandle.get<Int>("movieId") ?: -1
         if (movieId != -1) {
             loadMovieDetails(movieId)
             loadMovieCredits(movieId)
+            loadLatestReview(movieId)  // ADD THIS
         } else {
             _uiState.value = MovieDetailsUiState.Error("Invalid movie ID")
         }
     }
 
-    /**
-     * Load movie details by ID.
-     *
-     * Updates UI state based on the result:
-     * - Loading: Initial state while fetching
-     * - Success: Movie details loaded successfully
-     * - Error: Failed to load, with error message
-     *
-     * @param movieId The ID of the movie to load
-     */
     private fun loadMovieDetails(movieId: Int) {
         viewModelScope.launch {
             _uiState.value = MovieDetailsUiState.Loading
@@ -130,14 +103,6 @@ class MovieDetailsViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Load movie cast and crew credits by ID.
-     *
-     * Updates cast UI state based on the result.
-     * Loads independently from movie details to allow parallel loading.
-     *
-     * @param movieId The ID of the movie to load credits for
-     */
     private fun loadMovieCredits(movieId: Int) {
         viewModelScope.launch {
             _castState.value = MovieCastUiState.Loading
@@ -153,6 +118,26 @@ class MovieDetailsViewModel @Inject constructor(
 
                 is Result.Error -> {
                     _castState.value = MovieCastUiState.Error(result.message)
+                }
+            }
+        }
+    }
+
+    private fun loadLatestReview(movieId: Int) {
+        viewModelScope.launch {
+            _reviewState.value = MovieReviewUiState.Loading
+
+            when (val result = getLatestReviewUseCase(movieId)) {
+                is Result.Success -> {
+                    if (result.data != null) {
+                        _reviewState.value = MovieReviewUiState.Success(result.data)
+                    } else {
+                        _reviewState.value = MovieReviewUiState.NoReviews
+                    }
+                }
+
+                is Result.Error -> {
+                    _reviewState.value = MovieReviewUiState.Error(result.message)
                 }
             }
         }
