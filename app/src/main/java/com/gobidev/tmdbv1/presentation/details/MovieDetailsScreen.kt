@@ -385,7 +385,7 @@ fun CastSection(
                             style = MaterialTheme.typography.titleMedium
                         )
                         TextButton(onClick = onViewFullCastClick) {
-                            Text("View Full Cast & Crew")
+                            Text("Full Cast & Crew")
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -487,7 +487,7 @@ fun ReviewSection(
     onViewAllReviewsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.padding(16.dp)) {
+    Column(modifier = modifier) {
         when (reviewState) {
             is MovieReviewUiState.Loading -> {
                 Text("Reviews", style = MaterialTheme.typography.titleMedium)
@@ -521,7 +521,16 @@ fun ReviewSection(
             }
 
             is MovieReviewUiState.Error -> {
-                // Silently fail - don't show error for reviews
+                Text(
+                    text = "Reviews",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Unable to load reviews",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
