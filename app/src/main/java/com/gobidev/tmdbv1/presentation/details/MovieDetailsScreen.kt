@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
@@ -71,10 +76,13 @@ import java.util.Locale
 fun MovieDetailsScreen(
     onBackClick: () -> Unit,
     onViewFullCastClick: (movieId: Int, movieTitle: String) -> Unit,
+    onViewAllReviewsClick: (movieId: Int, movieTitle: String) -> Unit,
     viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val castState by viewModel.castState.collectAsStateWithLifecycle()
+    val reviewState by viewModel.reviewState.collectAsStateWithLifecycle()
+
 
     Scaffold(
         topBar = {
@@ -111,8 +119,15 @@ fun MovieDetailsScreen(
                 MovieDetailsContent(
                     movie = state.movie,
                     castState = castState,
+                    reviewState = reviewState,
                     onViewFullCastClick = {
                         onViewFullCastClick(state.movie.id, state.movie.title)
+                    },
+                    onViewAllReviewsClick = {
+                        onViewAllReviewsClick(
+                            state.movie.id,
+                            state.movie.title
+                        )
                     },
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -149,7 +164,9 @@ fun MovieDetailsScreen(
 fun MovieDetailsContent(
     movie: MovieDetails,
     castState: MovieCastUiState,
+    reviewState: MovieReviewUiState,
     onViewFullCastClick: () -> Unit,
+    onViewAllReviewsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -208,7 +225,7 @@ fun MovieDetailsContent(
                                 text = tagline,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                fontStyle = FontStyle.Italic
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                         }
@@ -291,6 +308,14 @@ fun MovieDetailsContent(
             CastSection(
                 castState = castState,
                 onViewFullCastClick = onViewFullCastClick
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Review Section
+            ReviewSection(
+                reviewState = reviewState,
+                onViewAllReviewsClick = onViewAllReviewsClick
             )
         }
     }
@@ -456,7 +481,143 @@ fun CastMemberItem(
     }
 }
 
+@Composable
+fun ReviewSection(
+    reviewState: MovieReviewUiState,
+    onViewAllReviewsClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.padding(16.dp)) {
+        when (reviewState) {
+            is MovieReviewUiState.Loading -> {
+                Text("Reviews", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            }
+
+            is MovieReviewUiState.Success -> {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Reviews", style = MaterialTheme.typography.titleMedium)
+                    TextButton(onClick = onViewAllReviewsClick) {
+                        Text("Read All Reviews")
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                ReviewCard(review = reviewState.review)
+            }
+
+            is MovieReviewUiState.NoReviews -> {
+                Text("Reviews", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "No reviews yet",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            is MovieReviewUiState.Error -> {
+                // Silently fail - don't show error for reviews
+            }
+        }
+    }
+}
+
+@Composable
+fun ReviewCard(
+    review: Review,
+    isExpanded: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Author row
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (review.authorAvatarUrl != null) {
+                    AsyncImage(
+                        model = review.authorAvatarUrl,
+                        contentDescription = review.author,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = review.author,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    review.rating?.let { rating ->
+                        Text(
+                            text = "⭐ ${String.format(Locale.getDefault(), "%.1f", rating)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Review content
+            Text(
+                text = review.content,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = if (isExpanded) Int.MAX_VALUE else 4,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
 // ==================== Previews ====================
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PreviewMovieDetailsScreen() {
+    TMDBTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Movie Details") },
+                    navigationIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        ) { paddingValues ->
+            MovieDetailsContent(
+                movie = PreviewData.sampleMovieDetails,
+                castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+                reviewState = MovieReviewUiState.Success(PreviewData.sampleReview),
+                onViewFullCastClick = {},
+                onViewAllReviewsClick = {},
+                modifier = Modifier.padding(paddingValues),
+            )
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -465,7 +626,9 @@ fun PreviewMovieDetailsContent() {
         MovieDetailsContent(
             movie = PreviewData.sampleMovieDetails,
             castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
-            onViewFullCastClick = {}
+            reviewState = MovieReviewUiState.Success(PreviewData.sampleReview),
+            onViewFullCastClick = {},
+            onViewAllReviewsClick = {},
         )
     }
 }
@@ -477,7 +640,23 @@ fun PreviewMovieDetailsContentLoading() {
         MovieDetailsContent(
             movie = PreviewData.sampleMovieDetails,
             castState = MovieCastUiState.Loading,
-            onViewFullCastClick = {}
+            reviewState = MovieReviewUiState.Loading,
+            onViewFullCastClick = {},
+            onViewAllReviewsClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMovieDetailsContentError() {
+    TMDBTheme {
+        MovieDetailsContent(
+            movie = PreviewData.sampleMovieDetails,
+            castState = MovieCastUiState.Error("Failed to load cast"),
+            reviewState = MovieReviewUiState.Error("Failed to load reviews"),
+            onViewFullCastClick = {},
+            onViewAllReviewsClick = {},
         )
     }
 }
@@ -508,6 +687,35 @@ fun PreviewCastSection() {
                     castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
                     onViewFullCastClick = {}
                 )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360)
+@Composable
+fun PreviewCastSectionLoading() {
+    TMDBTheme {
+        Surface {
+            Column(modifier = Modifier.padding(16.dp)) {
+                CastSection(
+                    castState = MovieCastUiState.Loading,
+                    onViewFullCastClick = {}
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewInfoRow() {
+    TMDBTheme {
+        Surface {
+            Column(modifier = Modifier.padding(16.dp)) {
+                InfoRow(label = "Release", value = "1999-10-15")
+                InfoRow(label = "Runtime", value = "139 min")
+                InfoRow(label = "Rating", value = "⭐ 8.4 (26280)")
             }
         }
     }
