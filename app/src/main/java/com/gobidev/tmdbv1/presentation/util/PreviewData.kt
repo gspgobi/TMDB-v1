@@ -5,6 +5,7 @@ import com.gobidev.tmdbv1.domain.model.CrewMember
 import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.Review
 
 /**
  * Sample data for Compose previews.
@@ -158,5 +159,16 @@ object PreviewData {
             rating = 8.5,
             voteCount = 30500
         )
+    )
+
+    val sampleReview = Review(
+        id = "5b3e1ba1925141144c007f17",
+        author = "Brett Pascoe",
+        authorUsername = "SneekyNuts",
+        authorAvatarUrl = "https://secure.gravatar.com/avatar/04d45e186650672a416315dac947b3d6.jpg",
+        content = "In my top 5 of all time favourite movies. Great story line and a movie you can watch over and over again.",
+        rating = 9.0,
+        createdAt = "2018-07-05T13:22:41.754Z",
+        updatedAt = "2021-06-23T15:58:10.199Z"
     )
 }
