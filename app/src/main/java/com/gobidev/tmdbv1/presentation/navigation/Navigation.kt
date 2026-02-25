@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.gobidev.tmdbv1.presentation.castcrew.FullCastCrewScreen
 import com.gobidev.tmdbv1.presentation.details.MovieDetailsScreen
 import com.gobidev.tmdbv1.presentation.movies.PopularMoviesScreen
+import com.gobidev.tmdbv1.presentation.reviews.MovieReviewsScreen
 
 /**
  * Sealed class defining navigation routes in the app.
@@ -17,22 +18,36 @@ import com.gobidev.tmdbv1.presentation.movies.PopularMoviesScreen
  * when navigating between screens.
  */
 sealed class Screen(val route: String) {
-    data object PopularMovies : Screen("popular_movies")
+    /**
+     * Popular Movies screen.
+     */
+    data object PopularMoviesScreen : Screen("movie/popular")
 
-    data object MovieDetails : Screen("movie_details/{movieId}") {
-        fun createRoute(movieId: Int) = "movie_details/$movieId"
+    /**
+     * Movie Details screen.
+     */
+    data object MovieDetailsScreen : Screen("movie/{movieId}") {
+        fun createRoute(movieId: Int) = "movie/$movieId"
     }
 
     /**
-     * Full Cast & Crew screen - nested under movie details.
+     * Movie Cast & Crew screen.
      * Uses query parameter for movie title to avoid URL encoding issues.
-     *
-     * Query parameters automatically handle special characters like '/', '&', etc.
      */
-    data object FullCastCrew : Screen("movie_details/{movieId}/full_cast_crew?movieTitle={movieTitle}") {
+    data object MovieCastScreen : Screen("movie/{movieId}/cast?movieTitle={movieTitle}") {
         fun createRoute(movieId: Int, movieTitle: String): String {
             // No URL encoding needed - query parameters handle special characters automatically
-            return "movie_details/$movieId/full_cast_crew?movieTitle=$movieTitle"
+            return "movie/$movieId/cast?movieTitle=$movieTitle"
+        }
+    }
+
+    /**
+     * Movie Reviews screen - shows all reviews for a movie with pagination.
+     * Uses query parameter for movie title.
+     */
+    data object MovieReviewsScreen : Screen("movie/{movieId}/reviews?movieTitle={movieTitle}") {
+        fun createRoute(movieId: Int, movieTitle: String): String {
+            return "movie/$movieId/reviews?movieTitle=$movieTitle"
         }
     }
 }
@@ -51,20 +66,20 @@ fun TMDBNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.PopularMovies.route
+        startDestination = Screen.PopularMoviesScreen.route
     ) {
         // Popular Movies Screen
-        composable(route = Screen.PopularMovies.route) {
+        composable(route = Screen.PopularMoviesScreen.route) {
             PopularMoviesScreen(
                 onMovieClick = { movieId ->
-                    navController.navigate(Screen.MovieDetails.createRoute(movieId))
+                    navController.navigate(Screen.MovieDetailsScreen.createRoute(movieId))
                 }
             )
         }
 
         // Movie Details Screen
         composable(
-            route = Screen.MovieDetails.route,
+            route = Screen.MovieDetailsScreen.route,
             arguments = listOf(
                 navArgument("movieId") {
                     type = NavType.IntType
@@ -76,14 +91,22 @@ fun TMDBNavGraph(
                     navController.popBackStack()
                 },
                 onViewFullCastClick = { movieId, movieTitle ->
-                    navController.navigate(Screen.FullCastCrew.createRoute(movieId, movieTitle))
+                    navController.navigate(Screen.MovieCastScreen.createRoute(movieId, movieTitle))
+                },
+                onViewAllReviewsClick = { movieId, movieTitle ->
+                    navController.navigate(
+                        Screen.MovieReviewsScreen.createRoute(
+                            movieId,
+                            movieTitle
+                        )
+                    )
                 }
             )
         }
 
-        // Full Cast & Crew Screen - nested under movie details
+        // Movie Cast & Crew Screen
         composable(
-            route = Screen.FullCastCrew.route,
+            route = Screen.MovieCastScreen.route,
             arguments = listOf(
                 navArgument("movieId") {
                     type = NavType.IntType
@@ -96,6 +119,27 @@ fun TMDBNavGraph(
             )
         ) {
             FullCastCrewScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Movie Reviews Screen
+        composable(
+            route = Screen.MovieReviewsScreen.route,
+            arguments = listOf(
+                navArgument("movieId") {
+                    type = NavType.IntType
+                },
+                navArgument("movieTitle") {
+                    type = NavType.StringType
+                    nullable = false
+                    defaultValue = "Movie"
+                }
+            )
+        ) {
+            MovieReviewsScreen(
                 onBackClick = {
                     navController.popBackStack()
                 }
