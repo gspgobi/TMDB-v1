@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.util.Result
 import kotlinx.coroutines.flow.Flow
 
@@ -38,4 +39,20 @@ interface MovieRepository {
      * @return Result containing MovieCredits or an error
      */
     suspend fun getMovieCredits(movieId: Int): Result<MovieCredits>
+
+    /**
+     * Get a single review for a movie (latest review).
+     *
+     * @param movieId The ID of the movie
+     * @return Result containing a Review or an error
+     */
+    suspend fun getLatestReview(movieId: Int): Result<Review?>
+
+    /**
+     * Get a flow of paginated reviews for a movie.
+     *
+     * @param movieId The ID of the movie
+     * @return Flow emitting PagingData of reviews
+     */
+    fun getMovieReviews(movieId: Int): Flow<PagingData<Review>>
 }

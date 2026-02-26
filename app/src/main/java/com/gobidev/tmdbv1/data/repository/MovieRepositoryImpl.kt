@@ -3,13 +3,16 @@ package com.gobidev.tmdbv1.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.gobidev.tmdbv1.data.paging.MovieReviewsPagingSource
 import com.gobidev.tmdbv1.data.paging.PopularMoviesPagingSource
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieDetails
+import com.gobidev.tmdbv1.data.remote.mapper.toReview
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.repository.MovieRepository
 import com.gobidev.tmdbv1.domain.util.Result
 import com.gobidev.tmdbv1.domain.util.safeCall
@@ -73,5 +76,31 @@ class MovieRepositoryImpl @Inject constructor(
             val response = api.getMovieCredits(movieId)
             response.toMovieCredits()
         }
+    }
+
+    /**
+     * Get the latest review for a movie (first review from page 1).
+     *
+     * Returns null if no reviews exist.
+     */
+    override suspend fun getLatestReview(movieId: Int): Result<Review?> {
+        return safeCall {
+            val response = api.getMovieReviews(movieId = movieId, page = 1)
+            response.results.firstOrNull()?.toReview()
+        }
+    }
+
+    /**
+     * Get a flow of paginated reviews for a movie using Paging 3.
+     */
+    override fun getMovieReviews(movieId: Int): Flow<PagingData<Review>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                prefetchDistance = 5,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { MovieReviewsPagingSource(api, movieId) }
+        ).flow
     }
 }

@@ -3,15 +3,17 @@ package com.gobidev.tmdbv1.data.remote.mapper
 import com.gobidev.tmdbv1.data.remote.dto.CastMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.CrewMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
-import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsDto
-import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsDto
+import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
+import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDto
+import com.gobidev.tmdbv1.data.remote.dto.ReviewDto
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.CrewMember
 import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.Review
 
 /**
  * Base URL for TMDB images.
@@ -44,7 +46,7 @@ fun MovieDto.toMovie(): Movie {
  * Extension function to map MovieDetailsDto to domain MovieDetails model.
  * Includes genre mapping and additional fields specific to details view.
  */
-fun MovieDetailsDto.toMovieDetails(): MovieDetails {
+fun MovieDetailsResponse.toMovieDetails(): MovieDetails {
     return MovieDetails(
         id = id,
         title = title,
@@ -75,7 +77,7 @@ fun GenreDto.toGenre(): Genre {
  * Extension function to map MovieCreditsDto to domain MovieCredits model.
  * Converts cast and crew members and constructs full profile image URLs.
  */
-fun MovieCreditsDto.toMovieCredits(): MovieCredits {
+fun MovieCreditsResponse.toMovieCredits(): MovieCredits {
     return MovieCredits(
         id = id,
         cast = cast.map { it.toCastMember() },
@@ -111,3 +113,39 @@ fun CrewMemberDto.toCrewMember(): CrewMember {
     )
 }
 
+/**
+ * Extension function to map ReviewDto to domain Review model.
+ * Handles avatar URL construction and rating extraction.
+ */
+fun ReviewDto.toReview(): Review {
+    // TMDB avatar paths can be:
+    // 1. Null
+    // 2. A relative path like "/abc.jpg"
+    // 3. A full Gravatar URL like "https://secure.gravatar.com/..."
+    val avatarUrl = authorDetails.avatarPath?.let { path ->
+        when {
+            path.startsWith("http") -> path // Already full URL
+            path.startsWith("/") && path.length > 1 -> {
+                // Remove leading slash and check if it's a Gravatar hash
+                val cleanPath = path.substring(1)
+                if (cleanPath.startsWith("https")) {
+                    cleanPath // Gravatar URL without leading slash
+                } else {
+                    "$IMAGE_BASE_URL$PROFILE_SIZE$path" // TMDB image
+                }
+            }
+            else -> null
+        }
+    }
+
+    return Review(
+        id = id,
+        author = author,
+        authorUsername = authorDetails.username ?: authorDetails.name ?: author,
+        authorAvatarUrl = avatarUrl,
+        content = content,
+        rating = authorDetails.rating,
+        createdAt = createdAt,
+        updatedAt = updatedAt
+    )
+}
