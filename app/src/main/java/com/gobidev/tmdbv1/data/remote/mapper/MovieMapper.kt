@@ -11,6 +11,7 @@ import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.CrewMember
 import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.domain.util.toFormattedDate
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.Review
@@ -36,7 +37,7 @@ fun MovieDto.toMovie(): Movie {
         overview = overview ?: "",
         posterUrl = posterPath?.let { "$IMAGE_BASE_URL$POSTER_SIZE$it" },
         backdropUrl = backdropPath?.let { "$IMAGE_BASE_URL$BACKDROP_SIZE$it" },
-        releaseDate = releaseDate ?: "Unknown",
+        releaseDate = releaseDate?.toFormattedDate() ?: "Unknown",
         rating = voteAverage,
         voteCount = voteCount
     )
@@ -53,7 +54,7 @@ fun MovieDetailsResponse.toMovieDetails(): MovieDetails {
         overview = overview ?: "",
         posterUrl = posterPath?.let { "$IMAGE_BASE_URL$POSTER_SIZE$it" },
         backdropUrl = backdropPath?.let { "$IMAGE_BASE_URL$BACKDROP_SIZE$it" },
-        releaseDate = releaseDate ?: "Unknown",
+        releaseDate = releaseDate?.toFormattedDate() ?: "Unknown",
         rating = voteAverage,
         voteCount = voteCount,
         runtime = runtime,
