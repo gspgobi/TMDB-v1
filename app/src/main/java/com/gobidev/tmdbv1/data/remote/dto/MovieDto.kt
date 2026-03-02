@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName
  * Data Transfer Object for popular movies API response.
  * Matches the exact structure returned by TMDB API.
  */
-data class PopularMoviesResponse(
+data class MovieListPagedResponse(
     @SerializedName("page")
     val page: Int,
 
@@ -204,7 +204,7 @@ data class CrewMemberDto(
 /**
  * Data Transfer Object for movie reviews API response.
  */
-data class MovieReviewsResponse(
+data class MovieReviewsPagedResponse(
     @SerializedName("id")
     val id: Int,
 

@@ -6,9 +6,10 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.presentation.castcrew.FullCastCrewScreen
 import com.gobidev.tmdbv1.presentation.details.MovieDetailsScreen
-import com.gobidev.tmdbv1.presentation.movies.PopularMoviesScreen
+import com.gobidev.tmdbv1.presentation.movielisting.MovieListingScreen
 import com.gobidev.tmdbv1.presentation.reviews.MovieReviewsScreen
 
 /**
@@ -19,14 +20,16 @@ import com.gobidev.tmdbv1.presentation.reviews.MovieReviewsScreen
  */
 sealed class Screen(val route: String) {
     /**
-     * Popular Movies screen.
+     * Movie Listing screen — reusable for popular, now_playing, top_rated, upcoming.
      */
-    data object PopularMoviesScreen : Screen("movie/popular")
+    data object MovieListingNav : Screen("movies?listType={listType}") {
+        fun createRoute(listType: MovieListType) = "movies?listType=${listType.routeKey}"
+    }
 
     /**
      * Movie Details screen.
      */
-    data object MovieDetailsScreen : Screen("movie/{movieId}") {
+    data object MovieDetailsNav : Screen("movie/{movieId}") {
         fun createRoute(movieId: Int) = "movie/$movieId"
     }
 
@@ -34,7 +37,7 @@ sealed class Screen(val route: String) {
      * Movie Cast & Crew screen.
      * Uses query parameter for movie title to avoid URL encoding issues.
      */
-    data object MovieCastScreen : Screen("movie/{movieId}/cast?movieTitle={movieTitle}") {
+    data object MovieCastNav : Screen("movie/{movieId}/cast?movieTitle={movieTitle}") {
         fun createRoute(movieId: Int, movieTitle: String): String {
             // No URL encoding needed - query parameters handle special characters automatically
             return "movie/$movieId/cast?movieTitle=$movieTitle"
@@ -45,7 +48,7 @@ sealed class Screen(val route: String) {
      * Movie Reviews screen - shows all reviews for a movie with pagination.
      * Uses query parameter for movie title.
      */
-    data object MovieReviewsScreen : Screen("movie/{movieId}/reviews?movieTitle={movieTitle}") {
+    data object MovieReviewsNav : Screen("movie/{movieId}/reviews?movieTitle={movieTitle}") {
         fun createRoute(movieId: Int, movieTitle: String): String {
             return "movie/$movieId/reviews?movieTitle=$movieTitle"
         }
@@ -66,20 +69,29 @@ fun TMDBNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.PopularMoviesScreen.route
+        startDestination = Screen.MovieListingNav.createRoute(MovieListType.POPULAR)
     ) {
-        // Popular Movies Screen
-        composable(route = Screen.PopularMoviesScreen.route) {
-            PopularMoviesScreen(
+        // Movie Listing Screen — handles popular, now_playing, top_rated, upcoming
+        composable(
+            route = Screen.MovieListingNav.route,
+            arguments = listOf(
+                navArgument("listType") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = MovieListType.POPULAR.routeKey
+                }
+            )
+        ) {
+            MovieListingScreen(
                 onMovieClick = { movieId ->
-                    navController.navigate(Screen.MovieDetailsScreen.createRoute(movieId))
+                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
                 }
             )
         }
 
         // Movie Details Screen
         composable(
-            route = Screen.MovieDetailsScreen.route,
+            route = Screen.MovieDetailsNav.route,
             arguments = listOf(
                 navArgument("movieId") {
                     type = NavType.IntType
@@ -91,11 +103,11 @@ fun TMDBNavGraph(
                     navController.popBackStack()
                 },
                 onViewFullCastClick = { movieId, movieTitle ->
-                    navController.navigate(Screen.MovieCastScreen.createRoute(movieId, movieTitle))
+                    navController.navigate(Screen.MovieCastNav.createRoute(movieId, movieTitle))
                 },
                 onViewAllReviewsClick = { movieId, movieTitle ->
                     navController.navigate(
-                        Screen.MovieReviewsScreen.createRoute(
+                        Screen.MovieReviewsNav.createRoute(
                             movieId,
                             movieTitle
                         )
@@ -106,7 +118,7 @@ fun TMDBNavGraph(
 
         // Movie Cast & Crew Screen
         composable(
-            route = Screen.MovieCastScreen.route,
+            route = Screen.MovieCastNav.route,
             arguments = listOf(
                 navArgument("movieId") {
                     type = NavType.IntType
@@ -127,7 +139,7 @@ fun TMDBNavGraph(
 
         // Movie Reviews Screen
         composable(
-            route = Screen.MovieReviewsScreen.route,
+            route = Screen.MovieReviewsNav.route,
             arguments = listOf(
                 navArgument("movieId") {
                     type = NavType.IntType

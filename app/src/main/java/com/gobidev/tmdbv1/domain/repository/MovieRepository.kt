@@ -4,6 +4,8 @@ import androidx.paging.PagingData
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.MovieFilterState
+import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.util.Result
 import kotlinx.coroutines.flow.Flow
@@ -18,11 +20,14 @@ import kotlinx.coroutines.flow.Flow
 interface MovieRepository {
 
     /**
-     * Get a flow of paginated popular movies.
+     * Get a flow of paginated movies for the given list type and filter state.
+     * Routes to the discover endpoint when filters or a non-default sort are active.
      *
+     * @param type The list type (popular, now_playing, top_rated, upcoming)
+     * @param filters Active filter and sort selections
      * @return Flow emitting PagingData of movies
      */
-    fun getPopularMovies(): Flow<PagingData<Movie>>
+    fun getMovieList(type: MovieListType, filters: MovieFilterState): Flow<PagingData<Movie>>
 
     /**
      * Get detailed information for a specific movie.

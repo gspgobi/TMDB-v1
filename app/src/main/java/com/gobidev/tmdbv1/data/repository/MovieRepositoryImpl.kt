@@ -3,8 +3,8 @@ package com.gobidev.tmdbv1.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.gobidev.tmdbv1.data.paging.MovieListPagingSource
 import com.gobidev.tmdbv1.data.paging.MovieReviewsPagingSource
-import com.gobidev.tmdbv1.data.paging.PopularMoviesPagingSource
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieDetails
@@ -12,6 +12,8 @@ import com.gobidev.tmdbv1.data.remote.mapper.toReview
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.MovieFilterState
+import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.repository.MovieRepository
 import com.gobidev.tmdbv1.domain.util.Result
@@ -34,21 +36,20 @@ class MovieRepositoryImpl @Inject constructor(
 ) : MovieRepository {
 
     /**
-     * Get a flow of paginated popular movies using Paging 3.
-     *
-     * PagingConfig defines:
-     * - pageSize: Number of items to load per page
-     * - prefetchDistance: How far from the end to start loading the next page
-     * - enablePlaceholders: Whether to show placeholders for items not yet loaded
+     * Get a flow of paginated movies for the given list type and filters.
+     * Routes to discover endpoint when filters or an explicit sort are active.
      */
-    override fun getPopularMovies(): Flow<PagingData<Movie>> {
+    override fun getMovieList(
+        type: MovieListType,
+        filters: MovieFilterState
+    ): Flow<PagingData<Movie>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 20, // TMDB API returns 20 items per page by default
+                pageSize = 20,
                 prefetchDistance = 5,
                 enablePlaceholders = false
             ),
-            pagingSourceFactory = { PopularMoviesPagingSource(api) }
+            pagingSourceFactory = { MovieListPagingSource(api, type, filters) }
         ).flow
     }
 
