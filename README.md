@@ -1,4 +1,4 @@
-# 🎬 TMDB Android App  
+# 🎬 TMDB Android App [version 1]
 ### Jetpack Compose + Clean Architecture
 A modern Android application that displays **popular movies** and **movie details** using the **TMDB API**.
 
