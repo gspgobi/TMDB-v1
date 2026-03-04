@@ -9,8 +9,11 @@ import androidx.navigation.navArgument
 import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.presentation.castcrew.FullCastCrewScreen
 import com.gobidev.tmdbv1.presentation.details.MovieDetailsScreen
+import com.gobidev.tmdbv1.presentation.home.HomeScreen
 import com.gobidev.tmdbv1.presentation.movielisting.MovieListingScreen
+import com.gobidev.tmdbv1.presentation.profile.ProfileScreen
 import com.gobidev.tmdbv1.presentation.reviews.MovieReviewsScreen
+import com.gobidev.tmdbv1.presentation.search.SearchScreen
 
 /**
  * Sealed class defining navigation routes in the app.
@@ -19,6 +22,21 @@ import com.gobidev.tmdbv1.presentation.reviews.MovieReviewsScreen
  * when navigating between screens.
  */
 sealed class Screen(val route: String) {
+    /**
+     * Home screen — entry point with movie carousels.
+     */
+    data object HomeNav : Screen("home")
+
+    /**
+     * Search screen — placeholder.
+     */
+    data object SearchNav : Screen("search")
+
+    /**
+     * Profile screen — placeholder.
+     */
+    data object ProfileNav : Screen("profile")
+
     /**
      * Movie Listing screen — reusable for popular, now_playing, top_rated, upcoming.
      */
@@ -69,8 +87,30 @@ fun TMDBNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.MovieListingNav.createRoute(MovieListType.POPULAR)
+        startDestination = Screen.HomeNav.route
     ) {
+        // Home Screen — entry point with movie carousels
+        composable(route = Screen.HomeNav.route) {
+            HomeScreen(
+                onMovieClick = { movieId ->
+                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
+                },
+                onViewAllClick = { listType ->
+                    navController.navigate(Screen.MovieListingNav.createRoute(listType))
+                }
+            )
+        }
+
+        // Search Screen — placeholder
+        composable(route = Screen.SearchNav.route) {
+            SearchScreen()
+        }
+
+        // Profile Screen — placeholder
+        composable(route = Screen.ProfileNav.route) {
+            ProfileScreen()
+        }
+
         // Movie Listing Screen — handles popular, now_playing, top_rated, upcoming
         composable(
             route = Screen.MovieListingNav.route,
