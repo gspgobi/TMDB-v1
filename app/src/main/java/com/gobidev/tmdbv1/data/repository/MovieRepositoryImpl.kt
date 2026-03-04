@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import com.gobidev.tmdbv1.data.paging.MovieListPagingSource
 import com.gobidev.tmdbv1.data.paging.MovieReviewsPagingSource
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
+import com.gobidev.tmdbv1.data.remote.mapper.toMovie
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieDetails
 import com.gobidev.tmdbv1.data.remote.mapper.toReview
@@ -90,6 +91,21 @@ class MovieRepositoryImpl @Inject constructor(
             response.results.firstOrNull()?.toReview()
         }
     }
+
+    /**
+     * Get the first page of movies for the given list type.
+     * Used for home screen carousels.
+     */
+    override suspend fun getMoviesPreview(type: MovieListType): Result<List<Movie>> =
+        safeCall {
+            val response = when (type) {
+                MovieListType.POPULAR -> api.getPopularMovies(page = 1)
+                MovieListType.NOW_PLAYING -> api.getNowPlayingMovies(page = 1)
+                MovieListType.TOP_RATED -> api.getTopRatedMovies(page = 1)
+                MovieListType.UPCOMING -> api.getUpcomingMovies(page = 1)
+            }
+            response.results.map { it.toMovie() }
+        }
 
     /**
      * Get a flow of paginated reviews for a movie using Paging 3.

@@ -60,4 +60,12 @@ interface MovieRepository {
      * @return Flow emitting PagingData of reviews
      */
     fun getMovieReviews(movieId: Int): Flow<PagingData<Review>>
+
+    /**
+     * Get the first page of movies for the given list type (preview for home screen carousels).
+     *
+     * @param type The list type (popular, now_playing, top_rated, upcoming)
+     * @return Result containing a list of movies or an error
+     */
+    suspend fun getMoviesPreview(type: MovieListType): Result<List<Movie>>
 }
