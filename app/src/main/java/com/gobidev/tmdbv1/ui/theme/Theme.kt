@@ -1,58 +1,68 @@
 package com.gobidev.tmdbv1.ui.theme
 
 import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+private val NetflixColorScheme = darkColorScheme(
+    // Primary — Netflix Red for CTAs, active sort icon, TextButton text
+    primary = NetflixRed,
+    onPrimary = NetflixWhite,
+    primaryContainer = NetflixTopBar,       // TopAppBar background (all screens)
+    onPrimaryContainer = NetflixWhite,      // TopAppBar title and icons
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    // Secondary — used by NavigationBar indicator pill (selected item)
+    secondary = NetflixMediumGrey,
+    onSecondary = NetflixBlack,
+    secondaryContainer = NetflixRed,        // Nav bar selected pill → Netflix Red
+    onSecondaryContainer = NetflixWhite,    // Nav bar selected icon/label
+
+    // Tertiary — unused, neutral fallback
+    tertiary = NetflixMediumGrey,
+    onTertiary = NetflixWhite,
+    tertiaryContainer = NetflixSurfaceVariant,
+    onTertiaryContainer = NetflixLightGrey,
+
+    // Backgrounds and surfaces
+    background = NetflixBlack,
+    onBackground = NetflixWhite,
+    surface = NetflixSurface,               // Cards, ModalBottomSheet
+    onSurface = NetflixWhite,
+    surfaceVariant = NetflixSurfaceVariant, // Genre chips, rating panel
+    onSurfaceVariant = NetflixMediumGrey,   // Secondary text, unselected nav icons
+
+    // Error
+    error = NetflixError,
+    onError = NetflixWhite,
+    errorContainer = NetflixDarkRed,
+    onErrorContainer = NetflixWhite,
+
+    // Structural
+    outline = NetflixDarkGrey,
+    outlineVariant = NetflixSurfaceVariant,
+    scrim = NetflixBlack,
+    inverseSurface = NetflixLightGrey,
+    inverseOnSurface = NetflixBlack,
+    inversePrimary = NetflixDarkRed,
 )
 
 @Composable
-fun TMDBTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+fun TMDBTheme(content: @Composable () -> Unit) {
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            // Keep status bar icons light (white) for dark background
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = NetflixColorScheme,
         typography = Typography,
         content = content
     )
