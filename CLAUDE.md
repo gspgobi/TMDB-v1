@@ -29,33 +29,67 @@ Clean Architecture with MVVM, organized in three layers:
 
 **Presentation** (`presentation/`) → **Domain** (`domain/`) ← **Data** (`data/`)
 
-- **Presentation**: Jetpack Compose screens + `@HiltViewModel` ViewModels. UI state is modeled as sealed classes (`Loading`, `Success`, `Error`) exposed via `StateFlow`.
-- **Domain**: Use cases (callable via `operator fun invoke()`), repository interfaces, and domain models. Contains `Result<T>` sealed class and `safeCall {}` utility for wrapping exceptions.
-- **Data**: Retrofit implementation of repositories, DTOs mapped to domain models via extension functions in `MovieMapper.kt`, and Paging 3 sources.
+- **Presentation**: Jetpack Compose screens + `@HiltViewModel` ViewModels. UI state is exposed via `StateFlow` — non-paginated screens use `data class` state with `isLoading/error` fields; paginated screens collect `PagingData` directly via `collectAsLazyPagingItems()`.
+- **Domain**: Use cases (callable via `operator fun invoke()`), repository interfaces, and domain models. `Result<T>` sealed class and `safeCall {}` (in `domain/util/Result.kt`) wrap suspend API calls. Use cases are always the only entry point from ViewModels into the domain.
+- **Data**: Retrofit implementation of `MovieRepository`, DTOs mapped to domain models via extension functions in `MovieMapper.kt`, and two `PagingSource` classes.
 
 ### Navigation
 
-Navigation Compose with string-based routes defined as sealed class objects in `Screen`:
+Single flat nav graph in `TMDBNavGraph`. All routes are `data object`s in the `Screen` sealed class. **Important naming rule**: sealed class objects use a `Nav` suffix (e.g., `Screen.HomeNav`, `Screen.MovieListingNav`) to avoid shadowing composable function imports of the same name.
+
 ```
-PopularMoviesScreen → MovieDetailsScreen → FullCastCrewScreen → MovieReviewsScreen
+HomeScreen (start) ──► MovieListingScreen ──► MovieDetailsScreen ──► FullCastCrewScreen
+     │                                                │
+     └── (View All) ─────────────────────            └──────────────► MovieReviewsScreen
 ```
-`SavedStateHandle` is used in ViewModels to retrieve navigation arguments.
+
+Routes:
+- `home` → `HomeScreen`
+- `search` → `SearchScreen` (placeholder)
+- `profile` → `ProfileScreen` (placeholder)
+- `movies?listType={listType}` → `MovieListingScreen` — `listType` resolved from `SavedStateHandle` via `MovieListType.fromRouteKey()`
+- `movie/{movieId}` → `MovieDetailsScreen`
+- `movie/{movieId}/cast?movieTitle={movieTitle}` → `FullCastCrewScreen`
+- `movie/{movieId}/reviews?movieTitle={movieTitle}` → `MovieReviewsScreen`
+
+Movie title is passed as a query param (not path segment) to avoid URL-encoding issues with special characters.
+
+### Bottom Navigation
+
+`MainActivity` holds a single `Scaffold` with a `NavigationBar` (Home / Search / Profile). The bar is shown only when `currentRoute in setOf("home", "search", "profile")`. The outer `Scaffold` uses `contentWindowInsets = WindowInsets(0.dp, ...)` to avoid double-applying system insets on top of what inner Scaffolds handle themselves. Top-level screens (Home, Search, Profile) mirror this with their own `contentWindowInsets = WindowInsets(0.dp, ...)` so the system nav bar inset is counted only once (via the `NavigationBar`'s own insets). Detail screens keep default Scaffold inset handling since the bottom bar is hidden on those routes.
 
 ### Pagination
 
-`Paging 3` with `PagingConfig(pageSize = 20, prefetchDistance = 5)`. `PagingData` flows are cached with `.cachedIn(viewModelScope)`. Two paging sources exist: `PopularMoviesPagingSource` and `MovieReviewsPagingSource`.
+`Paging 3` with `PagingConfig(pageSize = 20, prefetchDistance = 5)`. Two paging sources:
+- `MovieListPagingSource` — used by `MovieListingScreen`. Routes to `discover/movie` when `MovieFilterState.needsDiscoverApi` is true (any filter or non-default sort is active), otherwise calls the natural endpoint (`movie/popular`, etc.).
+- `MovieReviewsPagingSource` — used by `MovieReviewsScreen`.
+
+`PagingData` flows are cached with `.cachedIn(viewModelScope)`. `MovieListingViewModel` uses `flatMapLatest` on `filterState` so the paging stream automatically restarts when filters change.
+
+### HomeScreen Carousel Architecture
+
+`HomeViewModel` fires 3 independent `viewModelScope.launch` coroutines in `loadAll()` to load Popular, Now Playing, and Upcoming carousels in parallel. Each updates its own slice of `HomeUiState` via `copy()`. `GetMoviePreviewUseCase` fetches only page 1 via `repository.getMoviesPreview(type)`.
 
 ### Dependency Injection
 
-All dependencies are wired in `AppModule.kt` (`@InstallIn(SingletonComponent::class)`). The graph provides: `OkHttpClient` → `Retrofit` → `TMDBApiService` → `MovieRepositoryImpl` (bound to `MovieRepository` interface).
+All dependencies wired in `AppModule.kt` (`@InstallIn(SingletonComponent::class)`):
+`OkHttpClient` → `Retrofit` → `TMDBApiService` → `MovieRepositoryImpl` (bound to `MovieRepository` interface).
 
 ### Image URLs
 
-Profile/poster/backdrop image URLs are constructed in the mapper layer:
+Constructed in `MovieMapper.kt`:
 ```kotlin
 "https://image.tmdb.org/t/p/" + size + path
 // Sizes: w185 (profile), w500 (poster), w780 (backdrop)
 ```
+
+### API Endpoints
+
+- `GET movie/popular|now_playing|top_rated|upcoming` → `MovieListPagedResponse`
+- `GET discover/movie?sort_by&with_genres&vote_average.gte&primary_release_year` → `MovieListPagedResponse`
+- `GET movie/{id}` → `MovieDetailsResponse`
+- `GET movie/{id}/credits` → `MovieCreditsResponse`
+- `GET movie/{id}/reviews` → `MovieReviewsPagedResponse`
 
 ## Key Versions
 
