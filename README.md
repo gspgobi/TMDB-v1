@@ -1,193 +1,118 @@
-# 🎬 TMDB Android App [version 1]
-### Jetpack Compose + Clean Architecture
-A modern Android application that displays **popular movies** and **movie details** using the **TMDB API**.
+# 🎬 TMDB Android App
+### Jetpack Compose · Clean Architecture · style Dark Theme
 
-Built with **Jetpack Compose**, **Clean Architecture**, **MVVM**, **Hilt**, **Paging 3**, and **Room**.
 
+A modern Android application that browses movies using the **TMDB API** — featuring a home screen with carousels, paginated movie lists with filtering & sorting, detailed movie info, cast & crew, and reviews.
+
+---
+
+## ✨ Features
+
+- **Home screen** — three horizontal carousels (Popular, Now Playing, Upcoming) loading in parallel, with a collapsible TopAppBar on scroll
+- **Movie Listing** — paginated list for any TMDB list type; filter by genre, minimum rating, and release year; sort by popularity, rating, release date, or vote count
+- **Movie Details** — backdrop, genres, runtime, tagline, overview, rating, and a latest review preview
+- **Full Cast & Crew** — complete credits with profile images
+- **Movie Reviews** — paginated review list with author avatars and ratings
+- **Bottom navigation** — Home / Search / Profile tabs; auto-hidden on detail screens
+- **Netflix-inspired dark theme** — permanent dark colour scheme with Netflix Red accents and a bold type scale
+
+---
 
 ## 🧱 Tech Stack
 
-- **Language:** Kotlin  
-- **UI:** Jetpack Compose (Material 3)  
-- **Architecture:** Clean Architecture + MVVM  
-- **Dependency Injection:** Hilt  
-- **Networking:** Retrofit + OkHttp  
-- **Asynchronous:** Kotlin Coroutines + Flow  
-- **Pagination:** Paging 3  
-- **Local Cache:** Room  
-- **Navigation:** Navigation Compose  
-- **Image Loading:** Coil  
-
-
-## 📐 Architecture Overview
-
-This project follows **Android’s recommended app architecture** with a strict separation of concerns.
-
-### 🏗 Layers
-
-#### 🖥 UI Layer
-- Jetpack Compose Screens  
-- ViewModels  
-
-#### 🧠 Domain Layer
-- Business Logic  
-- UseCases  
-- Domain Models  
-- Repository Interfaces  
-
-#### 💾 Data Layer
-- Retrofit API Services  
-- Room Database  
-- Repository Implementations  
-
-> 🗂 **Note:** Room acts as the **Single Source of Truth (SSOT)** in this application.
-
-
-#### 🚀 Features
-
-- Browse Popular Movies  
-- View Movie Details  
-- Offline Caching  
-- Pagination Support  
-- Modern Material 3 UI  
-- Clean & Scalable Architecture  
+| Layer            | Libraries                         |
+|------------------|-----------------------------------|
+| **UI**           | Jetpack Compose, Material 3, Coil |
+| **Navigation**   | Navigation Compose                |
+| **Architecture** | Clean Architecture + MVVM         |
+| **DI**           | Hilt                              |
+| **Networking**   | Retrofit 3, OkHttp, Gson          |
+| **Async**        | Kotlin Coroutines + Flow          |
+| **Pagination**   | Paging 3                          |
+| **Language**     | Kotlin 2.3                        |
 
 ---
 
-## 🏗 High-Level Architecture Diagram  
-#### (Clean Architecture + MVVM)
+## 📐 Architecture
+
+```
+Presentation  →  Domain  ←  Data
+```
+
+- **Presentation** — Compose screens + `@HiltViewModel` ViewModels. Non-paginated screens expose `data class` UI state (isLoading / error / data) via `StateFlow`; paginated screens collect `PagingData` directly with `collectAsLazyPagingItems()`.
+- **Domain** — Use cases (invoked via `operator fun invoke()`), repository interfaces, domain models, and a `Result<T>` / `safeCall {}` utility.
+- **Data** — `MovieRepositoryImpl` backed by Retrofit. DTOs are mapped to domain models in `MovieMapper.kt`. Paging is handled by two `PagingSource` classes: `MovieListPagingSource` and `MovieReviewsPagingSource`.
+
+### Filter → Endpoint routing
+
+`MovieListPagingSource` automatically routes to the `discover/movie` endpoint whenever `MovieFilterState.needsDiscoverApi` is true (any genre, rating, year filter, or explicit sort is active). Otherwise it calls the natural list endpoint (`movie/popular`, `movie/now_playing`, etc.).
+
+---
+
+## 🧭 Navigation
 
 ```mermaid
 flowchart TD
-    UI["Jetpack Compose UI"]
-    VM["ViewModel"]
-    UC["Use Cases"]
-    REPO["Repository Interface"]
-    REPO_IMPL["Repository Implementation"]
-    REMOTE["Remote Data Source (Retrofit)"]
-    LOCAL["Local Data Source (Room)"]
-    API["TMDB API"]
-    DB[("Room Database")]
+    Home["🏠 Home Screen\n(carousels)"]
+    Listing["📋 Movie Listing\n(paginated + filters)"]
+    Details["🎬 Movie Details"]
+    Cast["🎭 Full Cast & Crew"]
+    Reviews["💬 Movie Reviews"]
+    Search["🔍 Search\n(placeholder)"]
+    Profile["👤 Profile\n(placeholder)"]
 
-    UI -->|collects StateFlow| VM
-    VM -->|calls| UC
-    UC -->|depends on| REPO
-    REPO_IMPL -.->|implements| REPO
-    REPO_IMPL --> REMOTE
-    REPO_IMPL --> LOCAL
-    REMOTE --> API
-    LOCAL --> DB
+    Home -->|View All| Listing
+    Home -->|Poster tap| Details
+    Listing -->|Movie tap| Details
+    Details -->|See all cast| Cast
+    Details -->|See all reviews| Reviews
+
+    BottomNav["Bottom Navigation Bar"]
+    BottomNav --> Home
+    BottomNav --> Search
+    BottomNav --> Profile
 ```
+
+> The bottom navigation bar is **only visible** on the three top-level routes (Home, Search, Profile) and hides automatically on all detail screens.
 
 ---
 
-## 🔄 Detailed Data Flow
-#### 📃 Popular Movies List
+## 🔄 Data Flow
 
 ```mermaid
 sequenceDiagram
-    participant UI as PopularMoviesScreen
-    participant VM as PopularMoviesViewModel
-    participant UC as GetPopularMoviesUseCase
+    participant UI as Compose Screen
+    participant VM as ViewModel
+    participant UC as Use Case
     participant Repo as MovieRepository
-    participant Local as Room
-    participant Remote as TMDB API
+    participant API as TMDB API
 
-    UI->>VM: collect UiState
-    VM->>UC: execute()
-    UC->>Repo: getPopularMovies()
-
-    Repo->>Local: query cached movies
-    Local-->>Repo: PagingSource
-
-    Repo->>Remote: fetch popular movies
-    Remote-->>Repo: API response
-    Repo->>Local: save movies
-
-    Repo-->>VM: Flow<PagingData<Movie>>
-    VM-->>UI: UiState.Success
-```
-
-#### 🎞 Movie Details Screen
-
-```mermaid
-sequenceDiagram
-    participant UI as MovieDetailScreen
-    participant VM as MovieDetailViewModel
-    participant UC as GetMovieDetailUseCase
-    participant Repo as MovieRepository
-    participant Local as Room
-    participant Remote as TMDB API
-
-    UI->>VM: load(movieId)
-    VM->>UC: execute(movieId)
-    UC->>Repo: getMovieDetail(movieId)
-
-    Repo->>Local: get cached detail
-    alt Cached exists
-        Local-->>Repo: MovieDetail
-        Repo-->>VM: cached data
-    end
-
-    Repo->>Remote: fetch movie detail
-    Remote-->>Repo: API response
-    Repo->>Local: save detail
-    Repo-->>VM: updated data
-
-    VM-->>UI: UiState.Success
+    UI->>VM: collect StateFlow / LazyPagingItems
+    VM->>UC: invoke()
+    UC->>Repo: getMovieList() / getMovieDetails()
+    Repo->>API: Retrofit call
+    API-->>Repo: DTO response
+    Repo-->>VM: Domain model / PagingData<Movie>
+    VM-->>UI: UI state update
 ```
 
 ---
 
-### 📦 Pagination + Caching Flow  
-#### (Paging 3 + Room + RemoteMediator)
+## 🚀 Getting Started
 
-```mermaid
-flowchart LR
-    UI["LazyColumn (Paging Compose)"]
-    Pager["Pager"]
-    Mediator["RemoteMediator"]
-    DAO["Room DAO"]
-    API["TMDB API"]
-
-    UI --> Pager
-    Pager --> DAO
-    Pager --> Mediator
-    Mediator --> API
-    API --> Mediator
-    Mediator --> DAO
-```
-
-#### ✅ Why this matters
-
-- Room is always the **Single Source of Truth**
-- Network only updates the database
-- Offline support works automatically
-- Paging is seamless and scalable
+1. Clone the repository.
+2. Get a free API **Read Access Token** from [themoviedb.org](https://www.themoviedb.org/settings/api).
+3. Add it to `local.properties` (create the file if it doesn't exist):
+   ```
+   TMDB_API_TOKEN=your_read_access_token_here
+   ```
+4. Build and run:
+   ```bash
+   ./gradlew installDebug
+   ```
 
 ---
 
-### 🧭 Navigation Flow
-
-```mermaid
-flowchart TD
-    Popular["Popular Movies Screen"]
-    Detail["Movie Detail Screen"]
-
-    Popular -->|onMovieClick movieId| Detail
-    Detail -->|Back| Popular
-```
-
----
-
-### 📸 Screenshots
-
-_Yet to add screenshots here_
-
----
-
-
-### 📄 License
+## 📄 License
 
 This project is for educational purposes.
-
