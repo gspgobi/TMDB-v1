@@ -1,4 +1,4 @@
-# 🎬 TMDB Android App
+# 🎬 TMDB Android App [version 1]
 ### Jetpack Compose · Clean Architecture · style Dark Theme
 
 
