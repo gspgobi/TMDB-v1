@@ -37,14 +37,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieListType
+import com.gobidev.tmdbv1.domain.model.TvListType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onMovieClick: (Int) -> Unit,
     onViewAllClick: (MovieListType) -> Unit,
+    onTvClick: (Int) -> Unit,
+    onViewAllTvClick: (TvListType) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -70,6 +72,7 @@ fun HomeScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
+            // ── Movies ───────────────────────────────────────────────────────
             item {
                 MovieCarouselSection(
                     title = MovieListType.POPULAR.title,
@@ -78,6 +81,16 @@ fun HomeScreen(
                     onViewAllClick = { onViewAllClick(MovieListType.POPULAR) }
                 )
             }
+            // ── TV Series ────────────────────────────────────────────────────
+            item {
+                TvCarouselSection(
+                    title = TvListType.POPULAR.title,
+                    categoryState = uiState.popularTv,
+                    onTvClick = onTvClick,
+                    onViewAllClick = { onViewAllTvClick(TvListType.POPULAR) }
+                )
+            }
+            // ── Movies ───────────────────────────────────────────────────────
             item {
                 MovieCarouselSection(
                     title = MovieListType.NOW_PLAYING.title,
@@ -86,12 +99,31 @@ fun HomeScreen(
                     onViewAllClick = { onViewAllClick(MovieListType.NOW_PLAYING) }
                 )
             }
+            // ── TV Series ────────────────────────────────────────────────────
+            item {
+                TvCarouselSection(
+                    title = TvListType.ON_THE_AIR.title,
+                    categoryState = uiState.onTheAirTv,
+                    onTvClick = onTvClick,
+                    onViewAllClick = { onViewAllTvClick(TvListType.ON_THE_AIR) }
+                )
+            }
+            // ── Movies ───────────────────────────────────────────────────────
             item {
                 MovieCarouselSection(
                     title = MovieListType.UPCOMING.title,
                     categoryState = uiState.upcoming,
                     onMovieClick = onMovieClick,
                     onViewAllClick = { onViewAllClick(MovieListType.UPCOMING) }
+                )
+            }
+            // ── TV Series ────────────────────────────────────────────────────
+            item {
+                TvCarouselSection(
+                    title = TvListType.TOP_RATED.title,
+                    categoryState = uiState.topRatedTv,
+                    onTvClick = onTvClick,
+                    onViewAllClick = { onViewAllTvClick(TvListType.TOP_RATED) }
                 )
             }
         }
@@ -113,13 +145,8 @@ private fun MovieCarouselSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge
-            )
-            TextButton(onClick = onViewAllClick) {
-                Text("View All")
-            }
+            Text(text = title, style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = onViewAllClick) { Text("View All") }
         }
 
         when {
@@ -129,10 +156,9 @@ private fun MovieCarouselSection(
                         .fillMaxWidth()
                         .height(220.dp),
                     contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                ) { CircularProgressIndicator() }
             }
+
             categoryState.error != null -> {
                 Box(
                     modifier = Modifier
@@ -147,14 +173,16 @@ private fun MovieCarouselSection(
                     )
                 }
             }
+
             else -> {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(categoryState.movies) { movie ->
-                        MoviePosterCard(
-                            movie = movie,
+                        PosterCard(
+                            posterUrl = movie.posterUrl,
+                            contentDescription = movie.title,
                             onClick = { onMovieClick(movie.id) }
                         )
                     }
@@ -166,8 +194,72 @@ private fun MovieCarouselSection(
 }
 
 @Composable
-private fun MoviePosterCard(
-    movie: Movie,
+private fun TvCarouselSection(
+    title: String,
+    categoryState: TvCategoryState,
+    onTvClick: (Int) -> Unit,
+    onViewAllClick: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = title, style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = onViewAllClick) { Text("View All") }
+        }
+
+        when {
+            categoryState.isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp),
+                    contentAlignment = Alignment.Center
+                ) { CircularProgressIndicator() }
+            }
+
+            categoryState.error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = categoryState.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
+            else -> {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(categoryState.shows) { show ->
+                        PosterCard(
+                            posterUrl = show.posterUrl,
+                            contentDescription = show.name,
+                            onClick = { onTvClick(show.id) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PosterCard(
+    posterUrl: String?,
+    contentDescription: String,
     onClick: () -> Unit
 ) {
     Card(
@@ -179,8 +271,8 @@ private fun MoviePosterCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         AsyncImage(
-            model = movie.posterUrl,
-            contentDescription = movie.title,
+            model = posterUrl,
+            contentDescription = contentDescription,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
