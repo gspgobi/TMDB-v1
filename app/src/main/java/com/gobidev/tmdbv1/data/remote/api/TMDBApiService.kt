@@ -141,4 +141,13 @@ interface TMDBApiService {
         @Path("tv_id") tvId: Int,
         @Query("language") language: String = "en-US"
     ): TvCreditsResponse
+
+    // ── Search ───────────────────────────────────────────────────────────────
+
+    @GET("search/multi")
+    suspend fun searchMulti(
+        @Query("query") query: String,
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): SearchResultPagedResponse
 }
