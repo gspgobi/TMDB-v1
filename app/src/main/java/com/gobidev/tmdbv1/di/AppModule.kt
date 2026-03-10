@@ -4,8 +4,10 @@ import com.gobidev.tmdbv1.BuildConfig
 import com.gobidev.tmdbv1.data.remote.api.AuthInterceptor
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.repository.MovieRepositoryImpl
+import com.gobidev.tmdbv1.data.repository.SearchRepositoryImpl
 import com.gobidev.tmdbv1.data.repository.TvRepositoryImpl
 import com.gobidev.tmdbv1.domain.repository.MovieRepository
+import com.gobidev.tmdbv1.domain.repository.SearchRepository
 import com.gobidev.tmdbv1.domain.repository.TvRepository
 import dagger.Module
 import dagger.Provides
@@ -115,6 +117,14 @@ object AppModule {
     fun provideTvRepository(
         repositoryImpl: TvRepositoryImpl
     ): TvRepository {
+        return repositoryImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchRepository(
+        repositoryImpl: SearchRepositoryImpl
+    ): SearchRepository {
         return repositoryImpl
     }
 }
