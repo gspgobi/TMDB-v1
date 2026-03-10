@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gobidev.tmdbv1.domain.model.MovieListType
+import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.presentation.castcrew.FullCastCrewScreen
 import com.gobidev.tmdbv1.presentation.details.MovieDetailsScreen
 import com.gobidev.tmdbv1.presentation.home.HomeScreen
@@ -136,9 +137,16 @@ fun TMDBNavGraph(
             )
         }
 
-        // Search Screen — placeholder
+        // Search Screen
         composable(route = Screen.SearchNav.route) {
-            SearchScreen()
+            SearchScreen(
+                onMovieClick = { movieId ->
+                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
+                },
+                onTvClick = { tvId ->
+                    navController.navigate(Screen.TvDetailsNav.createRoute(tvId))
+                }
+            )
         }
 
         // Profile Screen — placeholder
