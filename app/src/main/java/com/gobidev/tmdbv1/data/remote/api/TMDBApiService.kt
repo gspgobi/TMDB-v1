@@ -150,4 +150,39 @@ interface TMDBApiService {
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
     ): SearchResultPagedResponse
+
+    // ── Auth ─────────────────────────────────────────────────────────────────
+
+    @GET("authentication/token/new")
+    suspend fun createRequestToken(): RequestTokenResponse
+
+    @POST("authentication/token/validate_with_login")
+    suspend fun validateWithLogin(@Body body: LoginRequestBody): RequestTokenResponse
+
+    @POST("authentication/session/new")
+    suspend fun createSession(@Body body: SessionRequestBody): SessionResponse
+
+    @HTTP(method = "DELETE", path = "authentication/session", hasBody = true)
+    suspend fun deleteSession(@Body body: DeleteSessionBody)
+
+    // ── Account ───────────────────────────────────────────────────────────────
+
+    @GET("account")
+    suspend fun getAccount(
+        @Query("session_id") sessionId: String
+    ): AccountResponse
+
+    @GET("account/{account_id}/favorite/movies")
+    suspend fun getFavoriteMovies(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("page") page: Int = 1
+    ): MovieListPagedResponse
+
+    @GET("account/{account_id}/watchlist/movies")
+    suspend fun getWatchlistMovies(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("page") page: Int = 1
+    ): MovieListPagedResponse
 }
