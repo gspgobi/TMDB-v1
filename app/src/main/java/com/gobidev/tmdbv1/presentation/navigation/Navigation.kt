@@ -15,6 +15,7 @@ import com.gobidev.tmdbv1.presentation.movielisting.MovieListingScreen
 import com.gobidev.tmdbv1.presentation.profile.ProfileScreen
 import com.gobidev.tmdbv1.presentation.reviews.MovieReviewsScreen
 import com.gobidev.tmdbv1.presentation.search.SearchScreen
+import com.gobidev.tmdbv1.presentation.login.LoginScreen
 import com.gobidev.tmdbv1.presentation.tvdetails.TvDetailsScreen
 import com.gobidev.tmdbv1.presentation.tvdetails.TvFullCastCrewScreen
 import com.gobidev.tmdbv1.presentation.tvlisting.TvListingScreen
@@ -149,9 +150,24 @@ fun TMDBNavGraph(
             )
         }
 
-        // Profile Screen — placeholder
+        // Profile Screen
         composable(route = Screen.ProfileNav.route) {
-            ProfileScreen()
+            ProfileScreen(
+                onLoginClick = {
+                    navController.navigate(Screen.LoginNav.route)
+                },
+                onMovieClick = { movieId ->
+                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
+                }
+            )
+        }
+
+        // Login Screen
+        composable(route = Screen.LoginNav.route) {
+            LoginScreen(
+                onBackClick = { navController.popBackStack() },
+                onLoginSuccess = { navController.popBackStack() }
+            )
         }
 
         // Movie Listing Screen — handles popular, now_playing, top_rated, upcoming
