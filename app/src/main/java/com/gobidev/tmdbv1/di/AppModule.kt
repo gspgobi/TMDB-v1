@@ -4,7 +4,15 @@ import com.gobidev.tmdbv1.BuildConfig
 import com.gobidev.tmdbv1.data.remote.api.AuthInterceptor
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.repository.MovieRepositoryImpl
+import com.gobidev.tmdbv1.data.repository.AccountRepositoryImpl
+import com.gobidev.tmdbv1.data.repository.AuthRepositoryImpl
+import com.gobidev.tmdbv1.data.repository.SearchRepositoryImpl
+import com.gobidev.tmdbv1.data.repository.TvRepositoryImpl
+import com.gobidev.tmdbv1.domain.repository.AccountRepository
+import com.gobidev.tmdbv1.domain.repository.AuthRepository
 import com.gobidev.tmdbv1.domain.repository.MovieRepository
+import com.gobidev.tmdbv1.domain.repository.SearchRepository
+import com.gobidev.tmdbv1.domain.repository.TvRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -105,6 +113,38 @@ object AppModule {
     fun provideMovieRepository(
         repositoryImpl: MovieRepositoryImpl
     ): MovieRepository {
+        return repositoryImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideTvRepository(
+        repositoryImpl: TvRepositoryImpl
+    ): TvRepository {
+        return repositoryImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchRepository(
+        repositoryImpl: SearchRepositoryImpl
+    ): SearchRepository {
+        return repositoryImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideAuthRepository(
+        repositoryImpl: AuthRepositoryImpl
+    ): AuthRepository {
+        return repositoryImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountRepository(
+        repositoryImpl: AccountRepositoryImpl
+    ): AccountRepository {
         return repositoryImpl
     }
 }

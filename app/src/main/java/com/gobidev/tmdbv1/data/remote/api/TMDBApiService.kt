@@ -1,10 +1,23 @@
 package com.gobidev.tmdbv1.data.remote.api
 
+import com.gobidev.tmdbv1.data.remote.dto.AccountResponse
+import com.gobidev.tmdbv1.data.remote.dto.DeleteSessionBody
+import com.gobidev.tmdbv1.data.remote.dto.LoginRequestBody
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
-import com.gobidev.tmdbv1.data.remote.dto.MovieReviewsPagedResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieListPagedResponse
+import com.gobidev.tmdbv1.data.remote.dto.MovieReviewsPagedResponse
+import com.gobidev.tmdbv1.data.remote.dto.RequestTokenResponse
+import com.gobidev.tmdbv1.data.remote.dto.SearchResultPagedResponse
+import com.gobidev.tmdbv1.data.remote.dto.SessionRequestBody
+import com.gobidev.tmdbv1.data.remote.dto.SessionResponse
+import com.gobidev.tmdbv1.data.remote.dto.TvCreditsResponse
+import com.gobidev.tmdbv1.data.remote.dto.TvDetailsResponse
+import com.gobidev.tmdbv1.data.remote.dto.TvListPagedResponse
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.HTTP
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -90,4 +103,86 @@ interface TMDBApiService {
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
     ): MovieReviewsPagedResponse
+
+    // ── TV Series ────────────────────────────────────────────────────────────
+
+    @GET("tv/popular")
+    suspend fun getPopularTv(
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): TvListPagedResponse
+
+    @GET("tv/top_rated")
+    suspend fun getTopRatedTv(
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): TvListPagedResponse
+
+    @GET("tv/on_the_air")
+    suspend fun getOnTheAirTv(
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): TvListPagedResponse
+
+    @GET("tv/airing_today")
+    suspend fun getAiringTodayTv(
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): TvListPagedResponse
+
+    @GET("tv/{tv_id}")
+    suspend fun getTvDetails(
+        @Path("tv_id") tvId: Int,
+        @Query("language") language: String = "en-US"
+    ): TvDetailsResponse
+
+    @GET("tv/{tv_id}/credits")
+    suspend fun getTvCredits(
+        @Path("tv_id") tvId: Int,
+        @Query("language") language: String = "en-US"
+    ): TvCreditsResponse
+
+    // ── Search ───────────────────────────────────────────────────────────────
+
+    @GET("search/multi")
+    suspend fun searchMulti(
+        @Query("query") query: String,
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): SearchResultPagedResponse
+
+    // ── Auth ─────────────────────────────────────────────────────────────────
+
+    @GET("authentication/token/new")
+    suspend fun createRequestToken(): RequestTokenResponse
+
+    @POST("authentication/token/validate_with_login")
+    suspend fun validateWithLogin(@Body body: LoginRequestBody): RequestTokenResponse
+
+    @POST("authentication/session/new")
+    suspend fun createSession(@Body body: SessionRequestBody): SessionResponse
+
+    @HTTP(method = "DELETE", path = "authentication/session", hasBody = true)
+    suspend fun deleteSession(@Body body: DeleteSessionBody)
+
+    // ── Account ───────────────────────────────────────────────────────────────
+
+    @GET("account")
+    suspend fun getAccount(
+        @Query("session_id") sessionId: String
+    ): AccountResponse
+
+    @GET("account/{account_id}/favorite/movies")
+    suspend fun getFavoriteMovies(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("page") page: Int = 1
+    ): MovieListPagedResponse
+
+    @GET("account/{account_id}/watchlist/movies")
+    suspend fun getWatchlistMovies(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("page") page: Int = 1
+    ): MovieListPagedResponse
 }
