@@ -1,18 +1,20 @@
 # 🎬 TMDB Android App [version 1]
-### Jetpack Compose · Clean Architecture · style Dark Theme
+### Jetpack Compose · Clean Architecture · Dark Theme
 
-
-A modern Android application that browses movies using the **TMDB API** — featuring a home screen with carousels, paginated movie lists with filtering & sorting, detailed movie info, cast & crew, and reviews.
+A modern Android application for browsing movies and TV shows using the **TMDB API** — featuring home carousels, paginated lists with filtering & sorting, detailed info, cast & crew, reviews, multi-type search, and optional TMDB account login with favorites and watchlist.
 
 ---
 
 ## ✨ Features
 
-- **Home screen** — three horizontal carousels (Popular, Now Playing, Upcoming) loading in parallel, with a collapsible TopAppBar on scroll
+- **Home screen** — six alternating carousels (Popular Movies, Popular TV, Now Playing, On The Air, Upcoming, Top Rated TV) loading in parallel, with a collapsible TopAppBar on scroll
 - **Movie Listing** — paginated list for any TMDB list type; filter by genre, minimum rating, and release year; sort by popularity, rating, release date, or vote count
 - **Movie Details** — backdrop, genres, runtime, tagline, overview, rating, and a latest review preview
 - **Full Cast & Crew** — complete credits with profile images
 - **Movie Reviews** — paginated review list with author avatars and ratings
+- **TV Series** — listing, details (seasons & episodes count, genres, tagline), and full cast & crew
+- **Search** — debounced multi-type search across movies, TV shows, and people; media-type chip on each result
+- **Account Login** — optional TMDB account sign-in; Favorites and Watchlist tabs on the Profile screen
 - **Bottom navigation** — Home / Search / Profile tabs; auto-hidden on detail screens
 - **Netflix-inspired dark theme** — permanent dark colour scheme with Netflix Red accents and a bold type scale
 
@@ -20,16 +22,17 @@ A modern Android application that browses movies using the **TMDB API** — feat
 
 ## 🧱 Tech Stack
 
-| Layer            | Libraries                         |
-|------------------|-----------------------------------|
-| **UI**           | Jetpack Compose, Material 3, Coil |
-| **Navigation**   | Navigation Compose                |
-| **Architecture** | Clean Architecture + MVVM         |
-| **DI**           | Hilt                              |
-| **Networking**   | Retrofit 3, OkHttp, Gson          |
-| **Async**        | Kotlin Coroutines + Flow          |
-| **Pagination**   | Paging 3                          |
-| **Language**     | Kotlin 2.3                        |
+| Layer            | Libraries                                        |
+|------------------|--------------------------------------------------|
+| **UI**           | Jetpack Compose, Material 3, Coil                |
+| **Navigation**   | Navigation Compose                               |
+| **Architecture** | Clean Architecture + MVVM                        |
+| **DI**           | Hilt                                             |
+| **Networking**   | Retrofit 3, OkHttp, Gson                         |
+| **Async**        | Kotlin Coroutines + Flow                         |
+| **Pagination**   | Paging 3                                         |
+| **Local Storage**| SharedPreferences (session persistence)          |
+| **Language**     | Kotlin 2.3                                       |
 
 ---
 
@@ -41,7 +44,7 @@ Presentation  →  Domain  ←  Data
 
 - **Presentation** — Compose screens + `@HiltViewModel` ViewModels. Non-paginated screens expose `data class` UI state (isLoading / error / data) via `StateFlow`; paginated screens collect `PagingData` directly with `collectAsLazyPagingItems()`.
 - **Domain** — Use cases (invoked via `operator fun invoke()`), repository interfaces, domain models, and a `Result<T>` / `safeCall {}` utility.
-- **Data** — `MovieRepositoryImpl` backed by Retrofit. DTOs are mapped to domain models in `MovieMapper.kt`. Paging is handled by two `PagingSource` classes: `MovieListPagingSource` and `MovieReviewsPagingSource`.
+- **Data** — Five repository implementations (`Movie`, `Tv`, `Search`, `Auth`, `Account`) backed by Retrofit. DTOs are mapped to domain models in `*Mapper.kt` files. Pagination is handled by five `PagingSource` classes. `SessionManager` persists the TMDB session in `SharedPreferences`.
 
 ### Filter → Endpoint routing
 
@@ -58,14 +61,23 @@ flowchart TD
     Details["🎬 Movie Details"]
     Cast["🎭 Full Cast & Crew"]
     Reviews["💬 Movie Reviews"]
-    Search["🔍 Search\n(placeholder)"]
-    Profile["👤 Profile\n(placeholder)"]
+    TvListing["📺 TV Listing\n(paginated)"]
+    TvDetails["📺 TV Details"]
+    TvCast["🎭 TV Cast & Crew"]
+    Search["🔍 Search\n(multi-type)"]
+    Profile["👤 Profile\n(favorites & watchlist)"]
+    Login["🔑 Login"]
 
-    Home -->|View All| Listing
-    Home -->|Poster tap| Details
+    Home -->|View All Movies| Listing
+    Home -->|Movie poster| Details
+    Home -->|View All TV| TvListing
+    Home -->|TV poster| TvDetails
     Listing -->|Movie tap| Details
     Details -->|See all cast| Cast
     Details -->|See all reviews| Reviews
+    TvListing -->|TV tap| TvDetails
+    TvDetails -->|See all cast| TvCast
+    Profile -->|Sign In| Login
 
     BottomNav["Bottom Navigation Bar"]
     BottomNav --> Home
@@ -77,6 +89,21 @@ flowchart TD
 
 ---
 
+## 🔐 Auth Flow
+
+Login uses the TMDB v3 session API — no OAuth redirect needed:
+
+```
+1. GET  authentication/token/new           → request_token
+2. POST authentication/token/validate_with_login (username + password + token)
+3. POST authentication/session/new (token) → session_id  (stored locally)
+4. GET  account?session_id                 → account_id  (stored locally)
+```
+
+Session persists across app restarts. Sign Out deletes the session on TMDB and clears local storage.
+
+---
+
 ## 🔄 Data Flow
 
 ```mermaid
@@ -84,15 +111,15 @@ sequenceDiagram
     participant UI as Compose Screen
     participant VM as ViewModel
     participant UC as Use Case
-    participant Repo as MovieRepository
+    participant Repo as Repository
     participant API as TMDB API
 
     UI->>VM: collect StateFlow / LazyPagingItems
     VM->>UC: invoke()
-    UC->>Repo: getMovieList() / getMovieDetails()
+    UC->>Repo: getMovieList() / getTvDetails() / searchMulti() …
     Repo->>API: Retrofit call
     API-->>Repo: DTO response
-    Repo-->>VM: Domain model / PagingData<Movie>
+    Repo-->>VM: Domain model / PagingData<T>
     VM-->>UI: UI state update
 ```
 
