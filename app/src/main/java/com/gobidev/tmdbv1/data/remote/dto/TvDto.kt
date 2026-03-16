@@ -24,6 +24,16 @@ data class TvDto(
     @SerializedName("original_name") val originalName: String?
 )
 
+data class SeasonDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String,
+    @SerializedName("overview") val overview: String?,
+    @SerializedName("poster_path") val posterPath: String?,
+    @SerializedName("season_number") val seasonNumber: Int,
+    @SerializedName("episode_count") val episodeCount: Int,
+    @SerializedName("air_date") val airDate: String?
+)
+
 data class TvDetailsResponse(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val name: String,
@@ -37,11 +47,30 @@ data class TvDetailsResponse(
     @SerializedName("number_of_episodes") val numberOfEpisodes: Int,
     @SerializedName("genres") val genres: List<GenreDto>,
     @SerializedName("tagline") val tagline: String?,
-    @SerializedName("status") val status: String?
+    @SerializedName("status") val status: String?,
+    @SerializedName("seasons") val seasons: List<SeasonDto>?
 )
 
 data class TvCreditsResponse(
     @SerializedName("id") val id: Int,
     @SerializedName("cast") val cast: List<CastMemberDto>,
     @SerializedName("crew") val crew: List<CrewMemberDto>?
+)
+
+data class EpisodeDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String,
+    @SerializedName("overview") val overview: String?,
+    @SerializedName("episode_number") val episodeNumber: Int,
+    @SerializedName("season_number") val seasonNumber: Int,
+    @SerializedName("air_date") val airDate: String?,
+    @SerializedName("still_path") val stillPath: String?,
+    @SerializedName("vote_average") val voteAverage: Double,
+    @SerializedName("runtime") val runtime: Int?
+)
+
+data class SeasonDetailsResponse(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String,
+    @SerializedName("episodes") val episodes: List<EpisodeDto>
 )

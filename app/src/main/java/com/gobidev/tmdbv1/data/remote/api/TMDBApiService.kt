@@ -11,6 +11,7 @@ import com.gobidev.tmdbv1.data.remote.dto.RequestTokenResponse
 import com.gobidev.tmdbv1.data.remote.dto.SearchResultPagedResponse
 import com.gobidev.tmdbv1.data.remote.dto.SessionRequestBody
 import com.gobidev.tmdbv1.data.remote.dto.SessionResponse
+import com.gobidev.tmdbv1.data.remote.dto.SeasonDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.TvCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.TvDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.TvListPagedResponse
@@ -141,6 +142,13 @@ interface TMDBApiService {
         @Path("tv_id") tvId: Int,
         @Query("language") language: String = "en-US"
     ): TvCreditsResponse
+
+    @GET("tv/{tv_id}/season/{season_number}")
+    suspend fun getSeasonDetails(
+        @Path("tv_id") tvId: Int,
+        @Path("season_number") seasonNumber: Int,
+        @Query("language") language: String = "en-US"
+    ): SeasonDetailsResponse
 
     // ── Search ───────────────────────────────────────────────────────────────
 
