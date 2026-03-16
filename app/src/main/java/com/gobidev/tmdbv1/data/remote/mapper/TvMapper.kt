@@ -1,8 +1,12 @@
 package com.gobidev.tmdbv1.data.remote.mapper
 
+import com.gobidev.tmdbv1.data.remote.dto.EpisodeDto
+import com.gobidev.tmdbv1.data.remote.dto.SeasonDto
 import com.gobidev.tmdbv1.data.remote.dto.TvCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.TvDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.TvDto
+import com.gobidev.tmdbv1.domain.model.Episode
+import com.gobidev.tmdbv1.domain.model.Season
 import com.gobidev.tmdbv1.domain.model.TvCredits
 import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.domain.model.TvShowDetails
@@ -23,6 +27,16 @@ fun TvDto.toTvShow(): TvShow = TvShow(
     voteCount = voteCount
 )
 
+fun SeasonDto.toSeason(): Season = Season(
+    id = id,
+    name = name,
+    overview = overview ?: "",
+    posterUrl = posterPath?.let { "$IMAGE_BASE_URL$POSTER_SIZE$it" },
+    seasonNumber = seasonNumber,
+    episodeCount = episodeCount,
+    airDate = airDate?.take(4) ?: ""  // just the year
+)
+
 fun TvDetailsResponse.toTvDetails(): TvShowDetails = TvShowDetails(
     id = id,
     name = name,
@@ -36,7 +50,25 @@ fun TvDetailsResponse.toTvDetails(): TvShowDetails = TvShowDetails(
     numberOfEpisodes = numberOfEpisodes,
     genres = genres.map { it.toGenre() },
     tagline = tagline,
-    status = status
+    status = status,
+    seasons = seasons
+        ?.filter { it.seasonNumber > 0 }  // exclude "Specials" (season 0)
+        ?.map { it.toSeason() }
+        ?: emptyList()
+)
+
+private const val STILL_SIZE = "w300"
+
+fun EpisodeDto.toEpisode(): Episode = Episode(
+    id = id,
+    name = name,
+    overview = overview ?: "",
+    episodeNumber = episodeNumber,
+    seasonNumber = seasonNumber,
+    airDate = airDate?.toFormattedDate() ?: "",
+    stillUrl = stillPath?.let { "$IMAGE_BASE_URL$STILL_SIZE$it" },
+    rating = voteAverage,
+    runtime = runtime
 )
 
 fun TvCreditsResponse.toTvCredits(): TvCredits = TvCredits(
