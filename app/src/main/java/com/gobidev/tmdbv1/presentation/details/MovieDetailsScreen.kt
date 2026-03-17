@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.presentation.details
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,6 +78,7 @@ fun MovieDetailsScreen(
     onBackClick: () -> Unit,
     onViewFullCastClick: (movieId: Int, movieTitle: String) -> Unit,
     onViewAllReviewsClick: (movieId: Int, movieTitle: String) -> Unit,
+    onCastMemberClick: (personId: Int) -> Unit,
     viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -124,11 +126,9 @@ fun MovieDetailsScreen(
                         onViewFullCastClick(state.movie.id, state.movie.title)
                     },
                     onViewAllReviewsClick = {
-                        onViewAllReviewsClick(
-                            state.movie.id,
-                            state.movie.title
-                        )
+                        onViewAllReviewsClick(state.movie.id, state.movie.title)
                     },
+                    onCastMemberClick = onCastMemberClick,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -167,6 +167,7 @@ fun MovieDetailsContent(
     reviewState: MovieReviewUiState,
     onViewFullCastClick: () -> Unit,
     onViewAllReviewsClick: () -> Unit,
+    onCastMemberClick: (personId: Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -307,7 +308,8 @@ fun MovieDetailsContent(
             // Cast Section
             CastSection(
                 castState = castState,
-                onViewFullCastClick = onViewFullCastClick
+                onViewFullCastClick = onViewFullCastClick,
+                onCastMemberClick = onCastMemberClick
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -353,6 +355,7 @@ fun InfoRow(
 fun CastSection(
     castState: MovieCastUiState,
     onViewFullCastClick: () -> Unit,
+    onCastMemberClick: (personId: Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -394,7 +397,10 @@ fun CastSection(
                         contentPadding = PaddingValues(end = 16.dp)
                     ) {
                         items(castState.cast) { castMember ->
-                            CastMemberItem(castMember = castMember)
+                            CastMemberItem(
+                                castMember = castMember,
+                                onClick = { onCastMemberClick(castMember.id) }
+                            )
                         }
                     }
                 }
@@ -422,10 +428,13 @@ fun CastSection(
 @Composable
 fun CastMemberItem(
     castMember: CastMember,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.width(100.dp),
+        modifier = modifier
+            .width(100.dp)
+            .clickable { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Profile Image

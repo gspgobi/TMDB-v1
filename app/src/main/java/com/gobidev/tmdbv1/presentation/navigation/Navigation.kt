@@ -217,11 +217,11 @@ fun TMDBNavGraph(
                 },
                 onViewAllReviewsClick = { movieId, movieTitle ->
                     navController.navigate(
-                        Screen.MovieReviewsNav.createRoute(
-                            movieId,
-                            movieTitle
-                        )
+                        Screen.MovieReviewsNav.createRoute(movieId, movieTitle)
                     )
+                },
+                onCastMemberClick = { personId ->
+                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
                 }
             )
         }
