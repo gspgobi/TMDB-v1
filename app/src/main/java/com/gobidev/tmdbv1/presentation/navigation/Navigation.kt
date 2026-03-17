@@ -18,6 +18,7 @@ import com.gobidev.tmdbv1.presentation.search.SearchScreen
 import com.gobidev.tmdbv1.presentation.login.LoginScreen
 import com.gobidev.tmdbv1.presentation.tvdetails.TvDetailsScreen
 import com.gobidev.tmdbv1.presentation.tvdetails.TvFullCastCrewScreen
+import com.gobidev.tmdbv1.presentation.persondetails.PersonDetailsScreen
 import com.gobidev.tmdbv1.presentation.tvlisting.TvListingScreen
 
 /**
@@ -99,6 +100,13 @@ sealed class Screen(val route: String) {
     }
 
     /**
+     * Person Details screen.
+     */
+    data object PersonDetailsNav : Screen("person/{personId}") {
+        fun createRoute(personId: Int) = "person/$personId"
+    }
+
+    /**
      * Login screen.
      */
     data object LoginNav : Screen("login")
@@ -146,6 +154,9 @@ fun TMDBNavGraph(
                 },
                 onTvClick = { tvId ->
                     navController.navigate(Screen.TvDetailsNav.createRoute(tvId))
+                },
+                onPersonClick = { personId ->
+                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
                 }
             )
         }
@@ -206,11 +217,11 @@ fun TMDBNavGraph(
                 },
                 onViewAllReviewsClick = { movieId, movieTitle ->
                     navController.navigate(
-                        Screen.MovieReviewsNav.createRoute(
-                            movieId,
-                            movieTitle
-                        )
+                        Screen.MovieReviewsNav.createRoute(movieId, movieTitle)
                     )
+                },
+                onCastMemberClick = { personId ->
+                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
                 }
             )
         }
@@ -287,6 +298,27 @@ fun TMDBNavGraph(
                 onBackClick = { navController.popBackStack() },
                 onViewFullCastClick = { tvId, tvName ->
                     navController.navigate(Screen.TvCastNav.createRoute(tvId, tvName))
+                },
+                onCastMemberClick = { personId ->
+                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
+                }
+            )
+        }
+
+        // Person Details Screen
+        composable(
+            route = Screen.PersonDetailsNav.route,
+            arguments = listOf(
+                navArgument("personId") { type = NavType.IntType }
+            )
+        ) {
+            PersonDetailsScreen(
+                onBackClick = { navController.popBackStack() },
+                onMovieClick = { movieId ->
+                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
+                },
+                onTvClick = { tvId ->
+                    navController.navigate(Screen.TvDetailsNav.createRoute(tvId))
                 }
             )
         }

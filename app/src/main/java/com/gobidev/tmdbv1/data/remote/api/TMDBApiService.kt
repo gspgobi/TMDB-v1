@@ -1,5 +1,7 @@
 package com.gobidev.tmdbv1.data.remote.api
 
+import com.gobidev.tmdbv1.data.remote.dto.PersonCombinedCreditsResponse
+import com.gobidev.tmdbv1.data.remote.dto.PersonDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.AccountResponse
 import com.gobidev.tmdbv1.data.remote.dto.DeleteSessionBody
 import com.gobidev.tmdbv1.data.remote.dto.LoginRequestBody
@@ -149,6 +151,20 @@ interface TMDBApiService {
         @Path("season_number") seasonNumber: Int,
         @Query("language") language: String = "en-US"
     ): SeasonDetailsResponse
+
+    // ── Person ───────────────────────────────────────────────────────────────
+
+    @GET("person/{person_id}")
+    suspend fun getPersonDetails(
+        @Path("person_id") personId: Int,
+        @Query("language") language: String = "en-US"
+    ): PersonDetailsResponse
+
+    @GET("person/{person_id}/combined_credits")
+    suspend fun getPersonCombinedCredits(
+        @Path("person_id") personId: Int,
+        @Query("language") language: String = "en-US"
+    ): PersonCombinedCreditsResponse
 
     // ── Search ───────────────────────────────────────────────────────────────
 

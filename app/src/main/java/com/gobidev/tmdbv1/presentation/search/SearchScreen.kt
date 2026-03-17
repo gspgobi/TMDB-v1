@@ -50,6 +50,7 @@ import com.gobidev.tmdbv1.domain.model.SearchResult
 fun SearchScreen(
     onMovieClick: (Int) -> Unit,
     onTvClick: (Int) -> Unit,
+    onPersonClick: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val query by viewModel.query.collectAsState()
@@ -148,7 +149,8 @@ fun SearchScreen(
                                                     onMovieClick(result.movie.id)
                                                 is SearchResult.TvResult ->
                                                     onTvClick(result.show.id)
-                                                is SearchResult.PersonResult -> Unit
+                                                is SearchResult.PersonResult ->
+                                                    onPersonClick(result.person.id)
                                             }
                                         }
                                     )

@@ -3,12 +3,14 @@ package com.gobidev.tmdbv1.di
 import com.gobidev.tmdbv1.BuildConfig
 import com.gobidev.tmdbv1.data.remote.api.AuthInterceptor
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
+import com.gobidev.tmdbv1.data.repository.PersonRepositoryImpl
 import com.gobidev.tmdbv1.data.repository.MovieRepositoryImpl
 import com.gobidev.tmdbv1.data.repository.AccountRepositoryImpl
 import com.gobidev.tmdbv1.data.repository.AuthRepositoryImpl
 import com.gobidev.tmdbv1.data.repository.SearchRepositoryImpl
 import com.gobidev.tmdbv1.data.repository.TvRepositoryImpl
 import com.gobidev.tmdbv1.domain.repository.AccountRepository
+import com.gobidev.tmdbv1.domain.repository.PersonRepository
 import com.gobidev.tmdbv1.domain.repository.AuthRepository
 import com.gobidev.tmdbv1.domain.repository.MovieRepository
 import com.gobidev.tmdbv1.domain.repository.SearchRepository
@@ -145,6 +147,14 @@ object AppModule {
     fun provideAccountRepository(
         repositoryImpl: AccountRepositoryImpl
     ): AccountRepository {
+        return repositoryImpl
+    }
+
+    @Provides
+    @Singleton
+    fun providePersonRepository(
+        repositoryImpl: PersonRepositoryImpl
+    ): PersonRepository {
         return repositoryImpl
     }
 }
