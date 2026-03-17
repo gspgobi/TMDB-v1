@@ -298,6 +298,9 @@ fun TMDBNavGraph(
                 onBackClick = { navController.popBackStack() },
                 onViewFullCastClick = { tvId, tvName ->
                     navController.navigate(Screen.TvCastNav.createRoute(tvId, tvName))
+                },
+                onCastMemberClick = { personId ->
+                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
                 }
             )
         }

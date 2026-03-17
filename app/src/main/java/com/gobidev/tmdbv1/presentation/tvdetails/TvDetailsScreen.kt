@@ -65,6 +65,7 @@ import java.util.Locale
 fun TvDetailsScreen(
     onBackClick: () -> Unit,
     onViewFullCastClick: (tvId: Int, tvName: String) -> Unit,
+    onCastMemberClick: (personId: Int) -> Unit,
     viewModel: TvDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -114,6 +115,7 @@ fun TvDetailsScreen(
                     onSeasonSelect = { viewModel.selectSeason(it) },
                     onLoadMore = { viewModel.loadMoreEpisodes() },
                     onViewFullCastClick = { onViewFullCastClick(state.tvShow.id, state.tvShow.name) },
+                    onCastMemberClick = onCastMemberClick,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -143,6 +145,7 @@ private fun TvDetailsContent(
     onSeasonSelect: (Int) -> Unit,
     onLoadMore: () -> Unit,
     onViewFullCastClick: () -> Unit,
+    onCastMemberClick: (personId: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -230,7 +233,8 @@ private fun TvDetailsContent(
 
             CastSection(
                 castState = castState,
-                onViewFullCastClick = onViewFullCastClick
+                onViewFullCastClick = onViewFullCastClick,
+                onCastMemberClick = onCastMemberClick
             )
         }
     }
