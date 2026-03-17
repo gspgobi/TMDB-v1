@@ -13,6 +13,7 @@ A modern Android application for browsing movies and TV shows using the **TMDB A
 - **Full Cast & Crew** — complete credits with profile images
 - **Movie Reviews** — paginated review list with author avatars and ratings
 - **TV Series** — listing, details (seasons & episodes count, genres, tagline), and full cast & crew
+- **Season & Episodes** — season selector on TV details; expandable episode list with load-more pagination
 - **Search** — debounced multi-type search across movies, TV shows, and people; media-type chip on each result
 - **Account Login** — optional TMDB account sign-in; Favorites and Watchlist tabs on the Profile screen
 - **Bottom navigation** — Home / Search / Profile tabs; auto-hidden on detail screens
@@ -62,7 +63,7 @@ flowchart TD
     Cast["🎭 Full Cast & Crew"]
     Reviews["💬 Movie Reviews"]
     TvListing["📺 TV Listing\n(paginated)"]
-    TvDetails["📺 TV Details"]
+    TvDetails["📺 TV Details\n(seasons & episodes)"]
     TvCast["🎭 TV Cast & Crew"]
     Search["🔍 Search\n(multi-type)"]
     Profile["👤 Profile\n(favorites & watchlist)"]
