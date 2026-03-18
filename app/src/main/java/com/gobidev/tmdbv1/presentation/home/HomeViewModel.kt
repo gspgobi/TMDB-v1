@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieListType
+import com.gobidev.tmdbv1.domain.model.TrendingItem
 import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.domain.usecase.GetMoviePreviewUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetTrendingUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvPreviewUseCase
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +31,14 @@ data class TvCategoryState(
     val error: String? = null
 )
 
+data class TrendingCategoryState(
+    val items: List<TrendingItem> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 data class HomeUiState(
+    val trending: TrendingCategoryState = TrendingCategoryState(),
     val popular: MovieCategoryState = MovieCategoryState(),
     val nowPlaying: MovieCategoryState = MovieCategoryState(),
     val upcoming: MovieCategoryState = MovieCategoryState(),
@@ -41,7 +50,8 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getMoviePreviewUseCase: GetMoviePreviewUseCase,
-    private val getTvPreviewUseCase: GetTvPreviewUseCase
+    private val getTvPreviewUseCase: GetTvPreviewUseCase,
+    private val getTrendingUseCase: GetTrendingUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -52,6 +62,17 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadAll() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(trending = TrendingCategoryState(isLoading = true)) }
+            when (val result = getTrendingUseCase()) {
+                is Result.Success -> _uiState.update {
+                    it.copy(trending = TrendingCategoryState(items = result.data))
+                }
+                is Result.Error -> _uiState.update {
+                    it.copy(trending = TrendingCategoryState(error = result.message))
+                }
+            }
+        }
         viewModelScope.launch {
             _uiState.update { it.copy(popular = MovieCategoryState(isLoading = true)) }
             when (val result = getMoviePreviewUseCase(MovieListType.POPULAR)) {

@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.data.remote.api
 
+import com.gobidev.tmdbv1.data.remote.dto.TrendingResponseDto
 import com.gobidev.tmdbv1.data.remote.dto.PersonCombinedCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.PersonDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.AccountResponse
@@ -151,6 +152,14 @@ interface TMDBApiService {
         @Path("season_number") seasonNumber: Int,
         @Query("language") language: String = "en-US"
     ): SeasonDetailsResponse
+
+    // ── Trending ─────────────────────────────────────────────────────────────
+
+    @GET("trending/all/{time_window}")
+    suspend fun getTrendingAll(
+        @Path("time_window") timeWindow: String = "week",
+        @Query("language") language: String = "en-US"
+    ): TrendingResponseDto
 
     // ── Person ───────────────────────────────────────────────────────────────
 
