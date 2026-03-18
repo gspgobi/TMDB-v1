@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.presentation.tvdetails
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import com.gobidev.tmdbv1.presentation.util.CastCrewListShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +51,7 @@ import com.gobidev.tmdbv1.domain.model.CrewMember
 @Composable
 fun TvFullCastCrewScreen(
     onBackClick: () -> Unit,
+    onPersonClick: (Int) -> Unit,
     viewModel: TvFullCastCrewViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -82,10 +84,9 @@ fun TvFullCastCrewScreen(
     ) { paddingValues ->
         when (val state = uiState) {
             is TvFullCastUiState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                CastCrewListShimmer(
+                    modifier = Modifier.fillMaxSize().padding(paddingValues)
+                )
             }
 
             is TvFullCastUiState.Success -> {
@@ -103,7 +104,10 @@ fun TvFullCastCrewScreen(
                             )
                         }
                         items(state.cast) { member ->
-                            TvCastMemberRow(castMember = member)
+                            TvCastMemberRow(
+                                castMember = member,
+                                onClick = { onPersonClick(member.id) }
+                            )
                         }
                     }
 
@@ -117,7 +121,10 @@ fun TvFullCastCrewScreen(
                             )
                         }
                         items(state.crew) { member ->
-                            TvCrewMemberRow(crewMember = member)
+                            TvCrewMemberRow(
+                                crewMember = member,
+                                onClick = { onPersonClick(member.id) }
+                            )
                         }
                     }
                 }
@@ -145,9 +152,9 @@ fun TvFullCastCrewScreen(
 }
 
 @Composable
-private fun TvCastMemberRow(castMember: CastMember) {
+private fun TvCastMemberRow(castMember: CastMember, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -199,9 +206,9 @@ private fun TvCastMemberRow(castMember: CastMember) {
 }
 
 @Composable
-private fun TvCrewMemberRow(crewMember: CrewMember) {
+private fun TvCrewMemberRow(crewMember: CrewMember, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(

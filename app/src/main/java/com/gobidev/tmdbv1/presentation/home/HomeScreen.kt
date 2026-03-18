@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -47,6 +46,8 @@ import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.domain.model.TrendingItem
 import com.gobidev.tmdbv1.domain.model.TvListType
+import com.gobidev.tmdbv1.presentation.util.PosterShimmerRow
+import com.gobidev.tmdbv1.presentation.util.TrendingShimmerRow
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -162,12 +163,7 @@ private fun TrendingSection(
 
         when {
             categoryState.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                TrendingShimmerRow()
             }
 
             categoryState.error != null -> {
@@ -320,12 +316,7 @@ private fun MovieCarouselSection(
 
         when {
             categoryState.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                PosterShimmerRow()
             }
 
             categoryState.error != null -> {
@@ -383,12 +374,7 @@ private fun TvCarouselSection(
 
         when {
             categoryState.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                PosterShimmerRow()
             }
 
             categoryState.error != null -> {
@@ -424,6 +410,7 @@ private fun TvCarouselSection(
         }
     }
 }
+
 
 @Composable
 private fun PosterCard(

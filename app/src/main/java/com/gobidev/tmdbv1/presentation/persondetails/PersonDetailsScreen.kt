@@ -22,7 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import com.gobidev.tmdbv1.presentation.util.CreditCarouselShimmer
+import com.gobidev.tmdbv1.presentation.util.PersonMainShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -84,12 +85,11 @@ fun PersonDetailsScreen(
     ) { paddingValues ->
         when (val state = uiState) {
             is PersonDetailsUiState.Loading -> {
-                Box(
+                PersonMainShimmer(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                        .padding(paddingValues)
+                )
             }
 
             is PersonDetailsUiState.Error -> {
@@ -230,12 +230,7 @@ private fun PersonDetailsContent(
 
         when (val cs = creditsState) {
             is PersonCreditsUiState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                CreditCarouselShimmer()
             }
 
             is PersonCreditsUiState.Error -> {

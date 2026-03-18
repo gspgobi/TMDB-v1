@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import com.gobidev.tmdbv1.presentation.util.MediaListShimmer
+import com.gobidev.tmdbv1.presentation.util.ProfileLoadingShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -97,12 +99,11 @@ fun ProfileScreen(
             }
 
             is ProfileUiState.Loading -> {
-                Box(
+                ProfileLoadingShimmer(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                        .padding(paddingValues)
+                )
             }
 
             is ProfileUiState.LoggedIn -> {
@@ -243,10 +244,7 @@ private fun LoggedInContent(
         Box(modifier = Modifier.fillMaxSize()) {
             when (items.loadState.refresh) {
                 is LoadState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator() }
+                    MediaListShimmer(modifier = Modifier.fillMaxSize())
                 }
 
                 is LoadState.Error -> {
