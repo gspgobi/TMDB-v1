@@ -24,6 +24,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -101,10 +102,9 @@ fun TvDetailsScreen(
     ) { paddingValues ->
         when (val state = uiState) {
             is TvDetailsUiState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                DetailsMainShimmer(
+                    modifier = Modifier.fillMaxSize().padding(paddingValues)
+                )
             }
             is TvDetailsUiState.Success -> {
                 TvDetailsContent(

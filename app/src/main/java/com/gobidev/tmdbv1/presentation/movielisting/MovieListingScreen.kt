@@ -24,6 +24,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import com.gobidev.tmdbv1.presentation.util.MediaListShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -262,12 +263,7 @@ fun MoviesList(
     // Handle initial loading state
     when (movies.loadState.refresh) {
         is LoadState.Loading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            MediaListShimmer(modifier = Modifier.fillMaxSize())
         }
 
         is LoadState.Error -> {

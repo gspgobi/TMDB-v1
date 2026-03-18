@@ -23,7 +23,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import com.gobidev.tmdbv1.presentation.util.CastCarouselShimmer
+import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
+import com.gobidev.tmdbv1.presentation.util.ReviewCardShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -107,14 +109,11 @@ fun MovieDetailsScreen(
     ) { paddingValues ->
         when (val state = uiState) {
             is MovieDetailsUiState.Loading -> {
-                Box(
+                DetailsMainShimmer(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                        .padding(paddingValues)
+                )
             }
 
             is MovieDetailsUiState.Success -> {
@@ -366,14 +365,7 @@ fun CastSection(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                CastCarouselShimmer()
             }
 
             is MovieCastUiState.Success -> {
@@ -501,7 +493,7 @@ fun ReviewSection(
             is MovieReviewUiState.Loading -> {
                 Text("Reviews", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                ReviewCardShimmer()
             }
 
             is MovieReviewUiState.Success -> {
