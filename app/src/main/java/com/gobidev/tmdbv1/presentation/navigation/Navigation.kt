@@ -241,8 +241,9 @@ fun TMDBNavGraph(
             )
         ) {
             FullCastCrewScreen(
-                onBackClick = {
-                    navController.popBackStack()
+                onBackClick = { navController.popBackStack() },
+                onPersonClick = { personId ->
+                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
                 }
             )
         }
@@ -335,7 +336,12 @@ fun TMDBNavGraph(
                 }
             )
         ) {
-            TvFullCastCrewScreen(onBackClick = { navController.popBackStack() })
+            TvFullCastCrewScreen(
+                onBackClick = { navController.popBackStack() },
+                onPersonClick = { personId ->
+                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
+                }
+            )
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.presentation.castcrew
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,6 +66,7 @@ import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 @Composable
 fun FullCastCrewScreen(
     onBackClick: () -> Unit,
+    onPersonClick: (Int) -> Unit,
     viewModel: FullCastCrewViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -109,6 +111,7 @@ fun FullCastCrewScreen(
                 FullCastCrewContent(
                     cast = state.cast,
                     crew = state.crew,
+                    onPersonClick = onPersonClick,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -148,6 +151,7 @@ fun FullCastCrewScreen(
 fun FullCastCrewContent(
     cast: List<CastMember>,
     crew: List<CrewMember>,
+    onPersonClick: (Int) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -170,7 +174,8 @@ fun FullCastCrewContent(
             CastCrewListItem(
                 name = castMember.name,
                 role = castMember.character,
-                profileUrl = castMember.profileUrl
+                profileUrl = castMember.profileUrl,
+                onClick = { onPersonClick(castMember.id) }
             )
         }
 
@@ -195,7 +200,8 @@ fun FullCastCrewContent(
                 name = crewMember.name,
                 role = crewMember.job,
                 department = crewMember.department,
-                profileUrl = crewMember.profileUrl
+                profileUrl = crewMember.profileUrl,
+                onClick = { onPersonClick(crewMember.id) }
             )
         }
     }
@@ -212,10 +218,11 @@ fun CastCrewListItem(
     role: String,
     profileUrl: String?,
     department: String? = null,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
