@@ -1,4 +1,4 @@
-package com.gobidev.tmdbv1.presentation.castcrew
+package com.gobidev.tmdbv1.presentation.moviedetails
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

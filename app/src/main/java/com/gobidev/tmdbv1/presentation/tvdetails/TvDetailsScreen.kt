@@ -54,9 +54,9 @@ import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.Season
 import com.gobidev.tmdbv1.domain.model.TvShowDetails
-import com.gobidev.tmdbv1.presentation.details.CastSection
-import com.gobidev.tmdbv1.presentation.details.InfoRow
-import com.gobidev.tmdbv1.presentation.details.MovieCastUiState
+import com.gobidev.tmdbv1.presentation.moviedetails.CastSection
+import com.gobidev.tmdbv1.presentation.moviedetails.InfoRow
+import com.gobidev.tmdbv1.presentation.moviedetails.MovieCastUiState
 import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
 import java.util.Locale
 

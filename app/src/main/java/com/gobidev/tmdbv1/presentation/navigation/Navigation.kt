@@ -8,10 +8,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.domain.model.TvListType
-import com.gobidev.tmdbv1.presentation.castcrew.FullCastCrewEvent
-import com.gobidev.tmdbv1.presentation.castcrew.FullCastCrewScreen
-import com.gobidev.tmdbv1.presentation.details.MovieDetailsEvent
-import com.gobidev.tmdbv1.presentation.details.MovieDetailsScreen
+import com.gobidev.tmdbv1.presentation.moviedetails.FullCastCrewEvent
+import com.gobidev.tmdbv1.presentation.moviedetails.FullCastCrewScreen
+import com.gobidev.tmdbv1.presentation.moviedetails.MovieDetailsEvent
+import com.gobidev.tmdbv1.presentation.moviedetails.MovieDetailsScreen
 import com.gobidev.tmdbv1.presentation.home.HomeEvent
 import com.gobidev.tmdbv1.presentation.home.HomeScreen
 import com.gobidev.tmdbv1.presentation.login.LoginEvent
