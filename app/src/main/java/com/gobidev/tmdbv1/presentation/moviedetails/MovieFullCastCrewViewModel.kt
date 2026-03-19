@@ -1,4 +1,4 @@
-package com.gobidev.tmdbv1.presentation.castcrew
+package com.gobidev.tmdbv1.presentation.moviedetails
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

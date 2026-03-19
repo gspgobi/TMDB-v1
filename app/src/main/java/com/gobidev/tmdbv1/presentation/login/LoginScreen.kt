@@ -37,11 +37,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
+sealed interface LoginEvent {
+    data object BackClick : LoginEvent
+    data object LoginSuccess : LoginEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onBackClick: () -> Unit,
-    onLoginSuccess: () -> Unit,
+    onEvent: (LoginEvent) -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.loginState.collectAsStateWithLifecycle()
@@ -50,7 +54,7 @@ fun LoginScreen(
 
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
-            onLoginSuccess()
+            onEvent(LoginEvent.LoginSuccess)
             viewModel.resetState()
         }
     }
@@ -60,7 +64,7 @@ fun LoginScreen(
             TopAppBar(
                 title = { Text("Sign In") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onEvent(LoginEvent.BackClick) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"

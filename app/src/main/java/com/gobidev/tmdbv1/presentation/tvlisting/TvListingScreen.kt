@@ -41,11 +41,15 @@ import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.presentation.movielisting.ErrorItem
 import java.util.Locale
 
+sealed interface TvListingEvent {
+    data object BackClick : TvListingEvent
+    data class TvClick(val tvId: Int) : TvListingEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TvListingScreen(
-    onBackClick: () -> Unit,
-    onTvClick: (Int) -> Unit,
+    onEvent: (TvListingEvent) -> Unit,
     viewModel: TvListingViewModel = hiltViewModel()
 ) {
     val tvShows = viewModel.tvShows.collectAsLazyPagingItems()
@@ -55,7 +59,7 @@ fun TvListingScreen(
             TopAppBar(
                 title = { Text(viewModel.tvListType.title) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onEvent(TvListingEvent.BackClick) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -80,7 +84,7 @@ fun TvListingScreen(
             ) {
                 items(tvShows.itemCount) { index ->
                     tvShows[index]?.let { show ->
-                        TvShowItem(show = show, onClick = { onTvClick(show.id) })
+                        TvShowItem(show = show, onClick = { onEvent(TvListingEvent.TvClick(show.id)) })
                     }
                 }
 

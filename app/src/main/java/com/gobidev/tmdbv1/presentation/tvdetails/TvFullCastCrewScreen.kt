@@ -47,11 +47,15 @@ import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.CrewMember
 
+sealed interface TvFullCastCrewEvent {
+    data object BackClick : TvFullCastCrewEvent
+    data class PersonClick(val personId: Int) : TvFullCastCrewEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TvFullCastCrewScreen(
-    onBackClick: () -> Unit,
-    onPersonClick: (Int) -> Unit,
+    onEvent: (TvFullCastCrewEvent) -> Unit,
     viewModel: TvFullCastCrewViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -67,7 +71,7 @@ fun TvFullCastCrewScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onEvent(TvFullCastCrewEvent.BackClick) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -106,7 +110,7 @@ fun TvFullCastCrewScreen(
                         items(state.cast) { member ->
                             TvCastMemberRow(
                                 castMember = member,
-                                onClick = { onPersonClick(member.id) }
+                                onClick = { onEvent(TvFullCastCrewEvent.PersonClick(member.id)) }
                             )
                         }
                     }
@@ -123,7 +127,7 @@ fun TvFullCastCrewScreen(
                         items(state.crew) { member ->
                             TvCrewMemberRow(
                                 crewMember = member,
-                                onClick = { onPersonClick(member.id) }
+                                onClick = { onEvent(TvFullCastCrewEvent.PersonClick(member.id)) }
                             )
                         }
                     }

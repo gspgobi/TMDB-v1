@@ -1,4 +1,4 @@
-package com.gobidev.tmdbv1.presentation.castcrew
+package com.gobidev.tmdbv1.presentation.moviedetails
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -62,11 +62,15 @@ import com.gobidev.tmdbv1.ui.theme.TMDBTheme
  * @param onBackClick Callback when back button is clicked
  * @param viewModel ViewModel provided by Hilt
  */
+sealed interface FullCastCrewEvent {
+    data object BackClick : FullCastCrewEvent
+    data class PersonClick(val personId: Int) : FullCastCrewEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullCastCrewScreen(
-    onBackClick: () -> Unit,
-    onPersonClick: (Int) -> Unit,
+    onEvent: (FullCastCrewEvent) -> Unit,
     viewModel: FullCastCrewViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -82,7 +86,7 @@ fun FullCastCrewScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onEvent(FullCastCrewEvent.BackClick) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -108,7 +112,7 @@ fun FullCastCrewScreen(
                 FullCastCrewContent(
                     cast = state.cast,
                     crew = state.crew,
-                    onPersonClick = onPersonClick,
+                    onPersonClick = { personId -> onEvent(FullCastCrewEvent.PersonClick(personId)) },
                     modifier = Modifier.padding(paddingValues)
                 )
             }

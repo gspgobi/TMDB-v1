@@ -46,11 +46,15 @@ import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.SearchResult
 
+sealed interface SearchEvent {
+    data class MovieClick(val movieId: Int) : SearchEvent
+    data class TvClick(val tvId: Int) : SearchEvent
+    data class PersonClick(val personId: Int) : SearchEvent
+}
+
 @Composable
 fun SearchScreen(
-    onMovieClick: (Int) -> Unit,
-    onTvClick: (Int) -> Unit,
-    onPersonClick: (Int) -> Unit,
+    onEvent: (SearchEvent) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val query by viewModel.query.collectAsState()
@@ -146,11 +150,11 @@ fun SearchScreen(
                                         onClick = {
                                             when (result) {
                                                 is SearchResult.MovieResult ->
-                                                    onMovieClick(result.movie.id)
+                                                    onEvent(SearchEvent.MovieClick(result.movie.id))
                                                 is SearchResult.TvResult ->
-                                                    onTvClick(result.show.id)
+                                                    onEvent(SearchEvent.TvClick(result.show.id))
                                                 is SearchResult.PersonResult ->
-                                                    onPersonClick(result.person.id)
+                                                    onEvent(SearchEvent.PersonClick(result.person.id))
                                             }
                                         }
                                     )

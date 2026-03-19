@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Badge
@@ -59,20 +60,15 @@ import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
 
-/**
- * A reusable movie listing screen that supports multiple TMDB list endpoints
- * (popular, now_playing, top_rated, upcoming) with filtering and sorting.
- *
- * The list type is encoded in the navigation route and read by [MovieListingViewModel]
- * from [SavedStateHandle]. Filters and sort are applied via a [FilterSortBottomSheet].
- *
- * @param onMovieClick Callback invoked when the user taps a movie card
- * @param viewModel Hilt-provided ViewModel
- */
+sealed interface MovieListingEvent {
+    data object BackClick : MovieListingEvent
+    data class MovieClick(val movieId: Int) : MovieListingEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieListingScreen(
-    onMovieClick: (Int) -> Unit,
+    onEvent: (MovieListingEvent) -> Unit,
     viewModel: MovieListingViewModel = hiltViewModel()
 ) {
     val movies = viewModel.movies.collectAsLazyPagingItems()
@@ -84,10 +80,19 @@ fun MovieListingScreen(
             Column {
                 TopAppBar(
                     title = { Text(viewModel.movieListType.title) },
+                    navigationIcon = {
+                        IconButton(onClick = { onEvent(MovieListingEvent.BackClick) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     actions = {
                         // Filter icon with active-filter badge
@@ -134,7 +139,7 @@ fun MovieListingScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             MoviesList(
                 movies = movies,
-                onMovieClick = onMovieClick,
+                onMovieClick = { id -> onEvent(MovieListingEvent.MovieClick(id)) },
                 modifier = Modifier.padding(paddingValues)
             )
         }
