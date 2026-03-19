@@ -20,11 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -34,8 +32,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -59,14 +57,19 @@ import com.gobidev.tmdbv1.domain.model.TvShowDetails
 import com.gobidev.tmdbv1.presentation.details.CastSection
 import com.gobidev.tmdbv1.presentation.details.InfoRow
 import com.gobidev.tmdbv1.presentation.details.MovieCastUiState
+import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
 import java.util.Locale
+
+sealed interface TvDetailsEvent {
+    data object BackClick : TvDetailsEvent
+    data class ViewFullCastClick(val tvId: Int, val tvName: String) : TvDetailsEvent
+    data class CastMemberClick(val personId: Int) : TvDetailsEvent
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TvDetailsScreen(
-    onBackClick: () -> Unit,
-    onViewFullCastClick: (tvId: Int, tvName: String) -> Unit,
-    onCastMemberClick: (personId: Int) -> Unit,
+    onEvent: (TvDetailsEvent) -> Unit,
     viewModel: TvDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -85,7 +88,7 @@ fun TvDetailsScreen(
             TopAppBar(
                 title = { Text("TV Details") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onEvent(TvDetailsEvent.BackClick) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -103,9 +106,12 @@ fun TvDetailsScreen(
         when (val state = uiState) {
             is TvDetailsUiState.Loading -> {
                 DetailsMainShimmer(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
                 )
             }
+
             is TvDetailsUiState.Success -> {
                 TvDetailsContent(
                     tvShow = state.tvShow,
@@ -114,14 +120,16 @@ fun TvDetailsScreen(
                     episodesState = episodesState,
                     onSeasonSelect = { viewModel.selectSeason(it) },
                     onLoadMore = { viewModel.loadMoreEpisodes() },
-                    onViewFullCastClick = { onViewFullCastClick(state.tvShow.id, state.tvShow.name) },
-                    onCastMemberClick = onCastMemberClick,
+                    onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
+
             is TvDetailsUiState.Error -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(paddingValues),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -144,18 +152,21 @@ private fun TvDetailsContent(
     episodesState: EpisodesUiState,
     onSeasonSelect: (Int) -> Unit,
     onLoadMore: () -> Unit,
-    onViewFullCastClick: () -> Unit,
-    onCastMemberClick: (personId: Int) -> Unit,
+    onEvent: (TvDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
         tvShow.backdropUrl?.let { backdropUrl ->
             AsyncImage(
                 model = backdropUrl,
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth().height(200.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
                 contentScale = ContentScale.Crop
             )
         }
@@ -166,7 +177,9 @@ private fun TvDetailsContent(
                     AsyncImage(
                         model = posterUrl,
                         contentDescription = tvShow.name,
-                        modifier = Modifier.width(120.dp).height(180.dp),
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(180.dp),
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(16.dp))
@@ -191,7 +204,13 @@ private fun TvDetailsContent(
                     InfoRow(label = "First Air", value = tvShow.firstAirDate)
                     InfoRow(
                         label = "Rating",
-                        value = "⭐ ${String.format(Locale.getDefault(), "%.1f", tvShow.rating)} (${tvShow.voteCount})"
+                        value = "⭐ ${
+                            String.format(
+                                Locale.getDefault(),
+                                "%.1f",
+                                tvShow.rating
+                            )
+                        } (${tvShow.voteCount})"
                     )
                     tvShow.status?.let { InfoRow(label = "Status", value = it) }
                 }
@@ -233,8 +252,15 @@ private fun TvDetailsContent(
 
             CastSection(
                 castState = castState,
-                onViewFullCastClick = onViewFullCastClick,
-                onCastMemberClick = onCastMemberClick
+                onViewFullCastClick = {
+                    onEvent(
+                        TvDetailsEvent.ViewFullCastClick(
+                            tvShow.id,
+                            tvShow.name
+                        )
+                    )
+                },
+                onCastMemberClick = { id -> onEvent(TvDetailsEvent.CastMemberClick(id)) }
             )
         }
     }
@@ -326,8 +352,10 @@ private fun SeasonsSection(
                         fontWeight = FontWeight.SemiBold
                     )
                     if (selected.airDate.isNotBlank()) {
-                        Text("·", style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "·", style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Text(
                             text = selected.airDate,
                             style = MaterialTheme.typography.bodySmall,
@@ -355,7 +383,9 @@ private fun SeasonsSection(
     when (val state = episodesState) {
         is EpisodesUiState.Idle, is EpisodesUiState.Loading -> {
             Box(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
                 contentAlignment = Alignment.Center
             ) { CircularProgressIndicator() }
         }
@@ -385,7 +415,10 @@ private fun SeasonsSection(
                     onClick = onLoadMore,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Load More Episodes (${state.totalCount - state.episodes.size} remaining)")
+                    Text(
+                        text = "Load More Episodes (${state.totalCount - state.episodes.size} remaining)",
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }
@@ -444,8 +477,10 @@ private fun EpisodeItem(episode: Episode) {
                     fontWeight = FontWeight.SemiBold
                 )
                 episode.runtime?.let { mins ->
-                    Text("·", style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "·", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Text(
                         text = "${mins}m",
                         style = MaterialTheme.typography.labelSmall,
@@ -453,8 +488,10 @@ private fun EpisodeItem(episode: Episode) {
                     )
                 }
                 if (episode.airDate.isNotBlank()) {
-                    Text("·", style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "·", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Text(
                         text = episode.airDate,
                         style = MaterialTheme.typography.labelSmall,
