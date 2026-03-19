@@ -50,13 +50,17 @@ import com.gobidev.tmdbv1.presentation.util.PosterShimmerRow
 import com.gobidev.tmdbv1.presentation.util.TrendingShimmerRow
 import java.util.Locale
 
+sealed interface HomeEvent {
+    data class MovieClick(val movieId: Int) : HomeEvent
+    data class ViewAllMoviesClick(val listType: MovieListType) : HomeEvent
+    data class TvClick(val tvId: Int) : HomeEvent
+    data class ViewAllTvClick(val listType: TvListType) : HomeEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onMovieClick: (Int) -> Unit,
-    onViewAllClick: (MovieListType) -> Unit,
-    onTvClick: (Int) -> Unit,
-    onViewAllTvClick: (TvListType) -> Unit,
+    onEvent: (HomeEvent) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -86,62 +90,55 @@ fun HomeScreen(
             item {
                 TrendingSection(
                     categoryState = uiState.trending,
-                    onMovieClick = onMovieClick,
-                    onTvClick = onTvClick
+                    onEvent = onEvent
                 )
             }
             // ── Movies ───────────────────────────────────────────────────────
             item {
                 MovieCarouselSection(
-                    title = MovieListType.POPULAR.title,
+                    listType = MovieListType.POPULAR,
                     categoryState = uiState.popular,
-                    onMovieClick = onMovieClick,
-                    onViewAllClick = { onViewAllClick(MovieListType.POPULAR) }
+                    onEvent = onEvent
                 )
             }
             // ── TV Series ────────────────────────────────────────────────────
             item {
                 TvCarouselSection(
-                    title = TvListType.POPULAR.title,
+                    listType = TvListType.POPULAR,
                     categoryState = uiState.popularTv,
-                    onTvClick = onTvClick,
-                    onViewAllClick = { onViewAllTvClick(TvListType.POPULAR) }
+                    onEvent = onEvent
                 )
             }
             // ── Movies ───────────────────────────────────────────────────────
             item {
                 MovieCarouselSection(
-                    title = MovieListType.NOW_PLAYING.title,
+                    listType = MovieListType.NOW_PLAYING,
                     categoryState = uiState.nowPlaying,
-                    onMovieClick = onMovieClick,
-                    onViewAllClick = { onViewAllClick(MovieListType.NOW_PLAYING) }
+                    onEvent = onEvent
                 )
             }
             // ── TV Series ────────────────────────────────────────────────────
             item {
                 TvCarouselSection(
-                    title = TvListType.ON_THE_AIR.title,
+                    listType = TvListType.ON_THE_AIR,
                     categoryState = uiState.onTheAirTv,
-                    onTvClick = onTvClick,
-                    onViewAllClick = { onViewAllTvClick(TvListType.ON_THE_AIR) }
+                    onEvent = onEvent
                 )
             }
             // ── Movies ───────────────────────────────────────────────────────
             item {
                 MovieCarouselSection(
-                    title = MovieListType.UPCOMING.title,
+                    listType = MovieListType.UPCOMING,
                     categoryState = uiState.upcoming,
-                    onMovieClick = onMovieClick,
-                    onViewAllClick = { onViewAllClick(MovieListType.UPCOMING) }
+                    onEvent = onEvent
                 )
             }
             // ── TV Series ────────────────────────────────────────────────────
             item {
                 TvCarouselSection(
-                    title = TvListType.TOP_RATED.title,
+                    listType = TvListType.TOP_RATED,
                     categoryState = uiState.topRatedTv,
-                    onTvClick = onTvClick,
-                    onViewAllClick = { onViewAllTvClick(TvListType.TOP_RATED) }
+                    onEvent = onEvent
                 )
             }
         }
@@ -151,8 +148,7 @@ fun HomeScreen(
 @Composable
 private fun TrendingSection(
     categoryState: TrendingCategoryState,
-    onMovieClick: (Int) -> Unit,
-    onTvClick: (Int) -> Unit
+    onEvent: (HomeEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -190,8 +186,8 @@ private fun TrendingSection(
                         TrendingCard(
                             item = item,
                             onClick = {
-                                if (item.mediaType == "movie") onMovieClick(item.id)
-                                else onTvClick(item.id)
+                                if (item.mediaType == "movie") onEvent(HomeEvent.MovieClick(item.id))
+                                else onEvent(HomeEvent.TvClick(item.id))
                             }
                         )
                     }
@@ -244,10 +240,7 @@ private fun TrendingCard(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(8.dp),
-                color = if (item.mediaType == "movie")
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.tertiary,
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
@@ -297,10 +290,9 @@ private fun TrendingCard(
 
 @Composable
 private fun MovieCarouselSection(
-    title: String,
+    listType: MovieListType,
     categoryState: MovieCategoryState,
-    onMovieClick: (Int) -> Unit,
-    onViewAllClick: () -> Unit
+    onEvent: (HomeEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -310,8 +302,8 @@ private fun MovieCarouselSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = title, style = MaterialTheme.typography.titleLarge)
-            TextButton(onClick = onViewAllClick) { Text("View All") }
+            Text(text = listType.title, style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = { onEvent(HomeEvent.ViewAllMoviesClick(listType)) }) { Text("View All") }
         }
 
         when {
@@ -343,7 +335,7 @@ private fun MovieCarouselSection(
                         PosterCard(
                             posterUrl = movie.posterUrl,
                             contentDescription = movie.title,
-                            onClick = { onMovieClick(movie.id) }
+                            onClick = { onEvent(HomeEvent.MovieClick(movie.id)) }
                         )
                     }
                 }
@@ -355,10 +347,9 @@ private fun MovieCarouselSection(
 
 @Composable
 private fun TvCarouselSection(
-    title: String,
+    listType: TvListType,
     categoryState: TvCategoryState,
-    onTvClick: (Int) -> Unit,
-    onViewAllClick: () -> Unit
+    onEvent: (HomeEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -368,8 +359,8 @@ private fun TvCarouselSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = title, style = MaterialTheme.typography.titleLarge)
-            TextButton(onClick = onViewAllClick) { Text("View All") }
+            Text(text = listType.title, style = MaterialTheme.typography.titleLarge)
+            TextButton(onClick = { onEvent(HomeEvent.ViewAllTvClick(listType)) }) { Text("View All") }
         }
 
         when {
@@ -401,7 +392,7 @@ private fun TvCarouselSection(
                         PosterCard(
                             posterUrl = show.posterUrl,
                             contentDescription = show.name,
-                            onClick = { onTvClick(show.id) }
+                            onClick = { onEvent(HomeEvent.TvClick(show.id)) }
                         )
                     }
                 }
