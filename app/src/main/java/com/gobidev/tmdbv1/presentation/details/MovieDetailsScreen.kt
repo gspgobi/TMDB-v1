@@ -74,13 +74,17 @@ import java.util.Locale
  * @param onViewFullCastClick Callback when "View Full Cast & Crew" button is clicked
  * @param viewModel ViewModel provided by Hilt
  */
+sealed interface MovieDetailsEvent {
+    data object BackClick : MovieDetailsEvent
+    data class ViewFullCastClick(val movieId: Int, val movieTitle: String) : MovieDetailsEvent
+    data class ViewAllReviewsClick(val movieId: Int, val movieTitle: String) : MovieDetailsEvent
+    data class CastMemberClick(val personId: Int) : MovieDetailsEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieDetailsScreen(
-    onBackClick: () -> Unit,
-    onViewFullCastClick: (movieId: Int, movieTitle: String) -> Unit,
-    onViewAllReviewsClick: (movieId: Int, movieTitle: String) -> Unit,
-    onCastMemberClick: (personId: Int) -> Unit,
+    onEvent: (MovieDetailsEvent) -> Unit,
     viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -93,7 +97,7 @@ fun MovieDetailsScreen(
             TopAppBar(
                 title = { Text("Movie Details") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onEvent(MovieDetailsEvent.BackClick) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -121,13 +125,7 @@ fun MovieDetailsScreen(
                     movie = state.movie,
                     castState = castState,
                     reviewState = reviewState,
-                    onViewFullCastClick = {
-                        onViewFullCastClick(state.movie.id, state.movie.title)
-                    },
-                    onViewAllReviewsClick = {
-                        onViewAllReviewsClick(state.movie.id, state.movie.title)
-                    },
-                    onCastMemberClick = onCastMemberClick,
+                    onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -164,9 +162,7 @@ fun MovieDetailsContent(
     movie: MovieDetails,
     castState: MovieCastUiState,
     reviewState: MovieReviewUiState,
-    onViewFullCastClick: () -> Unit,
-    onViewAllReviewsClick: () -> Unit,
-    onCastMemberClick: (personId: Int) -> Unit = {},
+    onEvent: (MovieDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -307,8 +303,8 @@ fun MovieDetailsContent(
             // Cast Section
             CastSection(
                 castState = castState,
-                onViewFullCastClick = onViewFullCastClick,
-                onCastMemberClick = onCastMemberClick
+                onViewFullCastClick = { onEvent(MovieDetailsEvent.ViewFullCastClick(movie.id, movie.title)) },
+                onCastMemberClick = { id -> onEvent(MovieDetailsEvent.CastMemberClick(id)) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -316,7 +312,7 @@ fun MovieDetailsContent(
             // Review Section
             ReviewSection(
                 reviewState = reviewState,
-                onViewAllReviewsClick = onViewAllReviewsClick
+                onViewAllReviewsClick = { onEvent(MovieDetailsEvent.ViewAllReviewsClick(movie.id, movie.title)) }
             )
         }
     }
@@ -621,8 +617,7 @@ fun PreviewMovieDetailsScreen() {
                 movie = PreviewData.sampleMovieDetails,
                 castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
                 reviewState = MovieReviewUiState.Success(PreviewData.sampleReview),
-                onViewFullCastClick = {},
-                onViewAllReviewsClick = {},
+                onEvent = {},
                 modifier = Modifier.padding(paddingValues),
             )
         }
@@ -637,8 +632,7 @@ fun PreviewMovieDetailsContent() {
             movie = PreviewData.sampleMovieDetails,
             castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
             reviewState = MovieReviewUiState.Success(PreviewData.sampleReview),
-            onViewFullCastClick = {},
-            onViewAllReviewsClick = {},
+            onEvent = {},
         )
     }
 }
@@ -651,8 +645,7 @@ fun PreviewMovieDetailsContentLoading() {
             movie = PreviewData.sampleMovieDetails,
             castState = MovieCastUiState.Loading,
             reviewState = MovieReviewUiState.Loading,
-            onViewFullCastClick = {},
-            onViewAllReviewsClick = {},
+            onEvent = {},
         )
     }
 }
@@ -665,8 +658,7 @@ fun PreviewMovieDetailsContentError() {
             movie = PreviewData.sampleMovieDetails,
             castState = MovieCastUiState.Error("Failed to load cast"),
             reviewState = MovieReviewUiState.Error("Failed to load reviews"),
-            onViewFullCastClick = {},
-            onViewAllReviewsClick = {},
+            onEvent = {},
         )
     }
 }
