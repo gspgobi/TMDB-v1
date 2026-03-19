@@ -8,17 +8,28 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.domain.model.TvListType
+import com.gobidev.tmdbv1.presentation.castcrew.FullCastCrewEvent
 import com.gobidev.tmdbv1.presentation.castcrew.FullCastCrewScreen
+import com.gobidev.tmdbv1.presentation.details.MovieDetailsEvent
 import com.gobidev.tmdbv1.presentation.details.MovieDetailsScreen
+import com.gobidev.tmdbv1.presentation.home.HomeEvent
 import com.gobidev.tmdbv1.presentation.home.HomeScreen
+import com.gobidev.tmdbv1.presentation.login.LoginEvent
+import com.gobidev.tmdbv1.presentation.login.LoginScreen
+import com.gobidev.tmdbv1.presentation.movielisting.MovieListingEvent
 import com.gobidev.tmdbv1.presentation.movielisting.MovieListingScreen
+import com.gobidev.tmdbv1.presentation.persondetails.PersonDetailsEvent
+import com.gobidev.tmdbv1.presentation.persondetails.PersonDetailsScreen
+import com.gobidev.tmdbv1.presentation.profile.ProfileEvent
 import com.gobidev.tmdbv1.presentation.profile.ProfileScreen
 import com.gobidev.tmdbv1.presentation.reviews.MovieReviewsScreen
+import com.gobidev.tmdbv1.presentation.search.SearchEvent
 import com.gobidev.tmdbv1.presentation.search.SearchScreen
-import com.gobidev.tmdbv1.presentation.login.LoginScreen
+import com.gobidev.tmdbv1.presentation.tvdetails.TvDetailsEvent
 import com.gobidev.tmdbv1.presentation.tvdetails.TvDetailsScreen
+import com.gobidev.tmdbv1.presentation.tvdetails.TvFullCastCrewEvent
 import com.gobidev.tmdbv1.presentation.tvdetails.TvFullCastCrewScreen
-import com.gobidev.tmdbv1.presentation.persondetails.PersonDetailsScreen
+import com.gobidev.tmdbv1.presentation.tvlisting.TvListingEvent
 import com.gobidev.tmdbv1.presentation.tvlisting.TvListingScreen
 
 /**
@@ -131,17 +142,13 @@ fun TMDBNavGraph(
         // Home Screen — entry point with movie + TV carousels
         composable(route = Screen.HomeNav.route) {
             HomeScreen(
-                onMovieClick = { movieId ->
-                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
-                },
-                onViewAllClick = { listType ->
-                    navController.navigate(Screen.MovieListingNav.createRoute(listType))
-                },
-                onTvClick = { tvId ->
-                    navController.navigate(Screen.TvDetailsNav.createRoute(tvId))
-                },
-                onViewAllTvClick = { listType ->
-                    navController.navigate(Screen.TvListingNav.createRoute(listType))
+                onEvent = { event ->
+                    when (event) {
+                        is HomeEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                        is HomeEvent.ViewAllMoviesClick -> navController.navigate(Screen.MovieListingNav.createRoute(event.listType))
+                        is HomeEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
+                        is HomeEvent.ViewAllTvClick -> navController.navigate(Screen.TvListingNav.createRoute(event.listType))
+                    }
                 }
             )
         }
@@ -149,14 +156,12 @@ fun TMDBNavGraph(
         // Search Screen
         composable(route = Screen.SearchNav.route) {
             SearchScreen(
-                onMovieClick = { movieId ->
-                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
-                },
-                onTvClick = { tvId ->
-                    navController.navigate(Screen.TvDetailsNav.createRoute(tvId))
-                },
-                onPersonClick = { personId ->
-                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
+                onEvent = { event ->
+                    when (event) {
+                        is SearchEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                        is SearchEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
+                        is SearchEvent.PersonClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
+                    }
                 }
             )
         }
@@ -164,11 +169,11 @@ fun TMDBNavGraph(
         // Profile Screen
         composable(route = Screen.ProfileNav.route) {
             ProfileScreen(
-                onLoginClick = {
-                    navController.navigate(Screen.LoginNav.route)
-                },
-                onMovieClick = { movieId ->
-                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
+                onEvent = { event ->
+                    when (event) {
+                        is ProfileEvent.LoginClick -> navController.navigate(Screen.LoginNav.route)
+                        is ProfileEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                    }
                 }
             )
         }
@@ -176,8 +181,12 @@ fun TMDBNavGraph(
         // Login Screen
         composable(route = Screen.LoginNav.route) {
             LoginScreen(
-                onBackClick = { navController.popBackStack() },
-                onLoginSuccess = { navController.popBackStack() }
+                onEvent = { event ->
+                    when (event) {
+                        is LoginEvent.BackClick -> navController.popBackStack()
+                        is LoginEvent.LoginSuccess -> navController.popBackStack()
+                    }
+                }
             )
         }
 
@@ -193,8 +202,11 @@ fun TMDBNavGraph(
             )
         ) {
             MovieListingScreen(
-                onMovieClick = { movieId ->
-                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
+                onEvent = { event ->
+                    when (event) {
+                        is MovieListingEvent.BackClick -> navController.popBackStack()
+                        is MovieListingEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                    }
                 }
             )
         }
@@ -209,19 +221,13 @@ fun TMDBNavGraph(
             )
         ) {
             MovieDetailsScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onViewFullCastClick = { movieId, movieTitle ->
-                    navController.navigate(Screen.MovieCastNav.createRoute(movieId, movieTitle))
-                },
-                onViewAllReviewsClick = { movieId, movieTitle ->
-                    navController.navigate(
-                        Screen.MovieReviewsNav.createRoute(movieId, movieTitle)
-                    )
-                },
-                onCastMemberClick = { personId ->
-                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
+                onEvent = { event ->
+                    when (event) {
+                        is MovieDetailsEvent.BackClick -> navController.popBackStack()
+                        is MovieDetailsEvent.ViewFullCastClick -> navController.navigate(Screen.MovieCastNav.createRoute(event.movieId, event.movieTitle))
+                        is MovieDetailsEvent.ViewAllReviewsClick -> navController.navigate(Screen.MovieReviewsNav.createRoute(event.movieId, event.movieTitle))
+                        is MovieDetailsEvent.CastMemberClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
+                    }
                 }
             )
         }
@@ -241,9 +247,11 @@ fun TMDBNavGraph(
             )
         ) {
             FullCastCrewScreen(
-                onBackClick = { navController.popBackStack() },
-                onPersonClick = { personId ->
-                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
+                onEvent = { event ->
+                    when (event) {
+                        is FullCastCrewEvent.BackClick -> navController.popBackStack()
+                        is FullCastCrewEvent.PersonClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
+                    }
                 }
             )
         }
@@ -281,9 +289,11 @@ fun TMDBNavGraph(
             )
         ) {
             TvListingScreen(
-                onBackClick = { navController.popBackStack() },
-                onTvClick = { tvId ->
-                    navController.navigate(Screen.TvDetailsNav.createRoute(tvId))
+                onEvent = { event ->
+                    when (event) {
+                        is TvListingEvent.BackClick -> navController.popBackStack()
+                        is TvListingEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
+                    }
                 }
             )
         }
@@ -296,12 +306,12 @@ fun TMDBNavGraph(
             )
         ) {
             TvDetailsScreen(
-                onBackClick = { navController.popBackStack() },
-                onViewFullCastClick = { tvId, tvName ->
-                    navController.navigate(Screen.TvCastNav.createRoute(tvId, tvName))
-                },
-                onCastMemberClick = { personId ->
-                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
+                onEvent = { event ->
+                    when (event) {
+                        is TvDetailsEvent.BackClick -> navController.popBackStack()
+                        is TvDetailsEvent.ViewFullCastClick -> navController.navigate(Screen.TvCastNav.createRoute(event.tvId, event.tvName))
+                        is TvDetailsEvent.CastMemberClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
+                    }
                 }
             )
         }
@@ -314,12 +324,12 @@ fun TMDBNavGraph(
             )
         ) {
             PersonDetailsScreen(
-                onBackClick = { navController.popBackStack() },
-                onMovieClick = { movieId ->
-                    navController.navigate(Screen.MovieDetailsNav.createRoute(movieId))
-                },
-                onTvClick = { tvId ->
-                    navController.navigate(Screen.TvDetailsNav.createRoute(tvId))
+                onEvent = { event ->
+                    when (event) {
+                        is PersonDetailsEvent.BackClick -> navController.popBackStack()
+                        is PersonDetailsEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                        is PersonDetailsEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
+                    }
                 }
             )
         }
@@ -337,9 +347,11 @@ fun TMDBNavGraph(
             )
         ) {
             TvFullCastCrewScreen(
-                onBackClick = { navController.popBackStack() },
-                onPersonClick = { personId ->
-                    navController.navigate(Screen.PersonDetailsNav.createRoute(personId))
+                onEvent = { event ->
+                    when (event) {
+                        is TvFullCastCrewEvent.BackClick -> navController.popBackStack()
+                        is TvFullCastCrewEvent.PersonClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
+                    }
                 }
             )
         }
