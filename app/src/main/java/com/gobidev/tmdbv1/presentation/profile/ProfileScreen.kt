@@ -49,11 +49,15 @@ import com.gobidev.tmdbv1.domain.model.UserAccount
 import com.gobidev.tmdbv1.presentation.movielisting.ErrorItem
 import com.gobidev.tmdbv1.presentation.movielisting.MovieItem
 
+sealed interface ProfileEvent {
+    data object LoginClick : ProfileEvent
+    data class MovieClick(val movieId: Int) : ProfileEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    onLoginClick: () -> Unit,
-    onMovieClick: (Int) -> Unit,
+    onEvent: (ProfileEvent) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -91,7 +95,7 @@ fun ProfileScreen(
         when (val state = uiState) {
             is ProfileUiState.LoggedOut -> {
                 LoggedOutContent(
-                    onLoginClick = onLoginClick,
+                    onLoginClick = { onEvent(ProfileEvent.LoginClick) },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
@@ -109,7 +113,7 @@ fun ProfileScreen(
             is ProfileUiState.LoggedIn -> {
                 LoggedInContent(
                     account = state.account,
-                    onMovieClick = onMovieClick,
+                    onMovieClick = { id -> onEvent(ProfileEvent.MovieClick(id)) },
                     viewModel = viewModel,
                     modifier = Modifier.padding(paddingValues)
                 )
