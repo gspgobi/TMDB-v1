@@ -53,12 +53,16 @@ import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.PersonCastCredit
 import com.gobidev.tmdbv1.domain.model.PersonDetails
 
+sealed interface PersonDetailsEvent {
+    data object BackClick : PersonDetailsEvent
+    data class MovieClick(val movieId: Int) : PersonDetailsEvent
+    data class TvClick(val tvId: Int) : PersonDetailsEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonDetailsScreen(
-    onBackClick: () -> Unit,
-    onMovieClick: (Int) -> Unit,
-    onTvClick: (Int) -> Unit,
+    onEvent: (PersonDetailsEvent) -> Unit,
     viewModel: PersonDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -69,7 +73,7 @@ fun PersonDetailsScreen(
             TopAppBar(
                 title = { Text("Person Details") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { onEvent(PersonDetailsEvent.BackClick) }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -111,8 +115,7 @@ fun PersonDetailsScreen(
                 PersonDetailsContent(
                     person = state.person,
                     creditsState = creditsState,
-                    onMovieClick = onMovieClick,
-                    onTvClick = onTvClick,
+                    onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -124,8 +127,7 @@ fun PersonDetailsScreen(
 private fun PersonDetailsContent(
     person: PersonDetails,
     creditsState: PersonCreditsUiState,
-    onMovieClick: (Int) -> Unit,
-    onTvClick: (Int) -> Unit,
+    onEvent: (PersonDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -258,8 +260,8 @@ private fun PersonDetailsContent(
                             CreditCard(
                                 credit = credit,
                                 onClick = {
-                                    if (credit.mediaType == "movie") onMovieClick(credit.id)
-                                    else onTvClick(credit.id)
+                                    if (credit.mediaType == "movie") onEvent(PersonDetailsEvent.MovieClick(credit.id))
+                                    else onEvent(PersonDetailsEvent.TvClick(credit.id))
                                 }
                             )
                         }
