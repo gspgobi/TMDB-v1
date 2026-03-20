@@ -7,10 +7,12 @@ import com.gobidev.tmdbv1.data.paging.MovieListPagingSource
 import com.gobidev.tmdbv1.data.paging.MovieReviewsPagingSource
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toMovie
+import com.gobidev.tmdbv1.data.remote.mapper.toMovieCollectionDetails
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieDetails
 import com.gobidev.tmdbv1.data.remote.mapper.toReview
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.domain.model.MovieCollectionDetails
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.MovieFilterState
@@ -106,6 +108,9 @@ class MovieRepositoryImpl @Inject constructor(
             }
             response.results.map { it.toMovie() }
         }
+
+    override suspend fun getCollectionDetails(collectionId: Int): Result<MovieCollectionDetails> =
+        safeCall { api.getCollectionDetails(collectionId).toMovieCollectionDetails() }
 
     /**
      * Get a flow of paginated reviews for a movie using Paging 3.
