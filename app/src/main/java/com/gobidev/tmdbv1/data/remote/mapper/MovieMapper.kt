@@ -1,6 +1,8 @@
 package com.gobidev.tmdbv1.data.remote.mapper
 
+import com.gobidev.tmdbv1.data.remote.dto.BelongsToCollectionDto
 import com.gobidev.tmdbv1.data.remote.dto.CastMemberDto
+import com.gobidev.tmdbv1.data.remote.dto.CollectionDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.CrewMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
@@ -11,6 +13,8 @@ import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.CrewMember
 import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
+import com.gobidev.tmdbv1.domain.model.MovieCollectionDetails
 import com.gobidev.tmdbv1.domain.util.toFormattedDate
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
@@ -60,9 +64,26 @@ fun MovieDetailsResponse.toMovieDetails(): MovieDetails {
         runtime = runtime,
         genres = genres.map { it.toGenre() },
         tagline = tagline,
-        status = status
+        status = status,
+        belongsToCollection = belongsToCollection?.toMovieBelongsToCollection()
     )
 }
+
+fun BelongsToCollectionDto.toMovieBelongsToCollection() = MovieBelongsToCollection(
+    id = id,
+    name = name,
+    posterUrl = posterPath?.let { "$IMAGE_BASE_URL$POSTER_SIZE$it" },
+    backdropUrl = backdropPath?.let { "$IMAGE_BASE_URL$BACKDROP_SIZE$it" }
+)
+
+fun CollectionDetailsResponse.toMovieCollectionDetails() = MovieCollectionDetails(
+    id = id,
+    name = name,
+    overview = overview,
+    posterUrl = posterPath?.let { "$IMAGE_BASE_URL$POSTER_SIZE$it" },
+    backdropUrl = backdropPath?.let { "$IMAGE_BASE_URL$BACKDROP_SIZE$it" },
+    parts = parts.map { it.toMovie() }
+)
 
 /**
  * Extension function to map GenreDto to domain Genre model.

@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.presentation.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -8,6 +9,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.domain.model.TvListType
+import com.gobidev.tmdbv1.presentation.collectiondetails.CollectionDetailsEvent
+import com.gobidev.tmdbv1.presentation.collectiondetails.CollectionDetailsScreen
 import com.gobidev.tmdbv1.presentation.moviedetails.FullCastCrewEvent
 import com.gobidev.tmdbv1.presentation.moviedetails.FullCastCrewScreen
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieDetailsEvent
@@ -115,6 +118,14 @@ sealed class Screen(val route: String) {
      */
     data object PersonDetailsNav : Screen("person/{personId}") {
         fun createRoute(personId: Int) = "person/$personId"
+    }
+
+    /**
+     * Collection Details screen.
+     */
+    data object CollectionDetailsNav : Screen("collection/{collectionId}?collectionName={collectionName}") {
+        fun createRoute(collectionId: Int, collectionName: String) =
+            "collection/$collectionId?collectionName=${Uri.encode(collectionName)}"
     }
 
     /**
@@ -227,6 +238,7 @@ fun TMDBNavGraph(
                         is MovieDetailsEvent.ViewFullCastClick -> navController.navigate(Screen.MovieCastNav.createRoute(event.movieId, event.movieTitle))
                         is MovieDetailsEvent.ViewAllReviewsClick -> navController.navigate(Screen.MovieReviewsNav.createRoute(event.movieId, event.movieTitle))
                         is MovieDetailsEvent.CastMemberClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
+                        is MovieDetailsEvent.CollectionClick -> navController.navigate(Screen.CollectionDetailsNav.createRoute(event.collectionId, event.collectionName))
                     }
                 }
             )
@@ -329,6 +341,28 @@ fun TMDBNavGraph(
                         is PersonDetailsEvent.BackClick -> navController.popBackStack()
                         is PersonDetailsEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
                         is PersonDetailsEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
+                    }
+                }
+            )
+        }
+
+        // Collection Details Screen
+        composable(
+            route = Screen.CollectionDetailsNav.route,
+            arguments = listOf(
+                navArgument("collectionId") { type = NavType.IntType },
+                navArgument("collectionName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                }
+            )
+        ) {
+            CollectionDetailsScreen(
+                onEvent = { event ->
+                    when (event) {
+                        is CollectionDetailsEvent.BackClick -> navController.popBackStack()
+                        is CollectionDetailsEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
                     }
                 }
             )

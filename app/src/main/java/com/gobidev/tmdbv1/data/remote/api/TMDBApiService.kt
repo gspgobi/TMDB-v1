@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.data.remote.api
 
+import com.gobidev.tmdbv1.data.remote.dto.CollectionDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.TrendingResponseDto
 import com.gobidev.tmdbv1.data.remote.dto.PersonCombinedCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.PersonDetailsResponse
@@ -107,6 +108,12 @@ interface TMDBApiService {
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
     ): MovieReviewsPagedResponse
+
+    @GET("collection/{collectionId}")
+    suspend fun getCollectionDetails(
+        @Path("collectionId") collectionId: Int,
+        @Query("language") language: String = "en-US"
+    ): CollectionDetailsResponse
 
     // ── TV Series ────────────────────────────────────────────────────────────
 

@@ -2,6 +2,7 @@ package com.gobidev.tmdbv1.domain.repository
 
 import androidx.paging.PagingData
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.domain.model.MovieCollectionDetails
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.MovieFilterState
@@ -68,4 +69,6 @@ interface MovieRepository {
      * @return Result containing a list of movies or an error
      */
     suspend fun getMoviesPreview(type: MovieListType): Result<List<Movie>>
+
+    suspend fun getCollectionDetails(collectionId: Int): Result<MovieCollectionDetails>
 }

@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.presentation.moviedetails
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +53,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import com.gobidev.tmdbv1.domain.model.CastMember
+import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.presentation.util.PreviewData
@@ -79,6 +83,7 @@ sealed interface MovieDetailsEvent {
     data class ViewFullCastClick(val movieId: Int, val movieTitle: String) : MovieDetailsEvent
     data class ViewAllReviewsClick(val movieId: Int, val movieTitle: String) : MovieDetailsEvent
     data class CastMemberClick(val personId: Int) : MovieDetailsEvent
+    data class CollectionClick(val collectionId: Int, val collectionName: String) : MovieDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -300,6 +305,15 @@ fun MovieDetailsContent(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            // Collection Section
+            movie.belongsToCollection?.let { collection ->
+                BelongsToCollectionSection(
+                    collection = collection,
+                    onClick = { onEvent(MovieDetailsEvent.CollectionClick(collection.id, collection.name)) }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             // Cast Section
             CastSection(
                 castState = castState,
@@ -313,6 +327,52 @@ fun MovieDetailsContent(
             ReviewSection(
                 reviewState = reviewState,
                 onViewAllReviewsClick = { onEvent(MovieDetailsEvent.ViewAllReviewsClick(movie.id, movie.title)) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun BelongsToCollectionSection(
+    collection: MovieBelongsToCollection,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = "Part of a Collection",
+        style = MaterialTheme.typography.titleMedium
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .clickable { onClick() },
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AsyncImage(
+                model = collection.backdropUrl ?: collection.posterUrl,
+                contentDescription = collection.name,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color.Black.copy(alpha = 0.7f), Color.Transparent)
+                        )
+                    )
+            )
+            Text(
+                text = collection.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(16.dp)
             )
         }
     }
