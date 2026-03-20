@@ -31,7 +31,8 @@ data class MovieDetails(
     val runtime: Int?,
     val genres: List<Genre>,
     val tagline: String?,
-    val status: String?
+    val status: String?,
+    val belongsToCollection: MovieBelongsToCollection? = null
 )
 
 /**
