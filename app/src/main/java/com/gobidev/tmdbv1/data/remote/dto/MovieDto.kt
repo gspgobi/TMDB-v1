@@ -125,7 +125,26 @@ data class MovieDetailsResponse(
     val originalLanguage: String?,
 
     @SerializedName("original_title")
-    val originalTitle: String?
+    val originalTitle: String?,
+
+    @SerializedName("belongs_to_collection")
+    val belongsToCollection: BelongsToCollectionDto? = null
+)
+
+data class BelongsToCollectionDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String,
+    @SerializedName("poster_path") val posterPath: String?,
+    @SerializedName("backdrop_path") val backdropPath: String?
+)
+
+data class CollectionDetailsResponse(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String,
+    @SerializedName("overview") val overview: String,
+    @SerializedName("poster_path") val posterPath: String?,
+    @SerializedName("backdrop_path") val backdropPath: String?,
+    @SerializedName("parts") val parts: List<MovieDto>
 )
 
 /**
