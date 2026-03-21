@@ -2,6 +2,19 @@ package com.gobidev.tmdbv1.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
+data class PopularPersonListResponse(
+    @SerializedName("page") val page: Int,
+    @SerializedName("results") val results: List<PopularPersonDto>
+)
+
+data class PopularPersonDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String,
+    @SerializedName("profile_path") val profilePath: String?,
+    @SerializedName("known_for_department") val knownForDepartment: String?,
+    @SerializedName("popularity") val popularity: Double
+)
+
 data class PersonDetailsResponse(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val name: String,
