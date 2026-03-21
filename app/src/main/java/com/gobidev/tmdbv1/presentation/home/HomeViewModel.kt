@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieListType
+import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.TrendingItem
 import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.domain.usecase.GetMoviePreviewUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetPopularPeopleUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTrendingUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvPreviewUseCase
 import com.gobidev.tmdbv1.domain.util.Result
@@ -37,6 +39,12 @@ data class TrendingCategoryState(
     val error: String? = null
 )
 
+data class PopularPeopleCategoryState(
+    val people: List<Person> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 data class HomeUiState(
     val trending: TrendingCategoryState = TrendingCategoryState(),
     val popular: MovieCategoryState = MovieCategoryState(),
@@ -44,14 +52,16 @@ data class HomeUiState(
     val upcoming: MovieCategoryState = MovieCategoryState(),
     val popularTv: TvCategoryState = TvCategoryState(),
     val onTheAirTv: TvCategoryState = TvCategoryState(),
-    val topRatedTv: TvCategoryState = TvCategoryState()
+    val topRatedTv: TvCategoryState = TvCategoryState(),
+    val popularPeople: PopularPeopleCategoryState = PopularPeopleCategoryState()
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getMoviePreviewUseCase: GetMoviePreviewUseCase,
     private val getTvPreviewUseCase: GetTvPreviewUseCase,
-    private val getTrendingUseCase: GetTrendingUseCase
+    private val getTrendingUseCase: GetTrendingUseCase,
+    private val getPopularPeopleUseCase: GetPopularPeopleUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -136,6 +146,17 @@ class HomeViewModel @Inject constructor(
                 }
                 is Result.Error -> _uiState.update {
                     it.copy(topRatedTv = TvCategoryState(error = result.message))
+                }
+            }
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(popularPeople = PopularPeopleCategoryState(isLoading = true)) }
+            when (val result = getPopularPeopleUseCase()) {
+                is Result.Success -> _uiState.update {
+                    it.copy(popularPeople = PopularPeopleCategoryState(people = result.data))
+                }
+                is Result.Error -> _uiState.update {
+                    it.copy(popularPeople = PopularPeopleCategoryState(error = result.message))
                 }
             }
         }
