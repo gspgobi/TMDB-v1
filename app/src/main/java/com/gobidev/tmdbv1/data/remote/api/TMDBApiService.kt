@@ -1,6 +1,7 @@
 package com.gobidev.tmdbv1.data.remote.api
 
 import com.gobidev.tmdbv1.data.remote.dto.CollectionDetailsResponse
+import com.gobidev.tmdbv1.data.remote.dto.PopularPersonListResponse
 import com.gobidev.tmdbv1.data.remote.dto.TrendingResponseDto
 import com.gobidev.tmdbv1.data.remote.dto.PersonCombinedCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.PersonDetailsResponse
@@ -169,6 +170,12 @@ interface TMDBApiService {
     ): TrendingResponseDto
 
     // ── Person ───────────────────────────────────────────────────────────────
+
+    @GET("person/popular")
+    suspend fun getPopularPeople(
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): PopularPersonListResponse
 
     @GET("person/{person_id}")
     suspend fun getPersonDetails(
