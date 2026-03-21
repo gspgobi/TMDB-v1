@@ -1,8 +1,10 @@
 package com.gobidev.tmdbv1.data.repository
 
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
+import com.gobidev.tmdbv1.data.remote.mapper.toPerson
 import com.gobidev.tmdbv1.data.remote.mapper.toPersonCastCredit
 import com.gobidev.tmdbv1.data.remote.mapper.toPersonDetails
+import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.PersonCastCredit
 import com.gobidev.tmdbv1.domain.model.PersonDetails
 import com.gobidev.tmdbv1.domain.repository.PersonRepository
@@ -18,6 +20,10 @@ class PersonRepositoryImpl @Inject constructor(
 
     override suspend fun getPersonDetails(personId: Int): Result<PersonDetails> = safeCall {
         api.getPersonDetails(personId).toPersonDetails()
+    }
+
+    override suspend fun getPopularPeople(): Result<List<Person>> = safeCall {
+        api.getPopularPeople().results.map { it.toPerson() }
     }
 
     override suspend fun getPersonCredits(personId: Int): Result<List<PersonCastCredit>> = safeCall {
