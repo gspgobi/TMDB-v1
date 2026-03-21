@@ -2,6 +2,8 @@ package com.gobidev.tmdbv1.data.remote.mapper
 
 import com.gobidev.tmdbv1.data.remote.dto.PersonCastCreditDto
 import com.gobidev.tmdbv1.data.remote.dto.PersonDetailsResponse
+import com.gobidev.tmdbv1.data.remote.dto.PopularPersonDto
+import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.PersonCastCredit
 import com.gobidev.tmdbv1.domain.model.PersonDetails
 import com.gobidev.tmdbv1.domain.util.toFormattedDate
@@ -21,6 +23,13 @@ fun PersonDetailsResponse.toPersonDetails(): PersonDetails = PersonDetails(
     knownForDepartment = knownForDepartment ?: "Acting",
     popularity = popularity,
     gender = gender
+)
+
+fun PopularPersonDto.toPerson(): Person = Person(
+    id = id,
+    name = name,
+    profileUrl = profilePath?.let { "$IMAGE_BASE_URL$PROFILE_SIZE$it" },
+    knownForDepartment = knownForDepartment ?: "Acting"
 )
 
 fun PersonCastCreditDto.toPersonCastCredit(): PersonCastCredit = PersonCastCredit(
