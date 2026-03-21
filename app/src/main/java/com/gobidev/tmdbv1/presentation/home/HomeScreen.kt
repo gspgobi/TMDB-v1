@@ -44,8 +44,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.MovieListType
+import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.TrendingItem
 import com.gobidev.tmdbv1.domain.model.TvListType
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import com.gobidev.tmdbv1.presentation.util.PosterShimmerRow
 import com.gobidev.tmdbv1.presentation.util.TrendingShimmerRow
 import java.util.Locale
@@ -55,6 +60,7 @@ sealed interface HomeEvent {
     data class ViewAllMoviesClick(val listType: MovieListType) : HomeEvent
     data class TvClick(val tvId: Int) : HomeEvent
     data class ViewAllTvClick(val listType: TvListType) : HomeEvent
+    data class PersonClick(val personId: Int) : HomeEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,6 +144,13 @@ fun HomeScreen(
                 TvCarouselSection(
                     listType = TvListType.TOP_RATED,
                     categoryState = uiState.topRatedTv,
+                    onEvent = onEvent
+                )
+            }
+            // ── Popular People ────────────────────────────────────────────────
+            item {
+                PopularPeopleSection(
+                    categoryState = uiState.popularPeople,
                     onEvent = onEvent
                 )
             }
@@ -402,6 +415,94 @@ private fun TvCarouselSection(
     }
 }
 
+
+@Composable
+private fun PopularPeopleSection(
+    categoryState: PopularPeopleCategoryState,
+    onEvent: (HomeEvent) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Popular People",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        when {
+            categoryState.isLoading -> {
+                PosterShimmerRow()
+            }
+
+            categoryState.error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = categoryState.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
+            else -> {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(categoryState.people) { person ->
+                        PersonCard(
+                            person = person,
+                            onClick = { onEvent(HomeEvent.PersonClick(person.id)) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PersonCard(
+    person: Person,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .width(90.dp)
+            .clickable { onClick() },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        AsyncImage(
+            model = person.profileUrl,
+            contentDescription = person.name,
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = person.name,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = person.knownForDepartment,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+    }
+}
 
 @Composable
 private fun PosterCard(
