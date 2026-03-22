@@ -4,11 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.CastMember
+import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.usecase.GetLatestReviewUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieDetailsUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetMovieRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +46,13 @@ sealed class MovieReviewUiState {
     data class Error(val message: String) : MovieReviewUiState()
 }
 
+sealed class MovieRecommendationsUiState {
+    data object Loading : MovieRecommendationsUiState()
+    data class Success(val movies: List<Movie>) : MovieRecommendationsUiState()
+    data object Empty : MovieRecommendationsUiState()
+    data class Error(val message: String) : MovieRecommendationsUiState()
+}
+
 /**
  * ViewModel for the movie details screen.
  *
@@ -64,7 +73,8 @@ class MovieDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getMovieDetailsUseCase: GetMovieDetailsUseCase,
     private val getMovieCreditsUseCase: GetMovieCreditsUseCase,
-    private val getLatestReviewUseCase: GetLatestReviewUseCase
+    private val getLatestReviewUseCase: GetLatestReviewUseCase,
+    private val getMovieRecommendationsUseCase: GetMovieRecommendationsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MovieDetailsUiState>(MovieDetailsUiState.Loading)
@@ -76,12 +86,16 @@ class MovieDetailsViewModel @Inject constructor(
     private val _reviewState = MutableStateFlow<MovieReviewUiState>(MovieReviewUiState.Loading)
     val reviewState: StateFlow<MovieReviewUiState> = _reviewState.asStateFlow()
 
+    private val _recommendationsState = MutableStateFlow<MovieRecommendationsUiState>(MovieRecommendationsUiState.Loading)
+    val recommendationsState: StateFlow<MovieRecommendationsUiState> = _recommendationsState.asStateFlow()
+
     init {
         val movieId = savedStateHandle.get<Int>("movieId") ?: -1
         if (movieId != -1) {
             loadMovieDetails(movieId)
             loadMovieCredits(movieId)
-            loadLatestReview(movieId)  // ADD THIS
+            loadLatestReview(movieId)
+            loadRecommendations(movieId)
         } else {
             _uiState.value = MovieDetailsUiState.Error("Invalid movie ID")
         }
@@ -138,6 +152,26 @@ class MovieDetailsViewModel @Inject constructor(
 
                 is Result.Error -> {
                     _reviewState.value = MovieReviewUiState.Error(result.message)
+                }
+            }
+        }
+    }
+
+    private fun loadRecommendations(movieId: Int) {
+        viewModelScope.launch {
+            _recommendationsState.value = MovieRecommendationsUiState.Loading
+
+            when (val result = getMovieRecommendationsUseCase(movieId)) {
+                is Result.Success -> {
+                    if (result.data.isEmpty()) {
+                        _recommendationsState.value = MovieRecommendationsUiState.Empty
+                    } else {
+                        _recommendationsState.value = MovieRecommendationsUiState.Success(result.data)
+                    }
+                }
+
+                is Result.Error -> {
+                    _recommendationsState.value = MovieRecommendationsUiState.Error(result.message)
                 }
             }
         }
