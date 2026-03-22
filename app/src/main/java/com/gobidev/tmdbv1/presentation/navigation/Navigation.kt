@@ -240,6 +240,7 @@ fun TMDBNavGraph(
                         is MovieDetailsEvent.ViewAllReviewsClick -> navController.navigate(Screen.MovieReviewsNav.createRoute(event.movieId, event.movieTitle))
                         is MovieDetailsEvent.CastMemberClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
                         is MovieDetailsEvent.CollectionClick -> navController.navigate(Screen.CollectionDetailsNav.createRoute(event.collectionId, event.collectionName))
+                        is MovieDetailsEvent.RecommendationClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
                     }
                 }
             )
