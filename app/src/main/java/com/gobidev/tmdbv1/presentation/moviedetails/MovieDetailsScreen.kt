@@ -56,6 +56,7 @@ import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.gobidev.tmdbv1.domain.model.CastMember
+import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.Review
@@ -84,6 +85,7 @@ sealed interface MovieDetailsEvent {
     data class ViewAllReviewsClick(val movieId: Int, val movieTitle: String) : MovieDetailsEvent
     data class CastMemberClick(val personId: Int) : MovieDetailsEvent
     data class CollectionClick(val collectionId: Int, val collectionName: String) : MovieDetailsEvent
+    data class RecommendationClick(val movieId: Int) : MovieDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,6 +97,7 @@ fun MovieDetailsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val castState by viewModel.castState.collectAsStateWithLifecycle()
     val reviewState by viewModel.reviewState.collectAsStateWithLifecycle()
+    val recommendationsState by viewModel.recommendationsState.collectAsStateWithLifecycle()
 
 
     Scaffold(
@@ -130,6 +133,7 @@ fun MovieDetailsScreen(
                     movie = state.movie,
                     castState = castState,
                     reviewState = reviewState,
+                    recommendationsState = recommendationsState,
                     onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -167,6 +171,7 @@ fun MovieDetailsContent(
     movie: MovieDetails,
     castState: MovieCastUiState,
     reviewState: MovieReviewUiState,
+    recommendationsState: MovieRecommendationsUiState = MovieRecommendationsUiState.Loading,
     onEvent: (MovieDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -327,6 +332,14 @@ fun MovieDetailsContent(
             ReviewSection(
                 reviewState = reviewState,
                 onViewAllReviewsClick = { onEvent(MovieDetailsEvent.ViewAllReviewsClick(movie.id, movie.title)) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Recommendations Section
+            RecommendationsSection(
+                recommendationsState = recommendationsState,
+                onMovieClick = { movieId -> onEvent(MovieDetailsEvent.RecommendationClick(movieId)) }
             )
         }
     }
@@ -642,6 +655,92 @@ fun ReviewCard(
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = if (isExpanded) Int.MAX_VALUE else 4,
                 overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun RecommendationsSection(
+    recommendationsState: MovieRecommendationsUiState,
+    onMovieClick: (movieId: Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        when (recommendationsState) {
+            is MovieRecommendationsUiState.Loading -> {
+                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                CastCarouselShimmer()
+            }
+
+            is MovieRecommendationsUiState.Success -> {
+                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(end = 16.dp)
+                ) {
+                    items(recommendationsState.movies) { movie ->
+                        RecommendationCard(
+                            movie = movie,
+                            onClick = { onMovieClick(movie.id) }
+                        )
+                    }
+                }
+            }
+
+            is MovieRecommendationsUiState.Empty -> { /* nothing to show */ }
+
+            is MovieRecommendationsUiState.Error -> {
+                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Unable to load recommendations",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecommendationCard(
+    movie: Movie,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .width(120.dp)
+            .clickable { onClick() }
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            AsyncImage(
+                model = movie.posterUrl,
+                contentDescription = movie.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = movie.title,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        movie.rating.let { rating ->
+            Text(
+                text = "⭐ ${String.format(Locale.getDefault(), "%.1f", rating)}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

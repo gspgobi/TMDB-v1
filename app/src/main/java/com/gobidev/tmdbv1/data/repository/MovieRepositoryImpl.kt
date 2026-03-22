@@ -112,6 +112,9 @@ class MovieRepositoryImpl @Inject constructor(
     override suspend fun getCollectionDetails(collectionId: Int): Result<MovieCollectionDetails> =
         safeCall { api.getCollectionDetails(collectionId).toMovieCollectionDetails() }
 
+    override suspend fun getMovieRecommendations(movieId: Int): Result<List<Movie>> =
+        safeCall { api.getMovieRecommendations(movieId).results.map { it.toMovie() } }
+
     /**
      * Get a flow of paginated reviews for a movie using Paging 3.
      */
