@@ -110,6 +110,13 @@ interface TMDBApiService {
         @Query("page") page: Int = 1
     ): MovieReviewsPagedResponse
 
+    @GET("movie/{movie_id}/recommendations")
+    suspend fun getMovieRecommendations(
+        @Path("movie_id") movieId: Int,
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): MovieListPagedResponse
+
     @GET("collection/{collectionId}")
     suspend fun getCollectionDetails(
         @Path("collectionId") collectionId: Int,
