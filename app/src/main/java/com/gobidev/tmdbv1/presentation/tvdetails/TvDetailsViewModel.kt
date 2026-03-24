@@ -5,10 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.Episode
+import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.TvShowDetails
 import com.gobidev.tmdbv1.domain.usecase.GetSeasonEpisodesUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvDetailsUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetTvExternalIdsUseCase
+import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +46,8 @@ class TvDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getTvDetailsUseCase: GetTvDetailsUseCase,
     private val getTvCreditsUseCase: GetTvCreditsUseCase,
-    private val getSeasonEpisodesUseCase: GetSeasonEpisodesUseCase
+    private val getSeasonEpisodesUseCase: GetSeasonEpisodesUseCase,
+    private val getTvExternalIdsUseCase: GetTvExternalIdsUseCase
 ) : ViewModel() {
 
     private val tvId = savedStateHandle.get<Int>("tvId") ?: -1
@@ -60,6 +64,9 @@ class TvDetailsViewModel @Inject constructor(
     private val _episodesState = MutableStateFlow<EpisodesUiState>(EpisodesUiState.Idle)
     val episodesState: StateFlow<EpisodesUiState> = _episodesState.asStateFlow()
 
+    private val _externalIdsState = MutableStateFlow<ExternalIdsUiState>(ExternalIdsUiState.Loading)
+    val externalIdsState: StateFlow<ExternalIdsUiState> = _externalIdsState.asStateFlow()
+
     private var allEpisodes: List<Episode> = emptyList()
     private var displayedCount: Int = PAGE_SIZE
 
@@ -67,6 +74,7 @@ class TvDetailsViewModel @Inject constructor(
         if (tvId != -1) {
             loadDetails()
             loadCredits()
+            loadExternalIds()
         } else {
             _uiState.value = TvDetailsUiState.Error("Invalid TV show ID")
         }
@@ -129,5 +137,20 @@ class TvDetailsViewModel @Inject constructor(
             episodes = allEpisodes.take(displayedCount),
             totalCount = allEpisodes.size
         )
+    }
+
+    private fun loadExternalIds() {
+        viewModelScope.launch {
+            when (val result = getTvExternalIdsUseCase(tvId)) {
+                is Result.Success -> {
+                    if (result.data.hasAny()) {
+                        _externalIdsState.value = ExternalIdsUiState.Success(result.data)
+                    } else {
+                        _externalIdsState.value = ExternalIdsUiState.Empty
+                    }
+                }
+                is Result.Error -> _externalIdsState.value = ExternalIdsUiState.Error(result.message)
+            }
+        }
     }
 }

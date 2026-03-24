@@ -4,6 +4,7 @@ import com.gobidev.tmdbv1.data.remote.dto.BelongsToCollectionDto
 import com.gobidev.tmdbv1.data.remote.dto.CastMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.CollectionDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.CrewMemberDto
+import com.gobidev.tmdbv1.data.remote.dto.ExternalIdsResponse
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
@@ -11,6 +12,7 @@ import com.gobidev.tmdbv1.data.remote.dto.MovieDto
 import com.gobidev.tmdbv1.data.remote.dto.ReviewDto
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.CrewMember
+import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.Genre
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
@@ -171,3 +173,12 @@ fun ReviewDto.toReview(): Review {
         updatedAt = updatedAt
     )
 }
+
+fun ExternalIdsResponse.toExternalIds() = ExternalIds(
+    imdbId = imdbId?.takeIf { it.isNotBlank() },
+    wikidataId = wikidataId?.takeIf { it.isNotBlank() },
+    facebookId = facebookId?.takeIf { it.isNotBlank() },
+    instagramId = instagramId?.takeIf { it.isNotBlank() },
+    twitterId = twitterId?.takeIf { it.isNotBlank() },
+    tvdbId = tvdbId?.takeIf { it.isNotBlank() }
+)

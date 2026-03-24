@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import com.gobidev.tmdbv1.presentation.components.ExternalIdsSection
 import com.gobidev.tmdbv1.presentation.util.CastCarouselShimmer
 import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
 import com.gobidev.tmdbv1.presentation.util.ReviewCardShimmer
@@ -98,6 +99,7 @@ fun MovieDetailsScreen(
     val castState by viewModel.castState.collectAsStateWithLifecycle()
     val reviewState by viewModel.reviewState.collectAsStateWithLifecycle()
     val recommendationsState by viewModel.recommendationsState.collectAsStateWithLifecycle()
+    val externalIdsState by viewModel.externalIdsState.collectAsStateWithLifecycle()
 
 
     Scaffold(
@@ -134,6 +136,7 @@ fun MovieDetailsScreen(
                     castState = castState,
                     reviewState = reviewState,
                     recommendationsState = recommendationsState,
+                    externalIdsState = externalIdsState,
                     onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -172,6 +175,7 @@ fun MovieDetailsContent(
     castState: MovieCastUiState,
     reviewState: MovieReviewUiState,
     recommendationsState: MovieRecommendationsUiState = MovieRecommendationsUiState.Loading,
+    externalIdsState: ExternalIdsUiState = ExternalIdsUiState.Loading,
     onEvent: (MovieDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -333,6 +337,11 @@ fun MovieDetailsContent(
                 reviewState = reviewState,
                 onViewAllReviewsClick = { onEvent(MovieDetailsEvent.ViewAllReviewsClick(movie.id, movie.title)) }
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // External Links Section
+            ExternalIdsSection(state = externalIdsState)
 
             Spacer(modifier = Modifier.height(16.dp))
 

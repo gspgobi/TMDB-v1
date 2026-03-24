@@ -4,12 +4,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.CastMember
+import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.usecase.GetLatestReviewUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieDetailsUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetMovieExternalIdsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,6 +55,13 @@ sealed class MovieRecommendationsUiState {
     data class Error(val message: String) : MovieRecommendationsUiState()
 }
 
+sealed class ExternalIdsUiState {
+    data object Loading : ExternalIdsUiState()
+    data class Success(val externalIds: ExternalIds) : ExternalIdsUiState()
+    data object Empty : ExternalIdsUiState()
+    data class Error(val message: String) : ExternalIdsUiState()
+}
+
 /**
  * ViewModel for the movie details screen.
  *
@@ -74,7 +83,8 @@ class MovieDetailsViewModel @Inject constructor(
     private val getMovieDetailsUseCase: GetMovieDetailsUseCase,
     private val getMovieCreditsUseCase: GetMovieCreditsUseCase,
     private val getLatestReviewUseCase: GetLatestReviewUseCase,
-    private val getMovieRecommendationsUseCase: GetMovieRecommendationsUseCase
+    private val getMovieRecommendationsUseCase: GetMovieRecommendationsUseCase,
+    private val getMovieExternalIdsUseCase: GetMovieExternalIdsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MovieDetailsUiState>(MovieDetailsUiState.Loading)
@@ -89,6 +99,9 @@ class MovieDetailsViewModel @Inject constructor(
     private val _recommendationsState = MutableStateFlow<MovieRecommendationsUiState>(MovieRecommendationsUiState.Loading)
     val recommendationsState: StateFlow<MovieRecommendationsUiState> = _recommendationsState.asStateFlow()
 
+    private val _externalIdsState = MutableStateFlow<ExternalIdsUiState>(ExternalIdsUiState.Loading)
+    val externalIdsState: StateFlow<ExternalIdsUiState> = _externalIdsState.asStateFlow()
+
     init {
         val movieId = savedStateHandle.get<Int>("movieId") ?: -1
         if (movieId != -1) {
@@ -96,6 +109,7 @@ class MovieDetailsViewModel @Inject constructor(
             loadMovieCredits(movieId)
             loadLatestReview(movieId)
             loadRecommendations(movieId)
+            loadExternalIds(movieId)
         } else {
             _uiState.value = MovieDetailsUiState.Error("Invalid movie ID")
         }
@@ -173,6 +187,21 @@ class MovieDetailsViewModel @Inject constructor(
                 is Result.Error -> {
                     _recommendationsState.value = MovieRecommendationsUiState.Error(result.message)
                 }
+            }
+        }
+    }
+
+    private fun loadExternalIds(movieId: Int) {
+        viewModelScope.launch {
+            when (val result = getMovieExternalIdsUseCase(movieId)) {
+                is Result.Success -> {
+                    if (result.data.hasAny()) {
+                        _externalIdsState.value = ExternalIdsUiState.Success(result.data)
+                    } else {
+                        _externalIdsState.value = ExternalIdsUiState.Empty
+                    }
+                }
+                is Result.Error -> _externalIdsState.value = ExternalIdsUiState.Error(result.message)
             }
         }
     }
