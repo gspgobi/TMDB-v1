@@ -1,6 +1,7 @@
 package com.gobidev.tmdbv1.data.remote.api
 
 import com.gobidev.tmdbv1.data.remote.dto.CollectionDetailsResponse
+import com.gobidev.tmdbv1.data.remote.dto.ExternalIdsResponse
 import com.gobidev.tmdbv1.data.remote.dto.PopularPersonListResponse
 import com.gobidev.tmdbv1.data.remote.dto.TrendingResponseDto
 import com.gobidev.tmdbv1.data.remote.dto.PersonCombinedCreditsResponse
@@ -110,6 +111,11 @@ interface TMDBApiService {
         @Query("page") page: Int = 1
     ): MovieReviewsPagedResponse
 
+    @GET("movie/{movie_id}/external_ids")
+    suspend fun getMovieExternalIds(
+        @Path("movie_id") movieId: Int
+    ): ExternalIdsResponse
+
     @GET("movie/{movie_id}/recommendations")
     suspend fun getMovieRecommendations(
         @Path("movie_id") movieId: Int,
@@ -160,6 +166,11 @@ interface TMDBApiService {
         @Path("tv_id") tvId: Int,
         @Query("language") language: String = "en-US"
     ): TvCreditsResponse
+
+    @GET("tv/{tv_id}/external_ids")
+    suspend fun getTvExternalIds(
+        @Path("tv_id") tvId: Int
+    ): ExternalIdsResponse
 
     @GET("tv/{tv_id}/season/{season_number}")
     suspend fun getSeasonDetails(
