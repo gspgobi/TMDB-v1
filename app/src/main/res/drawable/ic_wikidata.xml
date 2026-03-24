@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Wikidata: ascending bar chart in Wikidata brand green -->
+    <path
+        android:fillColor="#339966"
+        android:pathData="M3,20V12H7V20H3ZM10,20V8H14V20H10ZM17,20V4H21V20H17Z" />
+</vector>
