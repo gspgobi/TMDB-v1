@@ -293,3 +293,20 @@ data class AuthorDetailsDto(
     val rating: Double?
 )
 
+data class MovieImagesResponse(
+    @SerializedName("id") val id: Int,
+    @SerializedName("backdrops") val backdrops: List<ImageDto>,
+    @SerializedName("posters") val posters: List<ImageDto>,
+    @SerializedName("logos") val logos: List<ImageDto>
+)
+
+data class ImageDto(
+    @SerializedName("file_path") val filePath: String,
+    @SerializedName("width") val width: Int,
+    @SerializedName("height") val height: Int,
+    @SerializedName("aspect_ratio") val aspectRatio: Double,
+    @SerializedName("vote_average") val voteAverage: Double,
+    @SerializedName("vote_count") val voteCount: Int,
+    @SerializedName("iso_639_1") val language: String?
+)
+
