@@ -7,11 +7,13 @@ import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.MovieImage
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.usecase.GetLatestReviewUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieDetailsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieExternalIdsUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetMovieImagesUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,6 +64,13 @@ sealed class ExternalIdsUiState {
     data class Error(val message: String) : ExternalIdsUiState()
 }
 
+sealed class MovieImagesUiState {
+    data object Loading : MovieImagesUiState()
+    data class Success(val backdrops: List<MovieImage>, val posters: List<MovieImage>) : MovieImagesUiState()
+    data object Empty : MovieImagesUiState()
+    data class Error(val message: String) : MovieImagesUiState()
+}
+
 /**
  * ViewModel for the movie details screen.
  *
@@ -84,7 +93,8 @@ class MovieDetailsViewModel @Inject constructor(
     private val getMovieCreditsUseCase: GetMovieCreditsUseCase,
     private val getLatestReviewUseCase: GetLatestReviewUseCase,
     private val getMovieRecommendationsUseCase: GetMovieRecommendationsUseCase,
-    private val getMovieExternalIdsUseCase: GetMovieExternalIdsUseCase
+    private val getMovieExternalIdsUseCase: GetMovieExternalIdsUseCase,
+    private val getMovieImagesUseCase: GetMovieImagesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MovieDetailsUiState>(MovieDetailsUiState.Loading)
@@ -102,6 +112,9 @@ class MovieDetailsViewModel @Inject constructor(
     private val _externalIdsState = MutableStateFlow<ExternalIdsUiState>(ExternalIdsUiState.Loading)
     val externalIdsState: StateFlow<ExternalIdsUiState> = _externalIdsState.asStateFlow()
 
+    private val _imagesState = MutableStateFlow<MovieImagesUiState>(MovieImagesUiState.Loading)
+    val imagesState: StateFlow<MovieImagesUiState> = _imagesState.asStateFlow()
+
     init {
         val movieId = savedStateHandle.get<Int>("movieId") ?: -1
         if (movieId != -1) {
@@ -110,6 +123,7 @@ class MovieDetailsViewModel @Inject constructor(
             loadLatestReview(movieId)
             loadRecommendations(movieId)
             loadExternalIds(movieId)
+            loadImages(movieId)
         } else {
             _uiState.value = MovieDetailsUiState.Error("Invalid movie ID")
         }
@@ -202,6 +216,23 @@ class MovieDetailsViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> _externalIdsState.value = ExternalIdsUiState.Error(result.message)
+            }
+        }
+    }
+
+    private fun loadImages(movieId: Int) {
+        viewModelScope.launch {
+            when (val result = getMovieImagesUseCase(movieId)) {
+                is Result.Success -> {
+                    val backdrops = result.data.backdrops
+                    val posters = result.data.posters
+                    if (backdrops.isEmpty() && posters.isEmpty()) {
+                        _imagesState.value = MovieImagesUiState.Empty
+                    } else {
+                        _imagesState.value = MovieImagesUiState.Success(backdrops, posters)
+                    }
+                }
+                is Result.Error -> _imagesState.value = MovieImagesUiState.Error(result.message)
             }
         }
     }
