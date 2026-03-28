@@ -60,6 +60,7 @@ import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.MovieImage
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
@@ -100,6 +101,7 @@ fun MovieDetailsScreen(
     val reviewState by viewModel.reviewState.collectAsStateWithLifecycle()
     val recommendationsState by viewModel.recommendationsState.collectAsStateWithLifecycle()
     val externalIdsState by viewModel.externalIdsState.collectAsStateWithLifecycle()
+    val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
 
 
     Scaffold(
@@ -137,6 +139,7 @@ fun MovieDetailsScreen(
                     reviewState = reviewState,
                     recommendationsState = recommendationsState,
                     externalIdsState = externalIdsState,
+                    imagesState = imagesState,
                     onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -176,6 +179,7 @@ fun MovieDetailsContent(
     reviewState: MovieReviewUiState,
     recommendationsState: MovieRecommendationsUiState = MovieRecommendationsUiState.Loading,
     externalIdsState: ExternalIdsUiState = ExternalIdsUiState.Loading,
+    imagesState: MovieImagesUiState = MovieImagesUiState.Loading,
     onEvent: (MovieDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -342,6 +346,11 @@ fun MovieDetailsContent(
 
             // External Links Section
             ExternalIdsSection(state = externalIdsState)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Images Section
+            ImagesSection(imagesState = imagesState)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -752,6 +761,61 @@ private fun RecommendationCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+fun ImagesSection(
+    imagesState: MovieImagesUiState,
+    modifier: Modifier = Modifier
+) {
+    when (imagesState) {
+        is MovieImagesUiState.Loading -> {
+            Text("Images", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            CastCarouselShimmer()
+        }
+
+        is MovieImagesUiState.Success -> {
+            val images = imagesState.backdrops.ifEmpty { imagesState.posters }
+            if (images.isNotEmpty()) {
+                Text("Images", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyRow(
+                    modifier = modifier,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(end = 16.dp)
+                ) {
+                    items(images) { image ->
+                        ImageThumbnail(image = image)
+                    }
+                }
+            }
+        }
+
+        is MovieImagesUiState.Empty -> { /* nothing to show */ }
+
+        is MovieImagesUiState.Error -> { /* silently skip */ }
+    }
+}
+
+@Composable
+private fun ImageThumbnail(
+    image: MovieImage,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .width(240.dp)
+            .height(135.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        AsyncImage(
+            model = image.url,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
     }
 }
 
