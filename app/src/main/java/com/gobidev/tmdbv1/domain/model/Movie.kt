@@ -91,3 +91,15 @@ data class Review(
     val createdAt: String,
     val updatedAt: String
 )
+
+data class MovieImages(
+    val backdrops: List<MovieImage>,
+    val posters: List<MovieImage>
+)
+
+data class MovieImage(
+    val url: String,
+    val aspectRatio: Double,
+    val width: Int,
+    val height: Int
+)
