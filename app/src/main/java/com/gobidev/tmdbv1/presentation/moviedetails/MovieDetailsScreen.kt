@@ -24,6 +24,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.gobidev.tmdbv1.presentation.components.ExternalIdsSection
 import com.gobidev.tmdbv1.presentation.util.CastCarouselShimmer
 import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
@@ -40,7 +46,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,6 +65,7 @@ import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.MovieImage
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
@@ -100,6 +106,7 @@ fun MovieDetailsScreen(
     val reviewState by viewModel.reviewState.collectAsStateWithLifecycle()
     val recommendationsState by viewModel.recommendationsState.collectAsStateWithLifecycle()
     val externalIdsState by viewModel.externalIdsState.collectAsStateWithLifecycle()
+    val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
 
 
     Scaffold(
@@ -137,6 +144,7 @@ fun MovieDetailsScreen(
                     reviewState = reviewState,
                     recommendationsState = recommendationsState,
                     externalIdsState = externalIdsState,
+                    imagesState = imagesState,
                     onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -176,6 +184,7 @@ fun MovieDetailsContent(
     reviewState: MovieReviewUiState,
     recommendationsState: MovieRecommendationsUiState = MovieRecommendationsUiState.Loading,
     externalIdsState: ExternalIdsUiState = ExternalIdsUiState.Loading,
+    imagesState: MovieImagesUiState = MovieImagesUiState.Loading,
     onEvent: (MovieDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -342,6 +351,11 @@ fun MovieDetailsContent(
 
             // External Links Section
             ExternalIdsSection(state = externalIdsState)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Images Section
+            ImagesSection(imagesState = imagesState)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -752,6 +766,106 @@ private fun RecommendationCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+fun ImagesSection(
+    imagesState: MovieImagesUiState,
+    modifier: Modifier = Modifier
+) {
+    when (imagesState) {
+        is MovieImagesUiState.Loading -> {
+            Text("Images", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            CastCarouselShimmer()
+        }
+
+        is MovieImagesUiState.Success -> {
+            if (imagesState.backdrops.isNotEmpty() || imagesState.posters.isNotEmpty()) {
+                var selectedTab by remember { mutableIntStateOf(0) }
+                val tabs = listOf("Backdrops", "Posters")
+
+                Text("Images", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                SecondaryTabRow(selectedTabIndex = selectedTab) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = { Text(title) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                val images = if (selectedTab == 0) imagesState.backdrops else imagesState.posters
+                if (images.isNotEmpty()) {
+                    LazyRow(
+                        modifier = modifier,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(end = 16.dp)
+                    ) {
+                        items(images) { image ->
+                            if (selectedTab == 0) {
+                                BackdropThumbnail(image = image)
+                            } else {
+                                PosterThumbnail(image = image)
+                            }
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "No ${tabs[selectedTab].lowercase()} available",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        is MovieImagesUiState.Empty -> { /* nothing to show */ }
+
+        is MovieImagesUiState.Error -> { /* silently skip */ }
+    }
+}
+
+@Composable
+private fun BackdropThumbnail(
+    image: MovieImage,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .width(240.dp)
+            .height(135.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        AsyncImage(
+            model = image.url,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
+}
+
+@Composable
+private fun PosterThumbnail(
+    image: MovieImage,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .width(90.dp)
+            .height(135.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        AsyncImage(
+            model = image.url,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
     }
 }
 

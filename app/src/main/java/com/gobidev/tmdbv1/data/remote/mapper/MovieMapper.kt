@@ -6,9 +6,11 @@ import com.gobidev.tmdbv1.data.remote.dto.CollectionDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.CrewMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.ExternalIdsResponse
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
+import com.gobidev.tmdbv1.data.remote.dto.ImageDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDto
+import com.gobidev.tmdbv1.data.remote.dto.MovieImagesResponse
 import com.gobidev.tmdbv1.data.remote.dto.ReviewDto
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.CrewMember
@@ -20,6 +22,8 @@ import com.gobidev.tmdbv1.domain.model.MovieCollectionDetails
 import com.gobidev.tmdbv1.domain.util.toFormattedDate
 import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
+import com.gobidev.tmdbv1.domain.model.MovieImage
+import com.gobidev.tmdbv1.domain.model.MovieImages
 import com.gobidev.tmdbv1.domain.model.Review
 
 /**
@@ -181,4 +185,18 @@ fun ExternalIdsResponse.toExternalIds() = ExternalIds(
     instagramId = instagramId?.takeIf { it.isNotBlank() },
     twitterId = twitterId?.takeIf { it.isNotBlank() },
     tvdbId = tvdbId?.takeIf { it.isNotBlank() }
+)
+
+private const val BACKDROP_FULL_SIZE = "w1280"
+
+fun MovieImagesResponse.toMovieImages() = MovieImages(
+    backdrops = backdrops.map { it.toMovieImage(BACKDROP_FULL_SIZE) },
+    posters = posters.map { it.toMovieImage(POSTER_SIZE) }
+)
+
+fun ImageDto.toMovieImage(size: String) = MovieImage(
+    url = "$IMAGE_BASE_URL$size$filePath",
+    aspectRatio = aspectRatio,
+    width = width,
+    height = height
 )
