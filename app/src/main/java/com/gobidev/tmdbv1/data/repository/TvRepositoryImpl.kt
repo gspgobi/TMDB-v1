@@ -7,11 +7,13 @@ import com.gobidev.tmdbv1.data.paging.TvListPagingSource
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toEpisode
 import com.gobidev.tmdbv1.data.remote.mapper.toExternalIds
+import com.gobidev.tmdbv1.data.remote.mapper.toMovieImages
 import com.gobidev.tmdbv1.data.remote.mapper.toTvCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toTvDetails
 import com.gobidev.tmdbv1.data.remote.mapper.toTvShow
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.ExternalIds
+import com.gobidev.tmdbv1.domain.model.MovieImages
 import com.gobidev.tmdbv1.domain.model.TvCredits
 import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.domain.model.TvShow
@@ -59,4 +61,7 @@ class TvRepositoryImpl @Inject constructor(
 
     override suspend fun getTvExternalIds(tvId: Int): Result<ExternalIds> =
         safeCall { api.getTvExternalIds(tvId).toExternalIds() }
+
+    override suspend fun getTvImages(tvId: Int): Result<MovieImages> =
+        safeCall { api.getTvImages(tvId).toMovieImages() }
 }

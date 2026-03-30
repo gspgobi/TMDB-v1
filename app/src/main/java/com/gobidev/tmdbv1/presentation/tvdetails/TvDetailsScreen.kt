@@ -57,8 +57,11 @@ import com.gobidev.tmdbv1.domain.model.TvShowDetails
 import com.gobidev.tmdbv1.presentation.components.ExternalIdsSection
 import com.gobidev.tmdbv1.presentation.moviedetails.CastSection
 import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
+import com.gobidev.tmdbv1.presentation.moviedetails.ImagesSection
 import com.gobidev.tmdbv1.presentation.moviedetails.InfoRow
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieCastUiState
+import com.gobidev.tmdbv1.presentation.moviedetails.MovieImagesUiState
+import com.gobidev.tmdbv1.presentation.tvdetails.TvImagesUiState
 import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
 import java.util.Locale
 
@@ -79,6 +82,14 @@ fun TvDetailsScreen(
     val selectedSeasonIndex by viewModel.selectedSeasonIndex.collectAsStateWithLifecycle()
     val episodesState by viewModel.episodesState.collectAsStateWithLifecycle()
     val externalIdsState by viewModel.externalIdsState.collectAsStateWithLifecycle()
+    val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
+
+    val mappedImagesState: MovieImagesUiState = when (val s = imagesState) {
+        is TvImagesUiState.Loading -> MovieImagesUiState.Loading
+        is TvImagesUiState.Success -> MovieImagesUiState.Success(s.backdrops, s.posters)
+        is TvImagesUiState.Empty -> MovieImagesUiState.Empty
+        is TvImagesUiState.Error -> MovieImagesUiState.Error(s.message)
+    }
 
     val mappedCastState: MovieCastUiState = when (val cs = castState) {
         is TvCastUiState.Loading -> MovieCastUiState.Loading
@@ -122,6 +133,7 @@ fun TvDetailsScreen(
                     selectedSeasonIndex = selectedSeasonIndex,
                     episodesState = episodesState,
                     externalIdsState = externalIdsState,
+                    imagesState = mappedImagesState,
                     onSeasonSelect = { viewModel.selectSeason(it) },
                     onLoadMore = { viewModel.loadMoreEpisodes() },
                     onEvent = onEvent,
@@ -155,6 +167,7 @@ private fun TvDetailsContent(
     selectedSeasonIndex: Int,
     episodesState: EpisodesUiState,
     externalIdsState: ExternalIdsUiState,
+    imagesState: MovieImagesUiState,
     onSeasonSelect: (Int) -> Unit,
     onLoadMore: () -> Unit,
     onEvent: (TvDetailsEvent) -> Unit,
@@ -271,6 +284,10 @@ private fun TvDetailsContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             ExternalIdsSection(state = externalIdsState)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ImagesSection(imagesState = imagesState)
         }
     }
 }

@@ -3,6 +3,7 @@ package com.gobidev.tmdbv1.domain.repository
 import androidx.paging.PagingData
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.ExternalIds
+import com.gobidev.tmdbv1.domain.model.MovieImages
 import com.gobidev.tmdbv1.domain.model.TvCredits
 import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.domain.model.TvShow
@@ -18,4 +19,6 @@ interface TvRepository {
     suspend fun getSeasonEpisodes(tvId: Int, seasonNumber: Int): Result<List<Episode>>
 
     suspend fun getTvExternalIds(tvId: Int): Result<ExternalIds>
+
+    suspend fun getTvImages(tvId: Int): Result<MovieImages>
 }
