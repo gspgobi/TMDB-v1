@@ -11,6 +11,8 @@ import com.gobidev.tmdbv1.domain.usecase.GetSeasonEpisodesUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvDetailsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvExternalIdsUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetTvImagesUseCase
+import com.gobidev.tmdbv1.domain.model.MovieImage
 import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +34,13 @@ sealed class TvCastUiState {
     data class Error(val message: String) : TvCastUiState()
 }
 
+sealed class TvImagesUiState {
+    data object Loading : TvImagesUiState()
+    data class Success(val backdrops: List<MovieImage>, val posters: List<MovieImage>) : TvImagesUiState()
+    data object Empty : TvImagesUiState()
+    data class Error(val message: String) : TvImagesUiState()
+}
+
 sealed class EpisodesUiState {
     data object Idle : EpisodesUiState()
     data object Loading : EpisodesUiState()
@@ -47,7 +56,8 @@ class TvDetailsViewModel @Inject constructor(
     private val getTvDetailsUseCase: GetTvDetailsUseCase,
     private val getTvCreditsUseCase: GetTvCreditsUseCase,
     private val getSeasonEpisodesUseCase: GetSeasonEpisodesUseCase,
-    private val getTvExternalIdsUseCase: GetTvExternalIdsUseCase
+    private val getTvExternalIdsUseCase: GetTvExternalIdsUseCase,
+    private val getTvImagesUseCase: GetTvImagesUseCase
 ) : ViewModel() {
 
     private val tvId = savedStateHandle.get<Int>("tvId") ?: -1
@@ -67,6 +77,9 @@ class TvDetailsViewModel @Inject constructor(
     private val _externalIdsState = MutableStateFlow<ExternalIdsUiState>(ExternalIdsUiState.Loading)
     val externalIdsState: StateFlow<ExternalIdsUiState> = _externalIdsState.asStateFlow()
 
+    private val _imagesState = MutableStateFlow<TvImagesUiState>(TvImagesUiState.Loading)
+    val imagesState: StateFlow<TvImagesUiState> = _imagesState.asStateFlow()
+
     private var allEpisodes: List<Episode> = emptyList()
     private var displayedCount: Int = PAGE_SIZE
 
@@ -75,6 +88,7 @@ class TvDetailsViewModel @Inject constructor(
             loadDetails()
             loadCredits()
             loadExternalIds()
+            loadImages()
         } else {
             _uiState.value = TvDetailsUiState.Error("Invalid TV show ID")
         }
@@ -150,6 +164,23 @@ class TvDetailsViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> _externalIdsState.value = ExternalIdsUiState.Error(result.message)
+            }
+        }
+    }
+
+    private fun loadImages() {
+        viewModelScope.launch {
+            when (val result = getTvImagesUseCase(tvId)) {
+                is Result.Success -> {
+                    val backdrops = result.data.backdrops
+                    val posters = result.data.posters
+                    if (backdrops.isEmpty() && posters.isEmpty()) {
+                        _imagesState.value = TvImagesUiState.Empty
+                    } else {
+                        _imagesState.value = TvImagesUiState.Success(backdrops, posters)
+                    }
+                }
+                is Result.Error -> _imagesState.value = TvImagesUiState.Error(result.message)
             }
         }
     }
