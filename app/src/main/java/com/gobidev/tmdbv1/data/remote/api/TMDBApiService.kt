@@ -178,6 +178,11 @@ interface TMDBApiService {
         @Path("tv_id") tvId: Int
     ): ExternalIdsResponse
 
+    @GET("tv/{tv_id}/images")
+    suspend fun getTvImages(
+        @Path("tv_id") tvId: Int
+    ): MovieImagesResponse
+
     @GET("tv/{tv_id}/season/{season_number}")
     suspend fun getSeasonDetails(
         @Path("tv_id") tvId: Int,
