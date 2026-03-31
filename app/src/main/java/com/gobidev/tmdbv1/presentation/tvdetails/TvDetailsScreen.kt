@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -69,6 +71,7 @@ sealed interface TvDetailsEvent {
     data object BackClick : TvDetailsEvent
     data class ViewFullCastClick(val tvId: Int, val tvName: String) : TvDetailsEvent
     data class CastMemberClick(val personId: Int) : TvDetailsEvent
+    data class RecommendationClick(val tvId: Int) : TvDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +86,7 @@ fun TvDetailsScreen(
     val episodesState by viewModel.episodesState.collectAsStateWithLifecycle()
     val externalIdsState by viewModel.externalIdsState.collectAsStateWithLifecycle()
     val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
+    val recommendationsState by viewModel.recommendationsState.collectAsStateWithLifecycle()
 
     val mappedImagesState: MovieImagesUiState = when (val s = imagesState) {
         is TvImagesUiState.Loading -> MovieImagesUiState.Loading
@@ -134,6 +138,7 @@ fun TvDetailsScreen(
                     episodesState = episodesState,
                     externalIdsState = externalIdsState,
                     imagesState = mappedImagesState,
+                    recommendationsState = recommendationsState,
                     onSeasonSelect = { viewModel.selectSeason(it) },
                     onLoadMore = { viewModel.loadMoreEpisodes() },
                     onEvent = onEvent,
@@ -168,6 +173,7 @@ private fun TvDetailsContent(
     episodesState: EpisodesUiState,
     externalIdsState: ExternalIdsUiState,
     imagesState: MovieImagesUiState,
+    recommendationsState: TvRecommendationsUiState,
     onSeasonSelect: (Int) -> Unit,
     onLoadMore: () -> Unit,
     onEvent: (TvDetailsEvent) -> Unit,
@@ -288,7 +294,95 @@ private fun TvDetailsContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             ImagesSection(imagesState = imagesState)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TvRecommendationsSection(
+                recommendationsState = recommendationsState,
+                onShowClick = { id -> onEvent(TvDetailsEvent.RecommendationClick(id)) }
+            )
         }
+    }
+}
+
+@Composable
+private fun TvRecommendationsSection(
+    recommendationsState: TvRecommendationsUiState,
+    onShowClick: (tvId: Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        when (recommendationsState) {
+            is TvRecommendationsUiState.Loading -> {
+                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                com.gobidev.tmdbv1.presentation.util.CastCarouselShimmer()
+            }
+
+            is TvRecommendationsUiState.Success -> {
+                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(end = 16.dp)
+                ) {
+                    items(recommendationsState.shows) { show ->
+                        TvRecommendationCard(show = show, onClick = { onShowClick(show.id) })
+                    }
+                }
+            }
+
+            is TvRecommendationsUiState.Empty -> { /* nothing to show */ }
+
+            is TvRecommendationsUiState.Error -> {
+                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Unable to load recommendations",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TvRecommendationCard(
+    show: com.gobidev.tmdbv1.domain.model.TvShow,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .width(120.dp)
+            .clickable { onClick() }
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            AsyncImage(
+                model = show.posterUrl,
+                contentDescription = show.name,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = show.name,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = "⭐ ${String.format(Locale.getDefault(), "%.1f", show.rating)}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

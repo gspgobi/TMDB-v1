@@ -325,6 +325,7 @@ fun TMDBNavGraph(
                         is TvDetailsEvent.BackClick -> navController.popBackStack()
                         is TvDetailsEvent.ViewFullCastClick -> navController.navigate(Screen.TvCastNav.createRoute(event.tvId, event.tvName))
                         is TvDetailsEvent.CastMemberClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
+                        is TvDetailsEvent.RecommendationClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
                     }
                 }
             )

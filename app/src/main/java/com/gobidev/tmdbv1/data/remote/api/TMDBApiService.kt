@@ -183,6 +183,13 @@ interface TMDBApiService {
         @Path("tv_id") tvId: Int
     ): MovieImagesResponse
 
+    @GET("tv/{tv_id}/recommendations")
+    suspend fun getTvRecommendations(
+        @Path("tv_id") tvId: Int,
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): TvListPagedResponse
+
     @GET("tv/{tv_id}/season/{season_number}")
     suspend fun getSeasonDetails(
         @Path("tv_id") tvId: Int,

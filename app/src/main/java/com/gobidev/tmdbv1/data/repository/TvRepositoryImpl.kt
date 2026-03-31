@@ -64,4 +64,8 @@ class TvRepositoryImpl @Inject constructor(
 
     override suspend fun getTvImages(tvId: Int): Result<MovieImages> =
         safeCall { api.getTvImages(tvId).toMovieImages() }
+
+    override suspend fun getTvRecommendations(tvId: Int): Result<List<TvShow>> = safeCall {
+        api.getTvRecommendations(tvId).results.map { it.toTvShow() }
+    }
 }

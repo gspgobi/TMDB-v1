@@ -21,4 +21,6 @@ interface TvRepository {
     suspend fun getTvExternalIds(tvId: Int): Result<ExternalIds>
 
     suspend fun getTvImages(tvId: Int): Result<MovieImages>
+
+    suspend fun getTvRecommendations(tvId: Int): Result<List<TvShow>>
 }

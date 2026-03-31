@@ -6,13 +6,15 @@ import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.ExternalIds
+import com.gobidev.tmdbv1.domain.model.MovieImage
+import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.domain.model.TvShowDetails
 import com.gobidev.tmdbv1.domain.usecase.GetSeasonEpisodesUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvDetailsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvExternalIdsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvImagesUseCase
-import com.gobidev.tmdbv1.domain.model.MovieImage
+import com.gobidev.tmdbv1.domain.usecase.GetTvRecommendationsUseCase
 import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +43,13 @@ sealed class TvImagesUiState {
     data class Error(val message: String) : TvImagesUiState()
 }
 
+sealed class TvRecommendationsUiState {
+    data object Loading : TvRecommendationsUiState()
+    data class Success(val shows: List<TvShow>) : TvRecommendationsUiState()
+    data object Empty : TvRecommendationsUiState()
+    data class Error(val message: String) : TvRecommendationsUiState()
+}
+
 sealed class EpisodesUiState {
     data object Idle : EpisodesUiState()
     data object Loading : EpisodesUiState()
@@ -57,7 +66,8 @@ class TvDetailsViewModel @Inject constructor(
     private val getTvCreditsUseCase: GetTvCreditsUseCase,
     private val getSeasonEpisodesUseCase: GetSeasonEpisodesUseCase,
     private val getTvExternalIdsUseCase: GetTvExternalIdsUseCase,
-    private val getTvImagesUseCase: GetTvImagesUseCase
+    private val getTvImagesUseCase: GetTvImagesUseCase,
+    private val getTvRecommendationsUseCase: GetTvRecommendationsUseCase
 ) : ViewModel() {
 
     private val tvId = savedStateHandle.get<Int>("tvId") ?: -1
@@ -80,6 +90,9 @@ class TvDetailsViewModel @Inject constructor(
     private val _imagesState = MutableStateFlow<TvImagesUiState>(TvImagesUiState.Loading)
     val imagesState: StateFlow<TvImagesUiState> = _imagesState.asStateFlow()
 
+    private val _recommendationsState = MutableStateFlow<TvRecommendationsUiState>(TvRecommendationsUiState.Loading)
+    val recommendationsState: StateFlow<TvRecommendationsUiState> = _recommendationsState.asStateFlow()
+
     private var allEpisodes: List<Episode> = emptyList()
     private var displayedCount: Int = PAGE_SIZE
 
@@ -89,6 +102,7 @@ class TvDetailsViewModel @Inject constructor(
             loadCredits()
             loadExternalIds()
             loadImages()
+            loadRecommendations()
         } else {
             _uiState.value = TvDetailsUiState.Error("Invalid TV show ID")
         }
@@ -164,6 +178,22 @@ class TvDetailsViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> _externalIdsState.value = ExternalIdsUiState.Error(result.message)
+            }
+        }
+    }
+
+    private fun loadRecommendations() {
+        viewModelScope.launch {
+            when (val result = getTvRecommendationsUseCase(tvId)) {
+                is Result.Success -> {
+                    val shows = result.data.take(20)
+                    _recommendationsState.value = if (shows.isEmpty()) {
+                        TvRecommendationsUiState.Empty
+                    } else {
+                        TvRecommendationsUiState.Success(shows)
+                    }
+                }
+                is Result.Error -> _recommendationsState.value = TvRecommendationsUiState.Error(result.message)
             }
         }
     }
