@@ -1,7 +1,7 @@
 # 🎬 TMDB Android App [version 1]
 ### Jetpack Compose · Clean Architecture · Dark Theme
 
-A modern Android application for browsing movies and TV shows using the **TMDB API** — featuring home carousels, paginated lists with filtering & sorting, detailed info, cast & crew, reviews, multi-type search, and optional TMDB account login with favorites and watchlist.
+A modern Android application for browsing movies and TV shows using the **TMDB API** — featuring home carousels, paginated lists with filtering & sorting, detailed info, cast & crew, reviews, images, recommendations, multi-type search, and optional TMDB account login with favorites and watchlist.
 
 ---
 
@@ -9,11 +9,12 @@ A modern Android application for browsing movies and TV shows using the **TMDB A
 
 - **Home screen** — six alternating carousels (Popular Movies, Popular TV, Now Playing, On The Air, Upcoming, Top Rated TV) loading in parallel, with a collapsible TopAppBar on scroll
 - **Movie Listing** — paginated list for any TMDB list type; filter by genre, minimum rating, and release year; sort by popularity, rating, release date, or vote count
-- **Movie Details** — backdrop, genres, runtime, tagline, overview, rating, and a latest review preview
+- **Movie Details** — backdrop, genres, runtime, tagline, overview, rating, collection info, a latest review preview, external links (IMDB, Wikidata, social media), tabbed images gallery (Backdrops / Posters), and a recommendations carousel
 - **Full Cast & Crew** — complete credits with profile images
 - **Movie Reviews** — paginated review list with author avatars and ratings
-- **TV Series** — listing, details (seasons & episodes count, genres, tagline), and full cast & crew
+- **TV Series** — listing, details (seasons & episodes count, genres, tagline), full cast & crew, external links, tabbed images gallery (Backdrops / Posters), and a recommendations carousel
 - **Season & Episodes** — season selector on TV details; expandable episode list with load-more pagination
+- **Person Details** — biography, profile image, and combined filmography (movies & TV)
 - **Search** — debounced multi-type search across movies, TV shows, and people; media-type chip on each result
 - **Account Login** — optional TMDB account sign-in; Favorites and Watchlist tabs on the Profile screen
 - **Bottom navigation** — Home / Search / Profile tabs; auto-hidden on detail screens
@@ -68,6 +69,7 @@ flowchart TD
     Search["🔍 Search\n(multi-type)"]
     Profile["👤 Profile\n(favorites & watchlist)"]
     Login["🔑 Login"]
+    Person["🧑 Person Details\n(bio & filmography)"]
 
     Home -->|View All Movies| Listing
     Home -->|Movie poster| Details
@@ -76,8 +78,15 @@ flowchart TD
     Listing -->|Movie tap| Details
     Details -->|See all cast| Cast
     Details -->|See all reviews| Reviews
+    Details -->|Recommendation tap| Details
+    Details -->|Cast member tap| Person
     TvListing -->|TV tap| TvDetails
     TvDetails -->|See all cast| TvCast
+    TvDetails -->|Recommendation tap| TvDetails
+    TvDetails -->|Cast member tap| Person
+    Search -->|Movie result| Details
+    Search -->|TV result| TvDetails
+    Search -->|Person result| Person
     Profile -->|Sign In| Login
 
     BottomNav["Bottom Navigation Bar"]
