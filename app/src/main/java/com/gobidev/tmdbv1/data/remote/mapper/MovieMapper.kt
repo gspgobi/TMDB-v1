@@ -8,6 +8,8 @@ import com.gobidev.tmdbv1.data.remote.dto.ExternalIdsResponse
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
 import com.gobidev.tmdbv1.data.remote.dto.ImageDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
+import com.gobidev.tmdbv1.data.remote.dto.MovieVideosResponse
+import com.gobidev.tmdbv1.data.remote.dto.VideoDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieImagesResponse
@@ -24,6 +26,7 @@ import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.MovieImage
 import com.gobidev.tmdbv1.domain.model.MovieImages
+import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.Review
 
 /**
@@ -192,6 +195,17 @@ private const val BACKDROP_FULL_SIZE = "w1280"
 fun MovieImagesResponse.toMovieImages() = MovieImages(
     backdrops = backdrops.map { it.toMovieImage(BACKDROP_FULL_SIZE) },
     posters = posters.map { it.toMovieImage(POSTER_SIZE) }
+)
+
+fun MovieVideosResponse.toMovieVideos(): List<MovieVideo> =
+    results.filter { it.site == "YouTube" }.map { it.toMovieVideo() }
+
+fun VideoDto.toMovieVideo() = MovieVideo(
+    id = id,
+    key = key,
+    name = name,
+    type = type,
+    site = site
 )
 
 fun ImageDto.toMovieImage(size: String) = MovieImage(
