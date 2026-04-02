@@ -3,6 +3,7 @@ package com.gobidev.tmdbv1.data.remote.api
 import com.gobidev.tmdbv1.data.remote.dto.CollectionDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.ExternalIdsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieImagesResponse
+import com.gobidev.tmdbv1.data.remote.dto.MovieVideosResponse
 import com.gobidev.tmdbv1.data.remote.dto.PopularPersonListResponse
 import com.gobidev.tmdbv1.data.remote.dto.TrendingResponseDto
 import com.gobidev.tmdbv1.data.remote.dto.PersonCombinedCreditsResponse
@@ -121,6 +122,12 @@ interface TMDBApiService {
     suspend fun getMovieImages(
         @Path("movie_id") movieId: Int
     ): MovieImagesResponse
+
+    @GET("movie/{movie_id}/videos")
+    suspend fun getMovieVideos(
+        @Path("movie_id") movieId: Int,
+        @Query("language") language: String = "en-US"
+    ): MovieVideosResponse
 
     @GET("movie/{movie_id}/recommendations")
     suspend fun getMovieRecommendations(
