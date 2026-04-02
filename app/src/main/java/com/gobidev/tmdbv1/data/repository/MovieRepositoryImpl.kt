@@ -12,6 +12,7 @@ import com.gobidev.tmdbv1.data.remote.mapper.toMovieCollectionDetails
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieDetails
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieImages
+import com.gobidev.tmdbv1.data.remote.mapper.toMovieVideos
 import com.gobidev.tmdbv1.data.remote.mapper.toReview
 import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.Movie
@@ -20,6 +21,7 @@ import com.gobidev.tmdbv1.domain.model.MovieCredits
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.MovieFilterState
 import com.gobidev.tmdbv1.domain.model.MovieImages
+import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.repository.MovieRepository
@@ -124,6 +126,9 @@ class MovieRepositoryImpl @Inject constructor(
 
     override suspend fun getMovieImages(movieId: Int): Result<MovieImages> =
         safeCall { api.getMovieImages(movieId).toMovieImages() }
+
+    override suspend fun getMovieVideos(movieId: Int): Result<List<MovieVideo>> =
+        safeCall { api.getMovieVideos(movieId).toMovieVideos() }
 
     /**
      * Get a flow of paginated reviews for a movie using Paging 3.
