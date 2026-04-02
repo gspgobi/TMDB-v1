@@ -1,5 +1,7 @@
 package com.gobidev.tmdbv1.presentation.moviedetails
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.SecondaryTabRow
@@ -46,6 +49,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,6 +70,7 @@ import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.MovieImage
+import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
@@ -107,6 +112,7 @@ fun MovieDetailsScreen(
     val recommendationsState by viewModel.recommendationsState.collectAsStateWithLifecycle()
     val externalIdsState by viewModel.externalIdsState.collectAsStateWithLifecycle()
     val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
+    val videosState by viewModel.videosState.collectAsStateWithLifecycle()
 
 
     Scaffold(
@@ -145,6 +151,7 @@ fun MovieDetailsScreen(
                     recommendationsState = recommendationsState,
                     externalIdsState = externalIdsState,
                     imagesState = imagesState,
+                    videosState = videosState,
                     onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -185,6 +192,7 @@ fun MovieDetailsContent(
     recommendationsState: MovieRecommendationsUiState = MovieRecommendationsUiState.Loading,
     externalIdsState: ExternalIdsUiState = ExternalIdsUiState.Loading,
     imagesState: MovieImagesUiState = MovieImagesUiState.Loading,
+    videosState: MovieVideosUiState = MovieVideosUiState.Loading,
     onEvent: (MovieDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -351,6 +359,11 @@ fun MovieDetailsContent(
 
             // External Links Section
             ExternalIdsSection(state = externalIdsState)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Videos Section
+            VideosSection(videosState = videosState)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -766,6 +779,98 @@ private fun RecommendationCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+fun VideosSection(
+    videosState: MovieVideosUiState,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+
+    when (videosState) {
+        is MovieVideosUiState.Loading -> {
+            Text("Videos", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            CastCarouselShimmer()
+        }
+
+        is MovieVideosUiState.Success -> {
+            Text("Videos", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(
+                modifier = modifier,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(end = 16.dp)
+            ) {
+                items(videosState.videos) { video ->
+                    VideoThumbnailCard(
+                        video = video,
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(video.youtubeUrl))
+                            context.startActivity(intent)
+                        }
+                    )
+                }
+            }
+        }
+
+        is MovieVideosUiState.Empty -> { /* nothing to show */ }
+
+        is MovieVideosUiState.Error -> { /* silently skip */ }
+    }
+}
+
+@Composable
+private fun VideoThumbnailCard(
+    video: com.gobidev.tmdbv1.domain.model.MovieVideo,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.width(200.dp).clickable { onClick() }
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(112.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                AsyncImage(
+                    model = video.thumbnailUrl,
+                    contentDescription = video.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.PlayArrow,
+                        contentDescription = "Play",
+                        tint = Color.White,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = video.name,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = video.type,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

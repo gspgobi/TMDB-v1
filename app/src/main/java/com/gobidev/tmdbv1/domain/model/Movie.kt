@@ -92,6 +92,18 @@ data class Review(
     val updatedAt: String
 )
 
+data class MovieVideo(
+    val id: String,
+    val key: String,
+    val name: String,
+    val type: String,
+    val site: String
+) {
+    val thumbnailUrl: String get() = "https://img.youtube.com/vi/$key/hqdefault.jpg"
+    val youtubeUrl: String get() = "https://www.youtube.com/watch?v=$key"
+    val isYouTube: Boolean get() = site == "YouTube"
+}
+
 data class MovieImages(
     val backdrops: List<MovieImage>,
     val posters: List<MovieImage>
