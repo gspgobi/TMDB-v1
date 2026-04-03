@@ -8,12 +8,14 @@ import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toEpisode
 import com.gobidev.tmdbv1.data.remote.mapper.toExternalIds
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieImages
+import com.gobidev.tmdbv1.data.remote.mapper.toMovieVideos
 import com.gobidev.tmdbv1.data.remote.mapper.toTvCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toTvDetails
 import com.gobidev.tmdbv1.data.remote.mapper.toTvShow
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.MovieImages
+import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.TvCredits
 import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.domain.model.TvShow
@@ -68,4 +70,7 @@ class TvRepositoryImpl @Inject constructor(
     override suspend fun getTvRecommendations(tvId: Int): Result<List<TvShow>> = safeCall {
         api.getTvRecommendations(tvId).results.map { it.toTvShow() }
     }
+
+    override suspend fun getTvVideos(tvId: Int): Result<List<MovieVideo>> =
+        safeCall { api.getTvVideos(tvId).toMovieVideos() }
 }
