@@ -190,6 +190,12 @@ interface TMDBApiService {
         @Path("tv_id") tvId: Int
     ): MovieImagesResponse
 
+    @GET("tv/{tv_id}/videos")
+    suspend fun getTvVideos(
+        @Path("tv_id") tvId: Int,
+        @Query("language") language: String = "en-US"
+    ): MovieVideosResponse
+
     @GET("tv/{tv_id}/recommendations")
     suspend fun getTvRecommendations(
         @Path("tv_id") tvId: Int,
