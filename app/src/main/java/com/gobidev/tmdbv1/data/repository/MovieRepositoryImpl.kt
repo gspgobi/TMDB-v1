@@ -7,6 +7,7 @@ import com.gobidev.tmdbv1.data.paging.MovieListPagingSource
 import com.gobidev.tmdbv1.data.paging.MovieReviewsPagingSource
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toExternalIds
+import com.gobidev.tmdbv1.data.remote.mapper.toKeywords
 import com.gobidev.tmdbv1.data.remote.mapper.toMovie
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieCollectionDetails
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieCredits
@@ -15,6 +16,7 @@ import com.gobidev.tmdbv1.data.remote.mapper.toMovieImages
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieVideos
 import com.gobidev.tmdbv1.data.remote.mapper.toReview
 import com.gobidev.tmdbv1.domain.model.ExternalIds
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieCollectionDetails
 import com.gobidev.tmdbv1.domain.model.MovieCredits
@@ -143,4 +145,7 @@ class MovieRepositoryImpl @Inject constructor(
             pagingSourceFactory = { MovieReviewsPagingSource(api, movieId) }
         ).flow
     }
+
+    override suspend fun getMovieKeywords(movieId: Int): Result<List<Keyword>> =
+        safeCall { api.getMovieKeywords(movieId).toKeywords() }
 }
