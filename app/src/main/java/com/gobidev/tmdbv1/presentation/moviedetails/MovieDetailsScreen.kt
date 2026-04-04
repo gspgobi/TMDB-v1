@@ -66,6 +66,7 @@ import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.gobidev.tmdbv1.domain.model.CastMember
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
 import com.gobidev.tmdbv1.domain.model.MovieDetails
@@ -113,7 +114,7 @@ fun MovieDetailsScreen(
     val externalIdsState by viewModel.externalIdsState.collectAsStateWithLifecycle()
     val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
-
+    val keywordsState by viewModel.keywordsState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -152,6 +153,7 @@ fun MovieDetailsScreen(
                     externalIdsState = externalIdsState,
                     imagesState = imagesState,
                     videosState = videosState,
+                    keywordsState = keywordsState,
                     onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -193,6 +195,7 @@ fun MovieDetailsContent(
     externalIdsState: ExternalIdsUiState = ExternalIdsUiState.Loading,
     imagesState: MovieImagesUiState = MovieImagesUiState.Loading,
     videosState: MovieVideosUiState = MovieVideosUiState.Loading,
+    keywordsState: MovieKeywordsUiState = MovieKeywordsUiState.Loading,
     onEvent: (MovieDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -377,6 +380,11 @@ fun MovieDetailsContent(
                 recommendationsState = recommendationsState,
                 onMovieClick = { movieId -> onEvent(MovieDetailsEvent.RecommendationClick(movieId)) }
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Keywords Section
+            KeywordsSection(keywordsState = keywordsState)
         }
     }
 }
@@ -1063,6 +1071,39 @@ fun PreviewCastMemberItem() {
 fun PreviewCastMemberItemNoImage() {
     TMDBTheme {
         CastMemberItem(castMember = PreviewData.sampleCastMembers[3])
+    }
+}
+
+@Composable
+fun KeywordsSection(
+    keywordsState: MovieKeywordsUiState,
+    modifier: Modifier = Modifier
+) {
+    when (keywordsState) {
+        is MovieKeywordsUiState.Loading -> { /* silently skip while loading */ }
+
+        is MovieKeywordsUiState.Success -> {
+            Column(modifier = modifier) {
+                Text("Keywords", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    keywordsState.keywords.forEach { keyword ->
+                        SuggestionChip(
+                            onClick = {},
+                            label = { Text(keyword.name, style = MaterialTheme.typography.bodySmall) }
+                        )
+                    }
+                }
+            }
+        }
+
+        is MovieKeywordsUiState.Empty -> { /* nothing to show */ }
+
+        is MovieKeywordsUiState.Error -> { /* silently skip */ }
     }
 }
 
