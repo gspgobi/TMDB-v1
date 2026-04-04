@@ -293,6 +293,16 @@ data class AuthorDetailsDto(
     val rating: Double?
 )
 
+data class MovieKeywordsResponse(
+    @SerializedName("id") val id: Int,
+    @SerializedName("keywords") val keywords: List<KeywordDto>
+)
+
+data class KeywordDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String
+)
+
 data class MovieVideosResponse(
     @SerializedName("id") val id: Int,
     @SerializedName("results") val results: List<VideoDto>
