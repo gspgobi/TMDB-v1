@@ -2,6 +2,7 @@ package com.gobidev.tmdbv1.domain.repository
 
 import androidx.paging.PagingData
 import com.gobidev.tmdbv1.domain.model.ExternalIds
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieImages
 import com.gobidev.tmdbv1.domain.model.MovieVideo
@@ -82,4 +83,6 @@ interface MovieRepository {
     suspend fun getMovieImages(movieId: Int): Result<MovieImages>
 
     suspend fun getMovieVideos(movieId: Int): Result<List<MovieVideo>>
+
+    suspend fun getMovieKeywords(movieId: Int): Result<List<Keyword>>
 }
