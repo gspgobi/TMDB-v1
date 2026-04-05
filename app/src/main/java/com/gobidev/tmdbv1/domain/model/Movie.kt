@@ -104,6 +104,11 @@ data class MovieVideo(
     val isYouTube: Boolean get() = site == "YouTube"
 }
 
+data class Keyword(
+    val id: Int,
+    val name: String
+)
+
 data class MovieImages(
     val backdrops: List<MovieImage>,
     val posters: List<MovieImage>

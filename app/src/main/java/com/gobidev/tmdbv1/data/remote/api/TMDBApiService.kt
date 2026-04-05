@@ -13,6 +13,7 @@ import com.gobidev.tmdbv1.data.remote.dto.DeleteSessionBody
 import com.gobidev.tmdbv1.data.remote.dto.LoginRequestBody
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
+import com.gobidev.tmdbv1.data.remote.dto.MovieKeywordsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieListPagedResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieReviewsPagedResponse
 import com.gobidev.tmdbv1.data.remote.dto.RequestTokenResponse
@@ -112,6 +113,11 @@ interface TMDBApiService {
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
     ): MovieReviewsPagedResponse
+
+    @GET("movie/{movie_id}/keywords")
+    suspend fun getMovieKeywords(
+        @Path("movie_id") movieId: Int
+    ): MovieKeywordsResponse
 
     @GET("movie/{movie_id}/external_ids")
     suspend fun getMovieExternalIds(

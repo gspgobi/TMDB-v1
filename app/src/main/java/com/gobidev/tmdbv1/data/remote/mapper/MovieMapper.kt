@@ -7,6 +7,8 @@ import com.gobidev.tmdbv1.data.remote.dto.CrewMemberDto
 import com.gobidev.tmdbv1.data.remote.dto.ExternalIdsResponse
 import com.gobidev.tmdbv1.data.remote.dto.GenreDto
 import com.gobidev.tmdbv1.data.remote.dto.ImageDto
+import com.gobidev.tmdbv1.data.remote.dto.KeywordDto
+import com.gobidev.tmdbv1.data.remote.dto.MovieKeywordsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieVideosResponse
 import com.gobidev.tmdbv1.data.remote.dto.VideoDto
@@ -15,6 +17,7 @@ import com.gobidev.tmdbv1.data.remote.dto.MovieDto
 import com.gobidev.tmdbv1.data.remote.dto.MovieImagesResponse
 import com.gobidev.tmdbv1.data.remote.dto.ReviewDto
 import com.gobidev.tmdbv1.domain.model.CastMember
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.CrewMember
 import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.Genre
@@ -207,6 +210,9 @@ fun VideoDto.toMovieVideo() = MovieVideo(
     type = type,
     site = site
 )
+
+fun MovieKeywordsResponse.toKeywords(): List<Keyword> =
+    keywords.map { Keyword(id = it.id, name = it.name) }
 
 fun ImageDto.toMovieImage(size: String) = MovieImage(
     url = "$IMAGE_BASE_URL$size$filePath",

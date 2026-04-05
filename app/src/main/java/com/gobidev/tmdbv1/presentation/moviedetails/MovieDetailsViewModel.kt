@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.ExternalIds
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.MovieImage
@@ -15,6 +16,7 @@ import com.gobidev.tmdbv1.domain.usecase.GetMovieCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieDetailsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieExternalIdsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieImagesUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetMovieKeywordsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieVideosUseCase
 import com.gobidev.tmdbv1.domain.util.Result
@@ -73,6 +75,13 @@ sealed class MovieVideosUiState {
     data class Error(val message: String) : MovieVideosUiState()
 }
 
+sealed class MovieKeywordsUiState {
+    data object Loading : MovieKeywordsUiState()
+    data class Success(val keywords: List<Keyword>) : MovieKeywordsUiState()
+    data object Empty : MovieKeywordsUiState()
+    data class Error(val message: String) : MovieKeywordsUiState()
+}
+
 sealed class MovieImagesUiState {
     data object Loading : MovieImagesUiState()
     data class Success(val backdrops: List<MovieImage>, val posters: List<MovieImage>) : MovieImagesUiState()
@@ -104,7 +113,8 @@ class MovieDetailsViewModel @Inject constructor(
     private val getMovieRecommendationsUseCase: GetMovieRecommendationsUseCase,
     private val getMovieExternalIdsUseCase: GetMovieExternalIdsUseCase,
     private val getMovieImagesUseCase: GetMovieImagesUseCase,
-    private val getMovieVideosUseCase: GetMovieVideosUseCase
+    private val getMovieVideosUseCase: GetMovieVideosUseCase,
+    private val getMovieKeywordsUseCase: GetMovieKeywordsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MovieDetailsUiState>(MovieDetailsUiState.Loading)
@@ -128,6 +138,9 @@ class MovieDetailsViewModel @Inject constructor(
     private val _videosState = MutableStateFlow<MovieVideosUiState>(MovieVideosUiState.Loading)
     val videosState: StateFlow<MovieVideosUiState> = _videosState.asStateFlow()
 
+    private val _keywordsState = MutableStateFlow<MovieKeywordsUiState>(MovieKeywordsUiState.Loading)
+    val keywordsState: StateFlow<MovieKeywordsUiState> = _keywordsState.asStateFlow()
+
     init {
         val movieId = savedStateHandle.get<Int>("movieId") ?: -1
         if (movieId != -1) {
@@ -138,6 +151,7 @@ class MovieDetailsViewModel @Inject constructor(
             loadExternalIds(movieId)
             loadImages(movieId)
             loadVideos(movieId)
+            loadKeywords(movieId)
         } else {
             _uiState.value = MovieDetailsUiState.Error("Invalid movie ID")
         }
@@ -262,6 +276,21 @@ class MovieDetailsViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> _videosState.value = MovieVideosUiState.Error(result.message)
+            }
+        }
+    }
+
+    private fun loadKeywords(movieId: Int) {
+        viewModelScope.launch {
+            when (val result = getMovieKeywordsUseCase(movieId)) {
+                is Result.Success -> {
+                    _keywordsState.value = if (result.data.isEmpty()) {
+                        MovieKeywordsUiState.Empty
+                    } else {
+                        MovieKeywordsUiState.Success(result.data)
+                    }
+                }
+                is Result.Error -> _keywordsState.value = MovieKeywordsUiState.Error(result.message)
             }
         }
     }
