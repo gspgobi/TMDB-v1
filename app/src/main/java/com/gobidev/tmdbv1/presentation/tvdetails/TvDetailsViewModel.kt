@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.ExternalIds
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.MovieImage
 import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.TvShow
@@ -15,6 +16,7 @@ import com.gobidev.tmdbv1.domain.usecase.GetTvCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvDetailsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvExternalIdsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvImagesUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetTvKeywordsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvVideosUseCase
 import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
@@ -59,6 +61,13 @@ sealed class TvVideosUiState {
     data class Error(val message: String) : TvVideosUiState()
 }
 
+sealed class TvKeywordsUiState {
+    data object Loading : TvKeywordsUiState()
+    data class Success(val keywords: List<Keyword>) : TvKeywordsUiState()
+    data object Empty : TvKeywordsUiState()
+    data class Error(val message: String) : TvKeywordsUiState()
+}
+
 sealed class EpisodesUiState {
     data object Idle : EpisodesUiState()
     data object Loading : EpisodesUiState()
@@ -77,7 +86,8 @@ class TvDetailsViewModel @Inject constructor(
     private val getTvExternalIdsUseCase: GetTvExternalIdsUseCase,
     private val getTvImagesUseCase: GetTvImagesUseCase,
     private val getTvRecommendationsUseCase: GetTvRecommendationsUseCase,
-    private val getTvVideosUseCase: GetTvVideosUseCase
+    private val getTvVideosUseCase: GetTvVideosUseCase,
+    private val getTvKeywordsUseCase: GetTvKeywordsUseCase
 ) : ViewModel() {
 
     private val tvId = savedStateHandle.get<Int>("tvId") ?: -1
@@ -106,6 +116,9 @@ class TvDetailsViewModel @Inject constructor(
     private val _videosState = MutableStateFlow<TvVideosUiState>(TvVideosUiState.Loading)
     val videosState: StateFlow<TvVideosUiState> = _videosState.asStateFlow()
 
+    private val _keywordsState = MutableStateFlow<TvKeywordsUiState>(TvKeywordsUiState.Loading)
+    val keywordsState: StateFlow<TvKeywordsUiState> = _keywordsState.asStateFlow()
+
     private var allEpisodes: List<Episode> = emptyList()
     private var displayedCount: Int = PAGE_SIZE
 
@@ -117,6 +130,7 @@ class TvDetailsViewModel @Inject constructor(
             loadImages()
             loadRecommendations()
             loadVideos()
+            loadKeywords()
         } else {
             _uiState.value = TvDetailsUiState.Error("Invalid TV show ID")
         }
@@ -240,6 +254,21 @@ class TvDetailsViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> _imagesState.value = TvImagesUiState.Error(result.message)
+            }
+        }
+    }
+
+    private fun loadKeywords() {
+        viewModelScope.launch {
+            when (val result = getTvKeywordsUseCase(tvId)) {
+                is Result.Success -> {
+                    _keywordsState.value = if (result.data.isEmpty()) {
+                        TvKeywordsUiState.Empty
+                    } else {
+                        TvKeywordsUiState.Success(result.data)
+                    }
+                }
+                is Result.Error -> _keywordsState.value = TvKeywordsUiState.Error(result.message)
             }
         }
     }
