@@ -8,6 +8,7 @@ import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toEpisode
 import com.gobidev.tmdbv1.data.remote.mapper.toExternalIds
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieImages
+import com.gobidev.tmdbv1.data.remote.mapper.toKeywords
 import com.gobidev.tmdbv1.data.remote.mapper.toMovieVideos
 import com.gobidev.tmdbv1.data.remote.mapper.toTvCredits
 import com.gobidev.tmdbv1.data.remote.mapper.toTvDetails
@@ -15,6 +16,7 @@ import com.gobidev.tmdbv1.data.remote.mapper.toTvShow
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.MovieImages
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.TvCredits
 import com.gobidev.tmdbv1.domain.model.TvListType
@@ -73,4 +75,7 @@ class TvRepositoryImpl @Inject constructor(
 
     override suspend fun getTvVideos(tvId: Int): Result<List<MovieVideo>> =
         safeCall { api.getTvVideos(tvId).toMovieVideos() }
+
+    override suspend fun getTvKeywords(tvId: Int): Result<List<Keyword>> =
+        safeCall { api.getTvKeywords(tvId).toKeywords() }
 }
