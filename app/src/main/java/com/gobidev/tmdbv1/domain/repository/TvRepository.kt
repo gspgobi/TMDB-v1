@@ -3,6 +3,7 @@ package com.gobidev.tmdbv1.domain.repository
 import androidx.paging.PagingData
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.ExternalIds
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.MovieImages
 import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.TvCredits
@@ -26,4 +27,6 @@ interface TvRepository {
     suspend fun getTvRecommendations(tvId: Int): Result<List<TvShow>>
 
     suspend fun getTvVideos(tvId: Int): Result<List<MovieVideo>>
+
+    suspend fun getTvKeywords(tvId: Int): Result<List<Keyword>>
 }

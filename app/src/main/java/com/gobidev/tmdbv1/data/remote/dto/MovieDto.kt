@@ -298,6 +298,12 @@ data class MovieKeywordsResponse(
     @SerializedName("keywords") val keywords: List<KeywordDto>
 )
 
+// TV keywords API uses "results" instead of "keywords"
+data class TvKeywordsResponse(
+    @SerializedName("id") val id: Int,
+    @SerializedName("results") val results: List<KeywordDto>
+)
+
 data class KeywordDto(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val name: String

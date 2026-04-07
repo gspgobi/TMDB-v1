@@ -63,6 +63,8 @@ import com.gobidev.tmdbv1.presentation.moviedetails.ImagesSection
 import com.gobidev.tmdbv1.presentation.moviedetails.InfoRow
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieCastUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieImagesUiState
+import com.gobidev.tmdbv1.presentation.moviedetails.KeywordsSection
+import com.gobidev.tmdbv1.presentation.moviedetails.MovieKeywordsUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieVideosUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.VideosSection
 import com.gobidev.tmdbv1.presentation.tvdetails.TvImagesUiState
@@ -90,6 +92,7 @@ fun TvDetailsScreen(
     val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
     val recommendationsState by viewModel.recommendationsState.collectAsStateWithLifecycle()
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
+    val keywordsState by viewModel.keywordsState.collectAsStateWithLifecycle()
 
     val mappedImagesState: MovieImagesUiState = when (val s = imagesState) {
         is TvImagesUiState.Loading -> MovieImagesUiState.Loading
@@ -109,6 +112,13 @@ fun TvDetailsScreen(
         is TvVideosUiState.Success -> MovieVideosUiState.Success(v.videos)
         is TvVideosUiState.Empty -> MovieVideosUiState.Empty
         is TvVideosUiState.Error -> MovieVideosUiState.Error(v.message)
+    }
+
+    val mappedKeywordsState: MovieKeywordsUiState = when (val k = keywordsState) {
+        is TvKeywordsUiState.Loading -> MovieKeywordsUiState.Loading
+        is TvKeywordsUiState.Success -> MovieKeywordsUiState.Success(k.keywords)
+        is TvKeywordsUiState.Empty -> MovieKeywordsUiState.Empty
+        is TvKeywordsUiState.Error -> MovieKeywordsUiState.Error(k.message)
     }
 
     Scaffold(
@@ -149,6 +159,7 @@ fun TvDetailsScreen(
                     externalIdsState = externalIdsState,
                     imagesState = mappedImagesState,
                     videosState = mappedVideosState,
+                    keywordsState = mappedKeywordsState,
                     recommendationsState = recommendationsState,
                     onSeasonSelect = { viewModel.selectSeason(it) },
                     onLoadMore = { viewModel.loadMoreEpisodes() },
@@ -185,6 +196,7 @@ private fun TvDetailsContent(
     externalIdsState: ExternalIdsUiState,
     imagesState: MovieImagesUiState,
     videosState: MovieVideosUiState,
+    keywordsState: MovieKeywordsUiState,
     recommendationsState: TvRecommendationsUiState,
     onSeasonSelect: (Int) -> Unit,
     onLoadMore: () -> Unit,
@@ -317,6 +329,10 @@ private fun TvDetailsContent(
                 recommendationsState = recommendationsState,
                 onShowClick = { id -> onEvent(TvDetailsEvent.RecommendationClick(id)) }
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            KeywordsSection(keywordsState = keywordsState)
         }
     }
 }

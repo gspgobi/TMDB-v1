@@ -14,6 +14,7 @@ import com.gobidev.tmdbv1.data.remote.dto.LoginRequestBody
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieKeywordsResponse
+import com.gobidev.tmdbv1.data.remote.dto.TvKeywordsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieListPagedResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieReviewsPagedResponse
 import com.gobidev.tmdbv1.data.remote.dto.RequestTokenResponse
@@ -185,6 +186,11 @@ interface TMDBApiService {
         @Path("tv_id") tvId: Int,
         @Query("language") language: String = "en-US"
     ): TvCreditsResponse
+
+    @GET("tv/{tv_id}/keywords")
+    suspend fun getTvKeywords(
+        @Path("tv_id") tvId: Int
+    ): TvKeywordsResponse
 
     @GET("tv/{tv_id}/external_ids")
     suspend fun getTvExternalIds(

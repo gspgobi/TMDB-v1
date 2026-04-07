@@ -3,6 +3,8 @@ package com.gobidev.tmdbv1.data.remote.mapper
 import com.gobidev.tmdbv1.data.remote.dto.EpisodeDto
 import com.gobidev.tmdbv1.data.remote.dto.SeasonDto
 import com.gobidev.tmdbv1.data.remote.dto.TvCreditsResponse
+import com.gobidev.tmdbv1.data.remote.dto.TvKeywordsResponse
+import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.data.remote.dto.TvDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.TvDto
 import com.gobidev.tmdbv1.domain.model.Episode
@@ -76,3 +78,6 @@ fun TvCreditsResponse.toTvCredits(): TvCredits = TvCredits(
     cast = cast.map { it.toCastMember() },
     crew = crew?.map { it.toCrewMember() } ?: emptyList()
 )
+
+fun TvKeywordsResponse.toKeywords(): List<Keyword> =
+    results.map { Keyword(id = it.id, name = it.name) }
