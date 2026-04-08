@@ -129,6 +129,14 @@ sealed class Screen(val route: String) {
     }
 
     /**
+     * Keyword Movies screen — movies filtered by a single keyword.
+     */
+    data object KeywordMoviesNav : Screen("movies/keyword/{keywordId}?keywordName={keywordName}") {
+        fun createRoute(keywordId: Int, keywordName: String) =
+            "movies/keyword/$keywordId?keywordName=${Uri.encode(keywordName)}"
+    }
+
+    /**
      * Login screen.
      */
     data object LoginNav : Screen("login")
@@ -241,6 +249,29 @@ fun TMDBNavGraph(
                         is MovieDetailsEvent.CastMemberClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
                         is MovieDetailsEvent.CollectionClick -> navController.navigate(Screen.CollectionDetailsNav.createRoute(event.collectionId, event.collectionName))
                         is MovieDetailsEvent.RecommendationClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                        is MovieDetailsEvent.KeywordClick -> navController.navigate(Screen.KeywordMoviesNav.createRoute(event.keywordId, event.keywordName))
+                    }
+                }
+            )
+        }
+
+        // Keyword Movies Screen — reuses MovieListingScreen with keyword pre-filter
+        composable(
+            route = Screen.KeywordMoviesNav.route,
+            arguments = listOf(
+                navArgument("keywordId") { type = NavType.IntType },
+                navArgument("keywordName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                }
+            )
+        ) {
+            MovieListingScreen(
+                onEvent = { event ->
+                    when (event) {
+                        is MovieListingEvent.BackClick -> navController.popBackStack()
+                        is MovieListingEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
                     }
                 }
             )
