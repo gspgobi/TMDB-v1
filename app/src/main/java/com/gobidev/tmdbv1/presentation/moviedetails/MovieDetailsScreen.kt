@@ -99,6 +99,7 @@ sealed interface MovieDetailsEvent {
     data class CastMemberClick(val personId: Int) : MovieDetailsEvent
     data class CollectionClick(val collectionId: Int, val collectionName: String) : MovieDetailsEvent
     data class RecommendationClick(val movieId: Int) : MovieDetailsEvent
+    data class KeywordClick(val keywordId: Int, val keywordName: String) : MovieDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -384,7 +385,10 @@ fun MovieDetailsContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Keywords Section
-            KeywordsSection(keywordsState = keywordsState)
+            KeywordsSection(
+                keywordsState = keywordsState,
+                onKeywordClick = { keyword -> onEvent(MovieDetailsEvent.KeywordClick(keyword.id, keyword.name)) }
+            )
         }
     }
 }
@@ -1077,6 +1081,7 @@ fun PreviewCastMemberItemNoImage() {
 @Composable
 fun KeywordsSection(
     keywordsState: MovieKeywordsUiState,
+    onKeywordClick: (Keyword) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     when (keywordsState) {
@@ -1093,7 +1098,7 @@ fun KeywordsSection(
                 ) {
                     keywordsState.keywords.forEach { keyword ->
                         SuggestionChip(
-                            onClick = {},
+                            onClick = { onKeywordClick(keyword) },
                             label = { Text(keyword.name, style = MaterialTheme.typography.bodySmall) }
                         )
                     }
