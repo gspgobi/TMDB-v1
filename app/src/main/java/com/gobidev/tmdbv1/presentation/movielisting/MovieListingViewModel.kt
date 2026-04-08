@@ -34,7 +34,14 @@ class MovieListingViewModel @Inject constructor(
         savedStateHandle.get<String>("listType") ?: MovieListType.POPULAR.routeKey
     )
 
-    private val _filterState = MutableStateFlow(MovieFilterState())
+    private val keywordId: Int? = savedStateHandle.get<Int>("keywordId")
+    val keywordName: String? = savedStateHandle.get<String>("keywordName")
+    val isKeywordMode: Boolean = keywordId != null
+    val screenTitle: String = if (isKeywordMode) keywordName ?: "Movies" else movieListType.title
+
+    private val _filterState = MutableStateFlow(
+        if (keywordId != null) MovieFilterState(withKeywordId = keywordId) else MovieFilterState()
+    )
     val filterState: StateFlow<MovieFilterState> = _filterState.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
