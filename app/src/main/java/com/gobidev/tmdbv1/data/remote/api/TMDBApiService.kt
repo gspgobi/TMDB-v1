@@ -47,7 +47,8 @@ interface TMDBApiService {
         @Query("sort_by") sortBy: String = "popularity.desc",
         @Query("with_genres") withGenres: String? = null,
         @Query("vote_average.gte") voteAverageGte: Double? = null,
-        @Query("primary_release_year") primaryReleaseYear: Int? = null
+        @Query("primary_release_year") primaryReleaseYear: Int? = null,
+        @Query("with_keywords") withKeywords: Int? = null
     ): MovieListPagedResponse
 
     @GET("movie/popular")

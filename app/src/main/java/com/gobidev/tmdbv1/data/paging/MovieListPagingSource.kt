@@ -42,7 +42,8 @@ class MovieListPagingSource(
                     sortBy = sortBy,
                     withGenres = withGenres,
                     voteAverageGte = minRating,
-                    primaryReleaseYear = filters.releaseYear
+                    primaryReleaseYear = filters.releaseYear,
+                    withKeywords = filters.withKeywordId
                 )
             } else {
                 when (listType) {

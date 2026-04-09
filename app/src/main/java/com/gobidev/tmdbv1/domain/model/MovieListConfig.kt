@@ -66,11 +66,12 @@ data class MovieFilterState(
     val sortBy: MovieSortOption? = null,
     val selectedGenreIds: Set<Int> = emptySet(),
     val minRating: Float = 0f,
-    val releaseYear: Int? = null
+    val releaseYear: Int? = null,
+    val withKeywordId: Int? = null
 ) {
     /** True when the discover endpoint is required to satisfy the current state. */
     val needsDiscoverApi: Boolean
-        get() = sortBy != null || selectedGenreIds.isNotEmpty() || minRating > 0f || releaseYear != null
+        get() = sortBy != null || selectedGenreIds.isNotEmpty() || minRating > 0f || releaseYear != null || withKeywordId != null
 
     /** Count of active filter selections (excludes sort). */
     val activeFilterCount: Int

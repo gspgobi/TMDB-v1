@@ -79,7 +79,7 @@ fun MovieListingScreen(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { Text(viewModel.movieListType.title) },
+                    title = { Text(viewModel.screenTitle) },
                     navigationIcon = {
                         IconButton(onClick = { onEvent(MovieListingEvent.BackClick) }) {
                             Icon(
@@ -95,39 +95,41 @@ fun MovieListingScreen(
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     actions = {
-                        // Filter icon with active-filter badge
-                        BadgedBox(
-                            badge = {
-                                if (filterState.activeFilterCount > 0) {
-                                    Badge { Text(filterState.activeFilterCount.toString()) }
+                        if (!viewModel.isKeywordMode) {
+                            // Filter icon with active-filter badge
+                            BadgedBox(
+                                badge = {
+                                    if (filterState.activeFilterCount > 0) {
+                                        Badge { Text(filterState.activeFilterCount.toString()) }
+                                    }
+                                }
+                            ) {
+                                IconButton(onClick = { showBottomSheet = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.FilterList,
+                                        contentDescription = "Filter"
+                                    )
                                 }
                             }
-                        ) {
+
+                            // Sort icon highlighted when a non-default sort is active
                             IconButton(onClick = { showBottomSheet = true }) {
                                 Icon(
-                                    imageVector = Icons.Default.FilterList,
-                                    contentDescription = "Filter"
+                                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                                    contentDescription = "Sort",
+                                    tint = if (filterState.isSortActive) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                    }
                                 )
                             }
-                        }
-
-                        // Sort icon highlighted when a non-default sort is active
-                        IconButton(onClick = { showBottomSheet = true }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Sort,
-                                contentDescription = "Sort",
-                                tint = if (filterState.isSortActive) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                }
-                            )
                         }
                     }
                 )
 
-                // Active filter chips strip
-                if (filterState.needsDiscoverApi) {
+                // Active filter chips strip (not shown in keyword mode)
+                if (!viewModel.isKeywordMode && filterState.needsDiscoverApi) {
                     ActiveFilterStrip(
                         filterState = filterState,
                         onChipClick = { showBottomSheet = true }
@@ -145,7 +147,7 @@ fun MovieListingScreen(
         }
     }
 
-    if (showBottomSheet) {
+    if (showBottomSheet && !viewModel.isKeywordMode) {
         FilterSortBottomSheet(
             currentFilters = filterState,
             onApply = { newFilters ->
