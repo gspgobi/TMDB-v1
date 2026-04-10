@@ -300,6 +300,19 @@ fun ReviewListShimmer(modifier: Modifier = Modifier) {
     }
 }
 
+/** Full-width shimmer placeholder for the featured hero pager banner. */
+@Composable
+fun FeaturedHeroShimmer() {
+    val brush = shimmerBrush()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+            .background(brush)
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+}
+
 /** Horizontal row of shimmer trending cards (280×165dp each). */
 @Composable
 fun TrendingShimmerRow() {

@@ -13,47 +13,56 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.MovieListType
 import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.TrendingItem
 import com.gobidev.tmdbv1.domain.model.TvListType
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
+import com.gobidev.tmdbv1.presentation.util.FeaturedHeroShimmer
 import com.gobidev.tmdbv1.presentation.util.PosterShimmerRow
-import com.gobidev.tmdbv1.presentation.util.TrendingShimmerRow
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 sealed interface HomeEvent {
     data class MovieClick(val movieId: Int) : HomeEvent
@@ -61,6 +70,7 @@ sealed interface HomeEvent {
     data class TvClick(val tvId: Int) : HomeEvent
     data class ViewAllTvClick(val listType: TvListType) : HomeEvent
     data class PersonClick(val personId: Int) : HomeEvent
+    data object SearchClick : HomeEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,11 +87,27 @@ fun HomeScreen(
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         topBar = {
             TopAppBar(
-                title = { Text("TMDB") },
+                title = {
+                    Text(
+                        text = "TMDB",
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 2.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
+                actions = {
+                    IconButton(onClick = { onEvent(HomeEvent.SearchClick) }) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search"
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior
             )
         }
@@ -92,14 +118,14 @@ fun HomeScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            // ── Trending ──────────────────────────────────────────────────────
+            // ── Featured Hero Banner (Trending) ───────────────────────────────
             item {
-                TrendingSection(
+                FeaturedHeroBanner(
                     categoryState = uiState.trending,
                     onEvent = onEvent
                 )
             }
-            // ── Movies ───────────────────────────────────────────────────────
+            // ── Popular Movies ────────────────────────────────────────────────
             item {
                 MovieCarouselSection(
                     listType = MovieListType.POPULAR,
@@ -107,7 +133,7 @@ fun HomeScreen(
                     onEvent = onEvent
                 )
             }
-            // ── TV Series ────────────────────────────────────────────────────
+            // ── Popular TV Shows ──────────────────────────────────────────────
             item {
                 TvCarouselSection(
                     listType = TvListType.POPULAR,
@@ -115,7 +141,7 @@ fun HomeScreen(
                     onEvent = onEvent
                 )
             }
-            // ── Movies ───────────────────────────────────────────────────────
+            // ── Now Playing Movies ────────────────────────────────────────────
             item {
                 MovieCarouselSection(
                     listType = MovieListType.NOW_PLAYING,
@@ -123,7 +149,7 @@ fun HomeScreen(
                     onEvent = onEvent
                 )
             }
-            // ── TV Series ────────────────────────────────────────────────────
+            // ── TV Shows On The Air ───────────────────────────────────────────
             item {
                 TvCarouselSection(
                     listType = TvListType.ON_THE_AIR,
@@ -131,7 +157,7 @@ fun HomeScreen(
                     onEvent = onEvent
                 )
             }
-            // ── Movies ───────────────────────────────────────────────────────
+            // ── Upcoming Movies ───────────────────────────────────────────────
             item {
                 MovieCarouselSection(
                     listType = MovieListType.UPCOMING,
@@ -139,7 +165,7 @@ fun HomeScreen(
                     onEvent = onEvent
                 )
             }
-            // ── TV Series ────────────────────────────────────────────────────
+            // ── Top Rated TV ──────────────────────────────────────────────────
             item {
                 TvCarouselSection(
                     listType = TvListType.TOP_RATED,
@@ -158,148 +184,215 @@ fun HomeScreen(
     }
 }
 
+// ── Featured Hero Banner ──────────────────────────────────────────────────────
+
 @Composable
-private fun TrendingSection(
+private fun FeaturedHeroBanner(
     categoryState: TrendingCategoryState,
     onEvent: (HomeEvent) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Trending This Week",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+    when {
+        categoryState.isLoading -> FeaturedHeroShimmer()
 
-        when {
-            categoryState.isLoading -> {
-                TrendingShimmerRow()
+        categoryState.error != null -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = categoryState.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
+        }
 
-            categoryState.error != null -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = categoryState.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
+        categoryState.items.isNotEmpty() -> {
+            val items = categoryState.items
+            val pagerState = rememberPagerState(pageCount = { items.size })
+
+            // Auto-scroll every 4 seconds
+            LaunchedEffect(pagerState) {
+                while (true) {
+                    delay(4000L)
+                    val next = (pagerState.currentPage + 1) % items.size
+                    pagerState.animateScrollToPage(next)
                 }
             }
 
-            else -> {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Box(modifier = Modifier.fillMaxWidth()) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxWidth()
+                ) { page ->
+                    val item = items[page]
+                    HeroPage(
+                        item = item,
+                        onClick = {
+                            if (item.mediaType == "movie") onEvent(HomeEvent.MovieClick(item.id))
+                            else onEvent(HomeEvent.TvClick(item.id))
+                        }
+                    )
+                }
+
+                // Page indicator dots
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(categoryState.items) { item ->
-                        TrendingCard(
-                            item = item,
-                            onClick = {
-                                if (item.mediaType == "movie") onEvent(HomeEvent.MovieClick(item.id))
-                                else onEvent(HomeEvent.TvClick(item.id))
-                            }
+                    items.forEachIndexed { index, _ ->
+                        val isSelected = pagerState.currentPage == index
+                        Box(
+                            modifier = Modifier
+                                .size(if (isSelected) 8.dp else 5.dp)
+                                .background(
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                                    else Color.White.copy(alpha = 0.4f),
+                                    shape = CircleShape
+                                )
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
             }
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-private fun TrendingCard(
+private fun HeroPage(
     item: TrendingItem,
     onClick: () -> Unit
 ) {
-    Card(
+    Box(
         modifier = Modifier
-            .width(280.dp)
-            .height(165.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .fillMaxWidth()
+            .height(220.dp)
+            .clickable { onClick() }
     ) {
-        Box {
-            // Backdrop (or poster as fallback)
-            AsyncImage(
-                model = item.backdropUrl ?: item.posterUrl,
-                contentDescription = item.title,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+        AsyncImage(
+            model = item.backdropUrl ?: item.posterUrl,
+            contentDescription = item.title,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
-            // Gradient overlay: transparent → near-black
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colorStops = arrayOf(
-                                0.0f to Color.Transparent,
-                                0.45f to Color.Transparent,
-                                1.0f to Color.Black.copy(alpha = 0.88f)
-                            )
+        // Gradient overlay: transparent → near-black
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Transparent,
+                            0.4f to Color.Transparent,
+                            1.0f to Color.Black.copy(alpha = 0.9f)
                         )
                     )
+                )
+        )
+
+        // Media-type badge — top end
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(10.dp),
+            color = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(4.dp)
+        ) {
+            Text(
+                text = if (item.mediaType == "movie") "Movie" else "TV",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
             )
+        }
 
-            // Media-type badge — top end
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp),
-                color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(4.dp)
+        // Title + rating — bottom start
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp)
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = if (item.mediaType == "movie") "Movie" else "TV",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                    text = "⭐ ${String.format(Locale.getDefault(), "%.1f", item.rating)}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White.copy(alpha = 0.9f)
                 )
-            }
-
-            // Title + rating row — bottom start
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
+                item.releaseDate?.let { date ->
                     Text(
-                        text = "⭐ ${String.format(Locale.getDefault(), "%.1f", item.rating)}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.9f)
+                        text = "• $date",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White.copy(alpha = 0.65f)
                     )
-                    item.releaseDate?.let { date ->
-                        Text(
-                            text = "• $date",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-                    }
                 }
             }
         }
     }
 }
+
+// ── Shared Section Header ─────────────────────────────────────────────────────
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    onViewAll: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(20.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(2.dp)
+                    )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        IconButton(onClick = onViewAll) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "See All",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// ── Movie Carousel Section ────────────────────────────────────────────────────
 
 @Composable
 private fun MovieCarouselSection(
@@ -308,21 +401,13 @@ private fun MovieCarouselSection(
     onEvent: (HomeEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = listType.title, style = MaterialTheme.typography.titleLarge)
-            TextButton(onClick = { onEvent(HomeEvent.ViewAllMoviesClick(listType)) }) { Text("View All") }
-        }
+        SectionHeader(
+            title = listType.title,
+            onViewAll = { onEvent(HomeEvent.ViewAllMoviesClick(listType)) }
+        )
 
         when {
-            categoryState.isLoading -> {
-                PosterShimmerRow()
-            }
+            categoryState.isLoading -> PosterShimmerRow()
 
             categoryState.error != null -> {
                 Box(
@@ -348,6 +433,7 @@ private fun MovieCarouselSection(
                         PosterCard(
                             posterUrl = movie.posterUrl,
                             contentDescription = movie.title,
+                            rating = movie.rating,
                             onClick = { onEvent(HomeEvent.MovieClick(movie.id)) }
                         )
                     }
@@ -358,6 +444,8 @@ private fun MovieCarouselSection(
     }
 }
 
+// ── TV Carousel Section ───────────────────────────────────────────────────────
+
 @Composable
 private fun TvCarouselSection(
     listType: TvListType,
@@ -365,21 +453,13 @@ private fun TvCarouselSection(
     onEvent: (HomeEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = listType.title, style = MaterialTheme.typography.titleLarge)
-            TextButton(onClick = { onEvent(HomeEvent.ViewAllTvClick(listType)) }) { Text("View All") }
-        }
+        SectionHeader(
+            title = listType.title,
+            onViewAll = { onEvent(HomeEvent.ViewAllTvClick(listType)) }
+        )
 
         when {
-            categoryState.isLoading -> {
-                PosterShimmerRow()
-            }
+            categoryState.isLoading -> PosterShimmerRow()
 
             categoryState.error != null -> {
                 Box(
@@ -405,6 +485,7 @@ private fun TvCarouselSection(
                         PosterCard(
                             posterUrl = show.posterUrl,
                             contentDescription = show.name,
+                            rating = show.rating,
                             onClick = { onEvent(HomeEvent.TvClick(show.id)) }
                         )
                     }
@@ -415,6 +496,7 @@ private fun TvCarouselSection(
     }
 }
 
+// ── Popular People Section ────────────────────────────────────────────────────
 
 @Composable
 private fun PopularPeopleSection(
@@ -422,16 +504,31 @@ private fun PopularPeopleSection(
     onEvent: (HomeEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Popular People",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(20.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(2.dp)
+                    )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Popular People",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
 
         when {
-            categoryState.isLoading -> {
-                PosterShimmerRow()
-            }
+            categoryState.isLoading -> PosterShimmerRow()
 
             categoryState.error != null -> {
                 Box(
@@ -451,7 +548,7 @@ private fun PopularPeopleSection(
             else -> {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(categoryState.people) { person ->
                         PersonCard(
@@ -466,48 +563,63 @@ private fun PopularPeopleSection(
     }
 }
 
+// ── Person Card ───────────────────────────────────────────────────────────────
+
 @Composable
 private fun PersonCard(
     person: Person,
     onClick: () -> Unit
 ) {
-    Column(
+    Card(
         modifier = Modifier
-            .width(90.dp)
+            .width(96.dp)
             .clickable { onClick() },
-        horizontalAlignment = Alignment.CenterHorizontally
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
-        AsyncImage(
-            model = person.profileUrl,
-            contentDescription = person.name,
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = person.name,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = person.knownForDepartment,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
-        )
+        Column(
+            modifier = Modifier.padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AsyncImage(
+                model = person.profileUrl,
+                contentDescription = person.name,
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = person.name,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Medium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = person.knownForDepartment,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
+
+// ── Poster Card ───────────────────────────────────────────────────────────────
 
 @Composable
 private fun PosterCard(
     posterUrl: String?,
     contentDescription: String,
+    rating: Double,
     onClick: () -> Unit
 ) {
     Card(
@@ -516,13 +628,31 @@ private fun PosterCard(
             .height(180.dp)
             .clickable { onClick() },
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        AsyncImage(
-            model = posterUrl,
-            contentDescription = contentDescription,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
+        Box {
+            AsyncImage(
+                model = posterUrl,
+                contentDescription = contentDescription,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            // Rating badge — bottom-left
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.72f),
+                        shape = RoundedCornerShape(topEnd = 6.dp)
+                    )
+                    .padding(horizontal = 5.dp, vertical = 3.dp)
+            ) {
+                Text(
+                    text = "⭐ ${String.format(Locale.getDefault(), "%.1f", rating)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White
+                )
+            }
+        }
     }
 }
