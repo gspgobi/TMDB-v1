@@ -90,7 +90,7 @@ Both `MovieListPagingSource` and `TvListPagingSource` automatically route to the
 
 ```mermaid
 flowchart TD
-    Home["🏠 Home\n(carousels)"]
+    Home["🏠 Home\n(hero banner · carousels · people)"]
     Listing["📋 Movie Listing\n(paginated + filter/sort)"]
     Details["🎬 Movie Details"]
     Cast["🎭 Full Cast & Crew"]
@@ -106,8 +106,10 @@ flowchart TD
     Keyword["🏷️ Keyword Listing"]
     Genre["🎭 Genre Listing"]
 
+    Home -->|Search icon| Search
     Home -->|View All| Listing & TvListing
     Home -->|Poster tap| Details & TvDetails
+    Home -->|Person tap| Person
     Listing -->|Movie tap| Details
     Details -->|Full cast| Cast
     Details -->|All reviews| Reviews
@@ -122,6 +124,10 @@ flowchart TD
     TvDetails -->|Cast member| Person
     TvDetails -->|Keyword chip| Keyword
     TvDetails -->|Genre chip| Genre
+    Keyword -->|Movie tap| Details
+    Keyword -->|TV tap| TvDetails
+    Genre -->|Movie tap| Details
+    Genre -->|TV tap| TvDetails
     Collection -->|Movie tap| Details
     Search -->|Movie| Details
     Search -->|TV| TvDetails
