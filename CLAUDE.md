@@ -37,35 +37,51 @@ Clean Architecture with MVVM, organized in three layers:
 
 Single flat nav graph in `TMDBNavGraph`. All routes are `data object`s in the `Screen` sealed class. **Important naming rule**: sealed class objects use a `Nav` suffix (e.g., `Screen.HomeNav`, `Screen.TvListingNav`) to avoid shadowing composable function imports of the same name.
 
+Movie/TV title is passed as a query param (not path segment) to avoid URL-encoding issues with special characters.
+
 Routes:
 - `home` → `HomeScreen` (start destination)
 - `search` → `SearchScreen`
 - `profile` → `ProfileScreen`
 - `login` → `LoginScreen`
-- `movies?listType={listType}` → `MovieListingScreen` — resolved via `MovieListType.fromRouteKey()`
+- `movies?listType={listType}` → `MovieListingScreen`
 - `movie/{movieId}` → `MovieDetailsScreen`
 - `movie/{movieId}/cast?movieTitle={movieTitle}` → `FullCastCrewScreen`
 - `movie/{movieId}/reviews?movieTitle={movieTitle}` → `MovieReviewsScreen`
-- `tv?listType={listType}` → `TvListingScreen` — resolved via `TvListType.fromRouteKey()`
+- `tv?listType={listType}` → `TvListingScreen`
 - `tv/{tvId}` → `TvDetailsScreen`
 - `tv/{tvId}/cast?tvName={tvName}` → `TvFullCastCrewScreen`
-
-Movie/TV title is passed as a query param (not path segment) to avoid URL-encoding issues with special characters.
+- `person/{personId}` → `PersonDetailsScreen`
+- `collection/{collectionId}?collectionName={collectionName}` → `CollectionDetailsScreen`
+- `movies/keyword/{keywordId}?keywordName={keywordName}` → reuses `MovieListingScreen` (keyword mode)
+- `tv/keyword/{keywordId}?keywordName={keywordName}` → reuses `TvListingScreen` (keyword mode)
+- `movies/genre/{genreId}?genreName={genreName}` → reuses `MovieListingScreen` (genre mode)
+- `tv/genre/{genreId}?genreName={genreName}` → reuses `TvListingScreen` (genre mode)
 
 ### Bottom Navigation
 
 `MainActivity` holds a single `Scaffold` with a `NavigationBar` (Home / Search / Profile). The bar is shown only when `currentRoute in setOf("home", "search", "profile")`. The outer `Scaffold` uses `contentWindowInsets = WindowInsets(0.dp, ...)` to avoid double-applying system insets. Top-level screens (Home, Profile) use `contentWindowInsets = WindowInsets(0.dp, ...)` in their own Scaffold so the nav bar inset is counted only once. **Exception**: `SearchScreen` has no `TopAppBar`, so it applies `.statusBarsPadding()` directly on its root `Column` instead. Detail screens keep default Scaffold inset handling since the bottom bar is hidden on those routes.
 
-### Pagination
+### Pagination & Filter/Sort
 
 `Paging 3` with `PagingConfig(pageSize = 20, prefetchDistance = 5)`. Five paging sources:
 - `MovieListPagingSource` — routes to `discover/movie` when `MovieFilterState.needsDiscoverApi` is true (any filter/non-default sort), otherwise calls the natural endpoint.
+- `TvListPagingSource` — same pattern with `TvFilterState` routing to `discover/tv`; also has `TvListType.defaultSortApiValue()` for fallback sort.
 - `MovieReviewsPagingSource` — for `MovieReviewsScreen`.
-- `TvListPagingSource` — routes by `TvListType` to the appropriate TV endpoint.
 - `SearchPagingSource` — calls `search/multi`, maps results with `mapNotNull { it.toSearchResult() }`.
 - `AccountMoviesPagingSource` — parameterised by `AccountMovieListType` (FAVORITES / WATCHLIST).
 
-`PagingData` flows are cached with `.cachedIn(viewModelScope)`. `MovieListingViewModel` uses `flatMapLatest` on `filterState` so the paging stream auto-restarts on filter changes.
+`PagingData` flows are cached with `.cachedIn(viewModelScope)`. Both `MovieListingViewModel` and `TvListingViewModel` use `flatMapLatest` on their respective `filterState` so the paging stream auto-restarts on filter changes.
+
+**Filter state models** are in `domain/model/MovieListConfig.kt`:
+- `MovieFilterState` — `sortBy`, `selectedGenreIds`, `minRating`, `releaseYear`, `withKeywordId`
+- `TvFilterState` — same shape but `firstAirYear` instead of `releaseYear`; uses `TvGenreItem.ALL_GENRES`
+- Both have a `needsDiscoverApi` computed property that controls discover vs natural endpoint routing
+
+**Listing screen modes** — both `MovieListingViewModel` and `TvListingViewModel` support three modes derived from `SavedStateHandle`:
+- Normal: standard listing with full filter/sort UI
+- `isKeywordMode` (`keywordId != null`): filter state pre-seeded with `withKeywordId`; filter/sort controls hidden
+- `isGenreMode` (`genreId != null`): filter state pre-seeded with `selectedGenreIds = setOf(genreId)`; filter/sort controls hidden
 
 ### HomeScreen Carousel Architecture
 
@@ -96,6 +112,15 @@ Blank query skips the API and shows an empty state. Results are `sealed class Se
 
 **ProfileViewModel** initialises to `LoggedOut` if no session exists. After login, `ProfileScreen` uses `LifecycleResumeEffect` to call `loadAccount()` when the screen resumes and the session is active but UI state is still `LoggedOut` — this bridges the gap since the VM is retained across back-stack navigation.
 
+### Shared UI Components
+
+- **`SectionTitle`** (`presentation/moviedetails/MovieDetailsScreen.kt`) — public composable with a 4dp primary-colored left accent bar + bold `titleMedium` text. Imported by `TvDetailsScreen` and `ExternalIdsSection` — do not duplicate.
+- **`MovieFilterSortBottomSheet`** (`presentation/movielisting/`) — used by `MovieListingScreen`. TV equivalent is `TvFilterSortBottomSheet` (`presentation/tvlisting/`). Both open full-screen (`skipPartiallyExpanded = true`).
+- **`KeywordsSection`** (`MovieDetailsScreen.kt`) — public composable reused in `TvDetailsScreen` via import.
+- **`CastSection`, `VideosSection`, `ImagesSection`, `InfoRow`, `ReviewCard`** — all defined in `MovieDetailsScreen.kt` and imported into `TvDetailsScreen`.
+- **`ExternalIdsSection`** — in `presentation/components/`, shared between movie and TV detail screens.
+- Shimmer composables (`CastCarouselShimmer`, `MediaListShimmer`, `DetailsMainShimmer`, `ReviewCardShimmer`) live in `presentation/util/`.
+
 ### Dependency Injection
 
 All dependencies wired in `AppModule.kt` (`@InstallIn(SingletonComponent::class)`):
@@ -113,15 +138,34 @@ Constructed in `MovieMapper.kt` (same pattern reused in `TvMapper.kt`, `AccountM
 
 **Movies**
 - `GET movie/popular|now_playing|top_rated|upcoming` → `MovieListPagedResponse`
-- `GET discover/movie?sort_by&with_genres&vote_average.gte&primary_release_year` → `MovieListPagedResponse`
+- `GET discover/movie?sort_by&with_genres&vote_average.gte&primary_release_year&with_keywords` → `MovieListPagedResponse`
 - `GET movie/{id}` → `MovieDetailsResponse`
 - `GET movie/{id}/credits` → `MovieCreditsResponse`
 - `GET movie/{id}/reviews` → `MovieReviewsPagedResponse`
+- `GET movie/{id}/keywords` → `MovieKeywordsResponse`
+- `GET movie/{id}/external_ids` → `ExternalIdsResponse`
+- `GET movie/{id}/images` → `MovieImagesResponse`
+- `GET movie/{id}/videos` → `MovieVideosResponse`
+- `GET movie/{id}/recommendations` → `MovieListPagedResponse`
+- `GET collection/{id}` → `CollectionDetailsResponse`
 
 **TV**
 - `GET tv/popular|top_rated|on_the_air|airing_today` → `TvListPagedResponse`
+- `GET discover/tv?sort_by&with_genres&vote_average.gte&first_air_date_year&with_keywords` → `TvListPagedResponse`
 - `GET tv/{id}` → `TvDetailsResponse`
 - `GET tv/{id}/credits` → `TvCreditsResponse`
+- `GET tv/{id}/keywords` → `TvKeywordsResponse` (field is `results`, not `keywords`)
+- `GET tv/{id}/external_ids` → `ExternalIdsResponse`
+- `GET tv/{id}/images` → `MovieImagesResponse`
+- `GET tv/{id}/videos` → `MovieVideosResponse`
+- `GET tv/{id}/recommendations` → `TvListPagedResponse`
+- `GET tv/{id}/season/{season_number}` → `SeasonDetailsResponse`
+
+**Trending / Person**
+- `GET trending/all/{time_window}` → `TrendingResponseDto`
+- `GET person/popular` → `PopularPersonListResponse`
+- `GET person/{id}` → `PersonDetailsResponse`
+- `GET person/{id}/combined_credits` → `PersonCombinedCreditsResponse`
 
 **Search**
 - `GET search/multi?query&page` → `SearchResultPagedResponse`
