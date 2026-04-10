@@ -306,24 +306,6 @@ fun MovieDetailsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Genres
-            if (movie.genres.isNotEmpty()) {
-                SectionTitle("Genres")
-                Spacer(modifier = Modifier.height(12.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    movie.genres.forEach { genre ->
-                        SuggestionChip(
-                            onClick = { onEvent(MovieDetailsEvent.GenreClick(genre.id, genre.name)) },
-                            label = { Text(genre.name) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
             // Overview
             if (movie.overview.isNotBlank()) {
                 SectionTitle("Overview")
@@ -360,6 +342,24 @@ fun MovieDetailsContent(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Genres
+            if (movie.genres.isNotEmpty()) {
+                SectionTitle("Genres")
+                Spacer(modifier = Modifier.height(12.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    movie.genres.forEach { genre ->
+                        SuggestionChip(
+                            onClick = { onEvent(MovieDetailsEvent.GenreClick(genre.id, genre.name)) },
+                            label = { Text(genre.name) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Videos Section
             VideosSection(videosState = videosState)

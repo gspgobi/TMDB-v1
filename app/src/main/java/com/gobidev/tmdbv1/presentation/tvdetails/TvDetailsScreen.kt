@@ -274,23 +274,6 @@ private fun TvDetailsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (tvShow.genres.isNotEmpty()) {
-                SectionTitle("Genres")
-                Spacer(modifier = Modifier.height(12.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    tvShow.genres.forEach { genre ->
-                        SuggestionChip(
-                            onClick = { onEvent(TvDetailsEvent.GenreClick(genre.id, genre.name)) },
-                            label = { Text(genre.name) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
             if (tvShow.overview.isNotBlank()) {
                 SectionTitle("Overview")
                 Spacer(modifier = Modifier.height(12.dp))
@@ -323,6 +306,23 @@ private fun TvDetailsContent(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (tvShow.genres.isNotEmpty()) {
+                SectionTitle("Genres")
+                Spacer(modifier = Modifier.height(12.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    tvShow.genres.forEach { genre ->
+                        SuggestionChip(
+                            onClick = { onEvent(TvDetailsEvent.GenreClick(genre.id, genre.name)) },
+                            label = { Text(genre.name) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             VideosSection(videosState = videosState)
 
