@@ -57,7 +57,7 @@ fun TvListingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(viewModel.tvListType.title) },
+                title = { Text(viewModel.screenTitle) },
                 navigationIcon = {
                     IconButton(onClick = { onEvent(TvListingEvent.BackClick) }) {
                         Icon(
