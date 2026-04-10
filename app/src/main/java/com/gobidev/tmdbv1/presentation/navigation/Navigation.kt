@@ -137,6 +137,14 @@ sealed class Screen(val route: String) {
     }
 
     /**
+     * Keyword TV Shows screen — TV shows filtered by a single keyword.
+     */
+    data object KeywordTvShowsNav : Screen("tv/keyword/{keywordId}?keywordName={keywordName}") {
+        fun createRoute(keywordId: Int, keywordName: String) =
+            "tv/keyword/$keywordId?keywordName=${Uri.encode(keywordName)}"
+    }
+
+    /**
      * Login screen.
      */
     data object LoginNav : Screen("login")
@@ -357,6 +365,29 @@ fun TMDBNavGraph(
                         is TvDetailsEvent.ViewFullCastClick -> navController.navigate(Screen.TvCastNav.createRoute(event.tvId, event.tvName))
                         is TvDetailsEvent.CastMemberClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
                         is TvDetailsEvent.RecommendationClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
+                        is TvDetailsEvent.KeywordClick -> navController.navigate(Screen.KeywordTvShowsNav.createRoute(event.keywordId, event.keywordName))
+                    }
+                }
+            )
+        }
+
+        // Keyword TV Shows Screen — reuses TvListingScreen with keyword pre-filter
+        composable(
+            route = Screen.KeywordTvShowsNav.route,
+            arguments = listOf(
+                navArgument("keywordId") { type = NavType.IntType },
+                navArgument("keywordName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                }
+            )
+        ) {
+            TvListingScreen(
+                onEvent = { event ->
+                    when (event) {
+                        is TvListingEvent.BackClick -> navController.popBackStack()
+                        is TvListingEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
                     }
                 }
             )

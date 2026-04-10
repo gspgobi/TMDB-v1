@@ -19,5 +19,10 @@ class TvListingViewModel @Inject constructor(
         savedStateHandle.get<String>("listType") ?: TvListType.POPULAR.routeKey
     )
 
-    val tvShows = getTvListUseCase(tvListType).cachedIn(viewModelScope)
+    private val keywordId: Int? = savedStateHandle.get<Int>("keywordId")
+    val keywordName: String? = savedStateHandle.get<String>("keywordName")
+    val isKeywordMode: Boolean = keywordId != null
+    val screenTitle: String = if (isKeywordMode) keywordName ?: "TV Shows" else tvListType.title
+
+    val tvShows = getTvListUseCase(tvListType, keywordId).cachedIn(viewModelScope)
 }

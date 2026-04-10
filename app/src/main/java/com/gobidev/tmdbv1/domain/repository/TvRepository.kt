@@ -14,7 +14,7 @@ import com.gobidev.tmdbv1.domain.util.Result
 import kotlinx.coroutines.flow.Flow
 
 interface TvRepository {
-    fun getTvList(type: TvListType): Flow<PagingData<TvShow>>
+    fun getTvList(type: TvListType, withKeywordId: Int? = null): Flow<PagingData<TvShow>>
     suspend fun getTvPreview(type: TvListType): Result<List<TvShow>>
     suspend fun getTvDetails(tvId: Int): Result<TvShowDetails>
     suspend fun getTvCredits(tvId: Int): Result<TvCredits>

@@ -152,6 +152,14 @@ interface TMDBApiService {
 
     // ── TV Series ────────────────────────────────────────────────────────────
 
+    @GET("discover/tv")
+    suspend fun discoverTv(
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1,
+        @Query("sort_by") sortBy: String = "popularity.desc",
+        @Query("with_keywords") withKeywords: Int? = null
+    ): TvListPagedResponse
+
     @GET("tv/popular")
     suspend fun getPopularTv(
         @Query("language") language: String = "en-US",

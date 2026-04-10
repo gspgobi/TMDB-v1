@@ -361,11 +361,6 @@ fun MovieDetailsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // External Links Section
-            ExternalIdsSection(state = externalIdsState)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Videos Section
             VideosSection(videosState = videosState)
 
@@ -389,6 +384,11 @@ fun MovieDetailsContent(
                 keywordsState = keywordsState,
                 onKeywordClick = { keyword -> onEvent(MovieDetailsEvent.KeywordClick(keyword.id, keyword.name)) }
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // External Links Section
+            ExternalIdsSection(state = externalIdsState)
         }
     }
 }

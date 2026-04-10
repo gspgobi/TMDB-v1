@@ -76,6 +76,7 @@ sealed interface TvDetailsEvent {
     data class ViewFullCastClick(val tvId: Int, val tvName: String) : TvDetailsEvent
     data class CastMemberClick(val personId: Int) : TvDetailsEvent
     data class RecommendationClick(val tvId: Int) : TvDetailsEvent
+    data class KeywordClick(val keywordId: Int, val keywordName: String) : TvDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -313,10 +314,6 @@ private fun TvDetailsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            ExternalIdsSection(state = externalIdsState)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             VideosSection(videosState = videosState)
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -332,7 +329,14 @@ private fun TvDetailsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            KeywordsSection(keywordsState = keywordsState)
+            KeywordsSection(
+                keywordsState = keywordsState,
+                onKeywordClick = { keyword -> onEvent(TvDetailsEvent.KeywordClick(keyword.id, keyword.name)) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ExternalIdsSection(state = externalIdsState)
         }
     }
 }
