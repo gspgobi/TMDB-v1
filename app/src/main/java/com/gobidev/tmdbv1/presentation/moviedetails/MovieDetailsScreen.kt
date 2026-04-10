@@ -1102,7 +1102,7 @@ fun KeywordsSection(
                 Spacer(modifier = Modifier.height(12.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     keywordsState.keywords.forEach { keyword ->
