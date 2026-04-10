@@ -148,7 +148,7 @@ fun MovieListingScreen(
     }
 
     if (showBottomSheet && !viewModel.isKeywordMode) {
-        FilterSortBottomSheet(
+        MovieFilterSortBottomSheet(
             currentFilters = filterState,
             onApply = { newFilters ->
                 viewModel.applyFilters(newFilters)

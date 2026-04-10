@@ -4,6 +4,8 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toTvShow
+import com.gobidev.tmdbv1.domain.model.MovieSortOption
+import com.gobidev.tmdbv1.domain.model.TvFilterState
 import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.domain.model.TvShow
 import retrofit2.HttpException
@@ -12,14 +14,24 @@ import java.io.IOException
 class TvListPagingSource(
     private val api: TMDBApiService,
     private val listType: TvListType,
-    private val withKeywordId: Int? = null
+    private val filters: TvFilterState = TvFilterState()
 ) : PagingSource<Int, TvShow>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TvShow> {
         return try {
             val page = params.key ?: 1
-            val response = if (withKeywordId != null) {
-                api.discoverTv(page = page, withKeywords = withKeywordId)
+            val response = if (filters.needsDiscoverApi) {
+                val sortBy = filters.sortBy?.apiValue ?: listType.defaultSortApiValue()
+                val withGenres = filters.selectedGenreIds.joinToString("|").ifEmpty { null }
+                val minRating = if (filters.minRating > 0f) filters.minRating.toDouble() else null
+                api.discoverTv(
+                    page = page,
+                    sortBy = sortBy,
+                    withGenres = withGenres,
+                    voteAverageGte = minRating,
+                    firstAirDateYear = filters.firstAirYear,
+                    withKeywords = filters.withKeywordId
+                )
             } else {
                 when (listType) {
                     TvListType.POPULAR -> api.getPopularTv(page = page)

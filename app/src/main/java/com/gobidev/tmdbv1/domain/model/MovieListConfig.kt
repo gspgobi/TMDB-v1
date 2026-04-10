@@ -57,6 +57,58 @@ data class GenreItem(val id: Int, val name: String) {
 }
 
 /**
+ * A TMDB TV genre with its ID and display name.
+ */
+data class TvGenreItem(val id: Int, val name: String) {
+    companion object {
+        val ALL_GENRES = listOf(
+            TvGenreItem(10759, "Action & Adventure"),
+            TvGenreItem(16, "Animation"),
+            TvGenreItem(35, "Comedy"),
+            TvGenreItem(80, "Crime"),
+            TvGenreItem(99, "Documentary"),
+            TvGenreItem(18, "Drama"),
+            TvGenreItem(10751, "Family"),
+            TvGenreItem(10762, "Kids"),
+            TvGenreItem(9648, "Mystery"),
+            TvGenreItem(10763, "News"),
+            TvGenreItem(10764, "Reality"),
+            TvGenreItem(10765, "Sci-Fi & Fantasy"),
+            TvGenreItem(10766, "Soap"),
+            TvGenreItem(10767, "Talk"),
+            TvGenreItem(10768, "War & Politics"),
+            TvGenreItem(37, "Western")
+        )
+    }
+}
+
+/**
+ * Holds the current filter and sort selections for the TV listing.
+ */
+data class TvFilterState(
+    val sortBy: MovieSortOption? = null,
+    val selectedGenreIds: Set<Int> = emptySet(),
+    val minRating: Float = 0f,
+    val firstAirYear: Int? = null,
+    val withKeywordId: Int? = null
+) {
+    val needsDiscoverApi: Boolean
+        get() = sortBy != null || selectedGenreIds.isNotEmpty() || minRating > 0f || firstAirYear != null || withKeywordId != null
+
+    val activeFilterCount: Int
+        get() {
+            var count = 0
+            if (selectedGenreIds.isNotEmpty()) count++
+            if (minRating > 0f) count++
+            if (firstAirYear != null) count++
+            return count
+        }
+
+    val isSortActive: Boolean
+        get() = sortBy != null
+}
+
+/**
  * Holds the current filter and sort selections for the movie listing.
  *
  * When [needsDiscoverApi] is true the repository will route to the
