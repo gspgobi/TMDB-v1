@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -124,7 +125,10 @@ fun TvDetailsScreen(
         is TvKeywordsUiState.Error -> MovieKeywordsUiState.Error(k.message)
     }
 
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = { Text("TV Details") },
@@ -140,7 +144,8 @@ fun TvDetailsScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -269,23 +274,6 @@ private fun TvDetailsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (tvShow.genres.isNotEmpty()) {
-                SectionTitle("Genres")
-                Spacer(modifier = Modifier.height(12.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    tvShow.genres.forEach { genre ->
-                        SuggestionChip(
-                            onClick = { onEvent(TvDetailsEvent.GenreClick(genre.id, genre.name)) },
-                            label = { Text(genre.name) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
             if (tvShow.overview.isNotBlank()) {
                 SectionTitle("Overview")
                 Spacer(modifier = Modifier.height(12.dp))
@@ -318,6 +306,23 @@ private fun TvDetailsContent(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (tvShow.genres.isNotEmpty()) {
+                SectionTitle("Genres")
+                Spacer(modifier = Modifier.height(12.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    tvShow.genres.forEach { genre ->
+                        SuggestionChip(
+                            onClick = { onEvent(TvDetailsEvent.GenreClick(genre.id, genre.name)) },
+                            label = { Text(genre.name) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             VideosSection(videosState = videosState)
 

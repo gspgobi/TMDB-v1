@@ -192,6 +192,7 @@ fun TMDBNavGraph(
                         is HomeEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
                         is HomeEvent.ViewAllTvClick -> navController.navigate(Screen.TvListingNav.createRoute(event.listType))
                         is HomeEvent.PersonClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
+                        is HomeEvent.SearchClick -> navController.navigate(Screen.SearchNav.route)
                     }
                 }
             )

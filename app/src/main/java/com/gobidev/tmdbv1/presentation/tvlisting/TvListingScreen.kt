@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,6 +28,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import com.gobidev.tmdbv1.presentation.util.MediaListShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -33,9 +36,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +48,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -70,6 +76,11 @@ fun TvListingScreen(
     val tvShows = viewModel.tvShows.collectAsLazyPagingItems()
     val filterState by viewModel.filterState.collectAsState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(filterState) {
+        listState.scrollToItem(0)
+    }
 
     Scaffold(
         topBar = {
@@ -102,7 +113,12 @@ fun TvListingScreen(
                                 IconButton(onClick = { showBottomSheet = true }) {
                                     Icon(
                                         imageVector = Icons.Default.FilterList,
-                                        contentDescription = "Filter"
+                                        contentDescription = "Filter",
+                                        tint = if (filterState.activeFilterCount > 0) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        }
                                     )
                                 }
                             }
@@ -125,7 +141,9 @@ fun TvListingScreen(
                 if (!viewModel.isKeywordMode && !viewModel.isGenreMode && filterState.needsDiscoverApi) {
                     TvActiveFilterStrip(
                         filterState = filterState,
-                        onChipClick = { showBottomSheet = true }
+                        onChipClick = { showBottomSheet = true },
+                        onRemoveFilter = { viewModel.applyFilters(it) },
+                        onClearAll = { viewModel.resetFilters() }
                     )
                 }
             }
@@ -133,6 +151,7 @@ fun TvListingScreen(
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
@@ -201,6 +220,8 @@ fun TvListingScreen(
 private fun TvActiveFilterStrip(
     filterState: TvFilterState,
     onChipClick: () -> Unit,
+    onRemoveFilter: (TvFilterState) -> Unit,
+    onClearAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -208,10 +229,15 @@ private fun TvActiveFilterStrip(
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         filterState.sortBy?.let { sort ->
-            TvActiveChip(label = sort.displayName, onClick = onChipClick)
+            TvActiveChip(
+                label = sort.displayName,
+                onClick = onChipClick,
+                onDismiss = { onRemoveFilter(filterState.copy(sortBy = null)) }
+            )
         }
         if (filterState.selectedGenreIds.isNotEmpty()) {
             val genreNames = filterState.selectedGenreIds.mapNotNull { id ->
@@ -219,27 +245,53 @@ private fun TvActiveFilterStrip(
             }
             TvActiveChip(
                 label = if (genreNames.size == 1) genreNames.first() else "${genreNames.size} Genres",
-                onClick = onChipClick
+                onClick = onChipClick,
+                onDismiss = { onRemoveFilter(filterState.copy(selectedGenreIds = emptySet())) }
             )
         }
         if (filterState.minRating > 0f) {
-            TvActiveChip(label = "Min ★ %.1f".format(filterState.minRating), onClick = onChipClick)
+            TvActiveChip(
+                label = "★ %.1f+".format(filterState.minRating),
+                onClick = onChipClick,
+                onDismiss = { onRemoveFilter(filterState.copy(minRating = 0f)) }
+            )
         }
         filterState.firstAirYear?.let { year ->
-            TvActiveChip(label = year.toString(), onClick = onChipClick)
+            TvActiveChip(
+                label = year.toString(),
+                onClick = onChipClick,
+                onDismiss = { onRemoveFilter(filterState.copy(firstAirYear = null)) }
+            )
+        }
+        TextButton(onClick = onClearAll) {
+            Text(
+                text = "Clear all",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
 
 @Composable
-private fun TvActiveChip(label: String, onClick: () -> Unit) {
+private fun TvActiveChip(label: String, onClick: () -> Unit, onDismiss: () -> Unit) {
     FilterChip(
         selected = true,
         onClick = onClick,
         label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Remove filter",
+                modifier = Modifier
+                    .size(FilterChipDefaults.IconSize)
+                    .clickable(onClick = onDismiss)
+            )
+        },
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = Color.White,
+            selectedTrailingIconColor = Color.White.copy(alpha = 0.8f)
         )
     )
 }

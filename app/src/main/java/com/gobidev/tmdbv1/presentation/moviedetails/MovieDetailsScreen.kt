@@ -50,6 +50,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -118,8 +119,10 @@ fun MovieDetailsScreen(
     val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val keywordsState by viewModel.keywordsState.collectAsStateWithLifecycle()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = { Text("Movie Details") },
@@ -134,7 +137,8 @@ fun MovieDetailsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -302,24 +306,6 @@ fun MovieDetailsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Genres
-            if (movie.genres.isNotEmpty()) {
-                SectionTitle("Genres")
-                Spacer(modifier = Modifier.height(12.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    movie.genres.forEach { genre ->
-                        SuggestionChip(
-                            onClick = { onEvent(MovieDetailsEvent.GenreClick(genre.id, genre.name)) },
-                            label = { Text(genre.name) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
             // Overview
             if (movie.overview.isNotBlank()) {
                 SectionTitle("Overview")
@@ -356,6 +342,24 @@ fun MovieDetailsContent(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Genres
+            if (movie.genres.isNotEmpty()) {
+                SectionTitle("Genres")
+                Spacer(modifier = Modifier.height(12.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    movie.genres.forEach { genre ->
+                        SuggestionChip(
+                            onClick = { onEvent(MovieDetailsEvent.GenreClick(genre.id, genre.name)) },
+                            label = { Text(genre.name) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Videos Section
             VideosSection(videosState = videosState)

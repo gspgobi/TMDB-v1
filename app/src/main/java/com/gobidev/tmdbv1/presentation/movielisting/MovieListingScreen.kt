@@ -12,12 +12,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -34,9 +38,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +50,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -74,6 +81,11 @@ fun MovieListingScreen(
     val movies = viewModel.movies.collectAsLazyPagingItems()
     val filterState by viewModel.filterState.collectAsState()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(filterState) {
+        listState.scrollToItem(0)
+    }
 
     Scaffold(
         topBar = {
@@ -107,7 +119,12 @@ fun MovieListingScreen(
                                 IconButton(onClick = { showBottomSheet = true }) {
                                     Icon(
                                         imageVector = Icons.Default.FilterList,
-                                        contentDescription = "Filter"
+                                        contentDescription = "Filter",
+                                        tint = if (filterState.activeFilterCount > 0) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        }
                                     )
                                 }
                             }
@@ -132,7 +149,9 @@ fun MovieListingScreen(
                 if (!viewModel.isKeywordMode && !viewModel.isGenreMode && filterState.needsDiscoverApi) {
                     ActiveFilterStrip(
                         filterState = filterState,
-                        onChipClick = { showBottomSheet = true }
+                        onChipClick = { showBottomSheet = true },
+                        onRemoveFilter = { viewModel.applyFilters(it) },
+                        onClearAll = { viewModel.resetFilters() }
                     )
                 }
             }
@@ -142,6 +161,7 @@ fun MovieListingScreen(
             MoviesList(
                 movies = movies,
                 onMovieClick = { id -> onEvent(MovieListingEvent.MovieClick(id)) },
+                listState = listState,
                 modifier = Modifier.padding(paddingValues)
             )
         }
@@ -162,13 +182,16 @@ fun MovieListingScreen(
 }
 
 /**
- * A horizontally scrollable row of read-only chips summarising the active filters.
- * Tapping any chip opens the bottom sheet.
+ * A horizontally scrollable row of active filter chips.
+ * Each chip has an × dismiss icon to remove that individual filter.
+ * A "Clear all" button appears at the end.
  */
 @Composable
 private fun ActiveFilterStrip(
     filterState: MovieFilterState,
     onChipClick: () -> Unit,
+    onRemoveFilter: (MovieFilterState) -> Unit,
+    onClearAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -176,10 +199,15 @@ private fun ActiveFilterStrip(
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         filterState.sortBy?.let { sort ->
-            ActiveChip(label = sort.displayName, onClick = onChipClick)
+            ActiveChip(
+                label = sort.displayName,
+                onClick = onChipClick,
+                onDismiss = { onRemoveFilter(filterState.copy(sortBy = null)) }
+            )
         }
         if (filterState.selectedGenreIds.isNotEmpty()) {
             val genreNames = filterState.selectedGenreIds.mapNotNull { id ->
@@ -187,27 +215,53 @@ private fun ActiveFilterStrip(
             }
             ActiveChip(
                 label = if (genreNames.size == 1) genreNames.first() else "${genreNames.size} Genres",
-                onClick = onChipClick
+                onClick = onChipClick,
+                onDismiss = { onRemoveFilter(filterState.copy(selectedGenreIds = emptySet())) }
             )
         }
         if (filterState.minRating > 0f) {
-            ActiveChip(label = "Min ★ %.1f".format(filterState.minRating), onClick = onChipClick)
+            ActiveChip(
+                label = "★ %.1f+".format(filterState.minRating),
+                onClick = onChipClick,
+                onDismiss = { onRemoveFilter(filterState.copy(minRating = 0f)) }
+            )
         }
         filterState.releaseYear?.let { year ->
-            ActiveChip(label = year.toString(), onClick = onChipClick)
+            ActiveChip(
+                label = year.toString(),
+                onClick = onChipClick,
+                onDismiss = { onRemoveFilter(filterState.copy(releaseYear = null)) }
+            )
+        }
+        TextButton(onClick = onClearAll) {
+            Text(
+                text = "Clear all",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
 
 @Composable
-private fun ActiveChip(label: String, onClick: () -> Unit) {
+private fun ActiveChip(label: String, onClick: () -> Unit, onDismiss: () -> Unit) {
     FilterChip(
         selected = true,
         onClick = onClick,
         label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Remove filter",
+                modifier = Modifier
+                    .size(FilterChipDefaults.IconSize)
+                    .clickable(onClick = onDismiss)
+            )
+        },
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = Color.White,
+            selectedTrailingIconColor = Color.White.copy(alpha = 0.8f)
         )
     )
 }
@@ -224,9 +278,11 @@ private fun ActiveChip(label: String, onClick: () -> Unit) {
 fun MoviesList(
     movies: LazyPagingItems<Movie>,
     onMovieClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState()
 ) {
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
