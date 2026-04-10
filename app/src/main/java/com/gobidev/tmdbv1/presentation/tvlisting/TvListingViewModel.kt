@@ -28,10 +28,23 @@ class TvListingViewModel @Inject constructor(
     private val keywordId: Int? = savedStateHandle.get<Int>("keywordId")
     val keywordName: String? = savedStateHandle.get<String>("keywordName")
     val isKeywordMode: Boolean = keywordId != null
-    val screenTitle: String = if (isKeywordMode) keywordName ?: "TV Shows" else tvListType.title
+
+    private val genreId: Int? = savedStateHandle.get<Int>("genreId")
+    val genreName: String? = savedStateHandle.get<String>("genreName")
+    val isGenreMode: Boolean = genreId != null
+
+    val screenTitle: String = when {
+        isKeywordMode -> keywordName ?: "TV Shows"
+        isGenreMode -> genreName ?: "TV Shows"
+        else -> tvListType.title
+    }
 
     private val _filterState = MutableStateFlow(
-        if (keywordId != null) TvFilterState(withKeywordId = keywordId) else TvFilterState()
+        when {
+            keywordId != null -> TvFilterState(withKeywordId = keywordId)
+            genreId != null -> TvFilterState(selectedGenreIds = setOf(genreId))
+            else -> TvFilterState()
+        }
     )
     val filterState: StateFlow<TvFilterState> = _filterState.asStateFlow()
 
