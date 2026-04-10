@@ -19,6 +19,7 @@ import com.gobidev.tmdbv1.domain.model.MovieImages
 import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.TvCredits
+import com.gobidev.tmdbv1.domain.model.TvFilterState
 import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.domain.model.TvShowDetails
@@ -34,10 +35,10 @@ class TvRepositoryImpl @Inject constructor(
     private val api: TMDBApiService
 ) : TvRepository {
 
-    override fun getTvList(type: TvListType, withKeywordId: Int?): Flow<PagingData<TvShow>> {
+    override fun getTvList(type: TvListType, filters: TvFilterState): Flow<PagingData<TvShow>> {
         return Pager(
             config = PagingConfig(pageSize = 20, prefetchDistance = 5, enablePlaceholders = false),
-            pagingSourceFactory = { TvListPagingSource(api, type, withKeywordId) }
+            pagingSourceFactory = { TvListPagingSource(api, type, filters) }
         ).flow
     }
 
