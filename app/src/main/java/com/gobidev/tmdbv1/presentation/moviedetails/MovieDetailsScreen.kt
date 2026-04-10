@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -100,6 +101,7 @@ sealed interface MovieDetailsEvent {
     data class CollectionClick(val collectionId: Int, val collectionName: String) : MovieDetailsEvent
     data class RecommendationClick(val movieId: Int) : MovieDetailsEvent
     data class KeywordClick(val keywordId: Int, val keywordName: String) : MovieDetailsEvent
+    data class GenreClick(val genreId: Int, val genreName: String) : MovieDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -302,18 +304,15 @@ fun MovieDetailsContent(
 
             // Genres
             if (movie.genres.isNotEmpty()) {
-                Text(
-                    text = "Genres",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Genres")
+                Spacer(modifier = Modifier.height(12.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     movie.genres.forEach { genre ->
                         SuggestionChip(
-                            onClick = { },
+                            onClick = { onEvent(MovieDetailsEvent.GenreClick(genre.id, genre.name)) },
                             label = { Text(genre.name) }
                         )
                     }
@@ -323,11 +322,8 @@ fun MovieDetailsContent(
 
             // Overview
             if (movie.overview.isNotBlank()) {
-                Text(
-                    text = "Overview",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Overview")
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = movie.overview,
                     style = MaterialTheme.typography.bodyMedium
@@ -399,11 +395,8 @@ private fun BelongsToCollectionSection(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Text(
-        text = "Part of a Collection",
-        style = MaterialTheme.typography.titleMedium
-    )
-    Spacer(modifier = Modifier.height(8.dp))
+    SectionTitle("Part of a Collection")
+    Spacer(modifier = Modifier.height(12.dp))
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -464,6 +457,34 @@ fun InfoRow(
 }
 
 /**
+ * Shared section header composable with a colored left accent bar.
+ * Used across movie and TV detail screens for consistent section styling.
+ */
+@Composable
+fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(20.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(2.dp)
+                )
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+/**
  * Cast section displaying movie cast members.
  * Handles different states: Loading, Success, Error, and Idle.
  */
@@ -477,11 +498,8 @@ fun CastSection(
     Column(modifier = modifier) {
         when (castState) {
             is MovieCastUiState.Loading -> {
-                Text(
-                    text = "Cast",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Cast")
+                Spacer(modifier = Modifier.height(12.dp))
                 CastCarouselShimmer()
             }
 
@@ -492,15 +510,12 @@ fun CastSection(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Cast",
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                        SectionTitle("Cast")
                         TextButton(onClick = onViewFullCastClick) {
                             Text("Full Cast & Crew")
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(end = 16.dp)
@@ -516,11 +531,8 @@ fun CastSection(
             }
 
             is MovieCastUiState.Error -> {
-                Text(
-                    text = "Cast",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Cast")
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Unable to load cast information",
                     style = MaterialTheme.typography.bodySmall,
@@ -608,8 +620,8 @@ fun ReviewSection(
     Column(modifier = modifier) {
         when (reviewState) {
             is MovieReviewUiState.Loading -> {
-                Text("Reviews", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Reviews")
+                Spacer(modifier = Modifier.height(12.dp))
                 ReviewCardShimmer()
             }
 
@@ -619,18 +631,18 @@ fun ReviewSection(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Reviews", style = MaterialTheme.typography.titleMedium)
+                    SectionTitle("Reviews")
                     TextButton(onClick = onViewAllReviewsClick) {
                         Text("Read All Reviews")
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 ReviewCard(review = reviewState.review)
             }
 
             is MovieReviewUiState.NoReviews -> {
-                Text("Reviews", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Reviews")
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     "No reviews yet",
                     style = MaterialTheme.typography.bodyMedium,
@@ -639,11 +651,8 @@ fun ReviewSection(
             }
 
             is MovieReviewUiState.Error -> {
-                Text(
-                    text = "Reviews",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Reviews")
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Unable to load reviews",
                     style = MaterialTheme.typography.bodySmall,
@@ -717,14 +726,14 @@ fun RecommendationsSection(
     Column(modifier = modifier) {
         when (recommendationsState) {
             is MovieRecommendationsUiState.Loading -> {
-                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Recommendations")
+                Spacer(modifier = Modifier.height(12.dp))
                 CastCarouselShimmer()
             }
 
             is MovieRecommendationsUiState.Success -> {
-                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Recommendations")
+                Spacer(modifier = Modifier.height(12.dp))
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(end = 16.dp)
@@ -741,8 +750,8 @@ fun RecommendationsSection(
             is MovieRecommendationsUiState.Empty -> { /* nothing to show */ }
 
             is MovieRecommendationsUiState.Error -> {
-                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Recommendations")
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Unable to load recommendations",
                     style = MaterialTheme.typography.bodySmall,
@@ -803,14 +812,14 @@ fun VideosSection(
 
     when (videosState) {
         is MovieVideosUiState.Loading -> {
-            Text("Videos", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
+            SectionTitle("Videos")
+            Spacer(modifier = Modifier.height(12.dp))
             CastCarouselShimmer()
         }
 
         is MovieVideosUiState.Success -> {
-            Text("Videos", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
+            SectionTitle("Videos")
+            Spacer(modifier = Modifier.height(12.dp))
             LazyRow(
                 modifier = modifier,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -893,8 +902,8 @@ fun ImagesSection(
 ) {
     when (imagesState) {
         is MovieImagesUiState.Loading -> {
-            Text("Images", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
+            SectionTitle("Images")
+            Spacer(modifier = Modifier.height(12.dp))
             CastCarouselShimmer()
         }
 
@@ -903,8 +912,8 @@ fun ImagesSection(
                 var selectedTab by remember { mutableIntStateOf(0) }
                 val tabs = listOf("Backdrops", "Posters")
 
-                Text("Images", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Images")
+                Spacer(modifier = Modifier.height(12.dp))
                 SecondaryTabRow(selectedTabIndex = selectedTab) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
@@ -1089,8 +1098,8 @@ fun KeywordsSection(
 
         is MovieKeywordsUiState.Success -> {
             Column(modifier = modifier) {
-                Text("Keywords", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Keywords")
+                Spacer(modifier = Modifier.height(12.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
