@@ -37,10 +37,23 @@ class MovieListingViewModel @Inject constructor(
     private val keywordId: Int? = savedStateHandle.get<Int>("keywordId")
     val keywordName: String? = savedStateHandle.get<String>("keywordName")
     val isKeywordMode: Boolean = keywordId != null
-    val screenTitle: String = if (isKeywordMode) keywordName ?: "Movies" else movieListType.title
+
+    private val genreId: Int? = savedStateHandle.get<Int>("genreId")
+    val genreName: String? = savedStateHandle.get<String>("genreName")
+    val isGenreMode: Boolean = genreId != null
+
+    val screenTitle: String = when {
+        isKeywordMode -> keywordName ?: "Movies"
+        isGenreMode -> genreName ?: "Movies"
+        else -> movieListType.title
+    }
 
     private val _filterState = MutableStateFlow(
-        if (keywordId != null) MovieFilterState(withKeywordId = keywordId) else MovieFilterState()
+        when {
+            keywordId != null -> MovieFilterState(withKeywordId = keywordId)
+            genreId != null -> MovieFilterState(selectedGenreIds = setOf(genreId))
+            else -> MovieFilterState()
+        }
     )
     val filterState: StateFlow<MovieFilterState> = _filterState.asStateFlow()
 
