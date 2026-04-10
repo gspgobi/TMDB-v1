@@ -10,6 +10,6 @@ import javax.inject.Inject
 class GetTvListUseCase @Inject constructor(
     private val repository: TvRepository
 ) {
-    operator fun invoke(type: TvListType): Flow<PagingData<TvShow>> =
-        repository.getTvList(type)
+    operator fun invoke(type: TvListType, withKeywordId: Int? = null): Flow<PagingData<TvShow>> =
+        repository.getTvList(type, withKeywordId)
 }
