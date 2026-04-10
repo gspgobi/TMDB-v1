@@ -34,10 +34,10 @@ class TvRepositoryImpl @Inject constructor(
     private val api: TMDBApiService
 ) : TvRepository {
 
-    override fun getTvList(type: TvListType): Flow<PagingData<TvShow>> {
+    override fun getTvList(type: TvListType, withKeywordId: Int?): Flow<PagingData<TvShow>> {
         return Pager(
             config = PagingConfig(pageSize = 20, prefetchDistance = 5, enablePlaceholders = false),
-            pagingSourceFactory = { TvListPagingSource(api, type) }
+            pagingSourceFactory = { TvListPagingSource(api, type, withKeywordId) }
         ).flow
     }
 
