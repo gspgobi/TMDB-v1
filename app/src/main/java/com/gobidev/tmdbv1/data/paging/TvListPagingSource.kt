@@ -11,17 +11,22 @@ import java.io.IOException
 
 class TvListPagingSource(
     private val api: TMDBApiService,
-    private val listType: TvListType
+    private val listType: TvListType,
+    private val withKeywordId: Int? = null
 ) : PagingSource<Int, TvShow>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TvShow> {
         return try {
             val page = params.key ?: 1
-            val response = when (listType) {
-                TvListType.POPULAR -> api.getPopularTv(page = page)
-                TvListType.TOP_RATED -> api.getTopRatedTv(page = page)
-                TvListType.ON_THE_AIR -> api.getOnTheAirTv(page = page)
-                TvListType.AIRING_TODAY -> api.getAiringTodayTv(page = page)
+            val response = if (withKeywordId != null) {
+                api.discoverTv(page = page, withKeywords = withKeywordId)
+            } else {
+                when (listType) {
+                    TvListType.POPULAR -> api.getPopularTv(page = page)
+                    TvListType.TOP_RATED -> api.getTopRatedTv(page = page)
+                    TvListType.ON_THE_AIR -> api.getOnTheAirTv(page = page)
+                    TvListType.AIRING_TODAY -> api.getAiringTodayTv(page = page)
+                }
             }
             LoadResult.Page(
                 data = response.results.map { it.toTvShow() },
