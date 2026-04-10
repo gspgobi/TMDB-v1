@@ -6,6 +6,11 @@ enum class TvListType(val title: String, val routeKey: String) {
     ON_THE_AIR("On The Air", "tv_on_the_air"),
     AIRING_TODAY("Airing Today", "tv_airing_today");
 
+    fun defaultSortApiValue(): String = when (this) {
+        TOP_RATED -> "vote_average.desc"
+        else -> "popularity.desc"
+    }
+
     companion object {
         fun fromRouteKey(key: String): TvListType =
             entries.find { it.routeKey == key } ?: POPULAR
