@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import com.gobidev.tmdbv1.R
 import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
+import com.gobidev.tmdbv1.presentation.moviedetails.SectionTitle
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -37,12 +38,12 @@ fun ExternalIdsSection(
     val uriHandler = LocalUriHandler.current
 
     Column(modifier = modifier) {
-        Text("External Links", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
+        SectionTitle("External Links")
+        Spacer(modifier = Modifier.height(12.dp))
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             links.forEach { link ->
                 AssistChip(
