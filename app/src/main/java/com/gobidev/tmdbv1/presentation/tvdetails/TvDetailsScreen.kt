@@ -314,10 +314,6 @@ private fun TvDetailsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            ExternalIdsSection(state = externalIdsState)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             VideosSection(videosState = videosState)
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -337,6 +333,10 @@ private fun TvDetailsContent(
                 keywordsState = keywordsState,
                 onKeywordClick = { keyword -> onEvent(TvDetailsEvent.KeywordClick(keyword.id, keyword.name)) }
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ExternalIdsSection(state = externalIdsState)
         }
     }
 }
