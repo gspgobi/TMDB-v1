@@ -12,25 +12,25 @@ A production-quality Android application for browsing movies and TV shows using 
     <td align="center"><b>Home</b></td>
     <td align="center"><b>Movie Details</b></td>
     <td align="center"><b>TV Details</b></td>
-    <td align="center"><b>Filter & Sort</b></td>
+    <td align="center"><b>Search</b></td>
   </tr>
   <tr>
     <td><img src="screenshots/home.png" width="180"/></td>
     <td><img src="screenshots/movie_details.png" width="180"/></td>
     <td><img src="screenshots/tv_details.png" width="180"/></td>
-    <td><img src="screenshots/filter.png" width="180"/></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Search</b></td>
-    <td align="center"><b>Cast & Crew</b></td>
-    <td align="center"><b>Profile</b></td>
-    <td align="center"><b>Person Details</b></td>
-  </tr>
-  <tr>
     <td><img src="screenshots/search.png" width="180"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Filter & Sort</b></td>
+    <td align="center"><b>Cast & Crew</b></td>
+    <td align="center"><b>Person Details</b></td>
+    <td align="center"><b>Profile</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/filter.png" width="180"/></td>
     <td><img src="screenshots/cast.png" width="180"/></td>
-    <td><img src="screenshots/profile.png" width="180"/></td>
     <td><img src="screenshots/person.png" width="180"/></td>
+    <td><img src="screenshots/profile.png" width="180"/></td>
   </tr>
 </table>
 
