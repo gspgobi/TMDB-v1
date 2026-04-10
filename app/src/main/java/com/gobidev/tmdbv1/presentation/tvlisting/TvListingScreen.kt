@@ -1,6 +1,7 @@
 package com.gobidev.tmdbv1.presentation.tvlisting
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,13 +14,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import com.gobidev.tmdbv1.presentation.util.MediaListShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +36,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -37,6 +50,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
+import com.gobidev.tmdbv1.domain.model.TvFilterState
+import com.gobidev.tmdbv1.domain.model.TvGenreItem
 import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.presentation.movielisting.ErrorItem
 import java.util.Locale
@@ -53,25 +68,67 @@ fun TvListingScreen(
     viewModel: TvListingViewModel = hiltViewModel()
 ) {
     val tvShows = viewModel.tvShows.collectAsLazyPagingItems()
+    val filterState by viewModel.filterState.collectAsState()
+    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(viewModel.screenTitle) },
-                navigationIcon = {
-                    IconButton(onClick = { onEvent(TvListingEvent.BackClick) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+            Column {
+                TopAppBar(
+                    title = { Text(viewModel.screenTitle) },
+                    navigationIcon = {
+                        IconButton(onClick = { onEvent(TvListingEvent.BackClick) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    actions = {
+                        if (!viewModel.isKeywordMode) {
+                            BadgedBox(
+                                badge = {
+                                    if (filterState.activeFilterCount > 0) {
+                                        Badge { Text(filterState.activeFilterCount.toString()) }
+                                    }
+                                }
+                            ) {
+                                IconButton(onClick = { showBottomSheet = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.FilterList,
+                                        contentDescription = "Filter"
+                                    )
+                                }
+                            }
+
+                            IconButton(onClick = { showBottomSheet = true }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                                    contentDescription = "Sort",
+                                    tint = if (filterState.isSortActive) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                    }
+                                )
+                            }
+                        }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-            )
+
+                if (!viewModel.isKeywordMode && filterState.needsDiscoverApi) {
+                    TvActiveFilterStrip(
+                        filterState = filterState,
+                        onChipClick = { showBottomSheet = true }
+                    )
+                }
+            }
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
@@ -125,6 +182,66 @@ fun TvListingScreen(
             }
         }
     }
+
+    if (showBottomSheet && !viewModel.isKeywordMode) {
+        TvFilterSortBottomSheet(
+            currentFilters = filterState,
+            onApply = { newFilters ->
+                viewModel.applyFilters(newFilters)
+            },
+            onReset = {
+                viewModel.resetFilters()
+            },
+            onDismiss = { showBottomSheet = false }
+        )
+    }
+}
+
+@Composable
+private fun TvActiveFilterStrip(
+    filterState: TvFilterState,
+    onChipClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        filterState.sortBy?.let { sort ->
+            TvActiveChip(label = sort.displayName, onClick = onChipClick)
+        }
+        if (filterState.selectedGenreIds.isNotEmpty()) {
+            val genreNames = filterState.selectedGenreIds.mapNotNull { id ->
+                TvGenreItem.ALL_GENRES.find { it.id == id }?.name
+            }
+            TvActiveChip(
+                label = if (genreNames.size == 1) genreNames.first() else "${genreNames.size} Genres",
+                onClick = onChipClick
+            )
+        }
+        if (filterState.minRating > 0f) {
+            TvActiveChip(label = "Min ★ %.1f".format(filterState.minRating), onClick = onChipClick)
+        }
+        filterState.firstAirYear?.let { year ->
+            TvActiveChip(label = year.toString(), onClick = onChipClick)
+        }
+    }
+}
+
+@Composable
+private fun TvActiveChip(label: String, onClick: () -> Unit) {
+    FilterChip(
+        selected = true,
+        onClick = onClick,
+        label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    )
 }
 
 @Composable
