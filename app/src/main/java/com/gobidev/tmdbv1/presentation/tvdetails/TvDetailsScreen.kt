@@ -64,6 +64,7 @@ import com.gobidev.tmdbv1.presentation.moviedetails.InfoRow
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieCastUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieImagesUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.KeywordsSection
+import com.gobidev.tmdbv1.presentation.moviedetails.SectionTitle
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieKeywordsUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieVideosUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.VideosSection
@@ -77,6 +78,7 @@ sealed interface TvDetailsEvent {
     data class CastMemberClick(val personId: Int) : TvDetailsEvent
     data class RecommendationClick(val tvId: Int) : TvDetailsEvent
     data class KeywordClick(val keywordId: Int, val keywordName: String) : TvDetailsEvent
+    data class GenreClick(val genreId: Int, val genreName: String) : TvDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -268,22 +270,25 @@ private fun TvDetailsContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (tvShow.genres.isNotEmpty()) {
-                Text(text = "Genres", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Genres")
+                Spacer(modifier = Modifier.height(12.dp))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     tvShow.genres.forEach { genre ->
-                        SuggestionChip(onClick = { }, label = { Text(genre.name) })
+                        SuggestionChip(
+                            onClick = { onEvent(TvDetailsEvent.GenreClick(genre.id, genre.name)) },
+                            label = { Text(genre.name) }
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             if (tvShow.overview.isNotBlank()) {
-                Text(text = "Overview", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Overview")
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(text = tvShow.overview, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -350,14 +355,14 @@ private fun TvRecommendationsSection(
     Column(modifier = modifier) {
         when (recommendationsState) {
             is TvRecommendationsUiState.Loading -> {
-                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Recommendations")
+                Spacer(modifier = Modifier.height(12.dp))
                 com.gobidev.tmdbv1.presentation.util.CastCarouselShimmer()
             }
 
             is TvRecommendationsUiState.Success -> {
-                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Recommendations")
+                Spacer(modifier = Modifier.height(12.dp))
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(end = 16.dp)
@@ -371,8 +376,8 @@ private fun TvRecommendationsSection(
             is TvRecommendationsUiState.Empty -> { /* nothing to show */ }
 
             is TvRecommendationsUiState.Error -> {
-                Text("Recommendations", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+                SectionTitle("Recommendations")
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Unable to load recommendations",
                     style = MaterialTheme.typography.bodySmall,
@@ -432,8 +437,8 @@ private fun SeasonsSection(
 ) {
     val selected = seasons[selectedIndex]
 
-    Text(text = "Seasons & Episodes", style = MaterialTheme.typography.titleMedium)
-    Spacer(modifier = Modifier.height(10.dp))
+    SectionTitle("Seasons & Episodes")
+    Spacer(modifier = Modifier.height(12.dp))
 
     // Season selector chips
     LazyRow(

@@ -95,7 +95,7 @@ fun MovieListingScreen(
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     actions = {
-                        if (!viewModel.isKeywordMode) {
+                        if (!viewModel.isKeywordMode && !viewModel.isGenreMode) {
                             // Filter icon with active-filter badge
                             BadgedBox(
                                 badge = {
@@ -128,8 +128,8 @@ fun MovieListingScreen(
                     }
                 )
 
-                // Active filter chips strip (not shown in keyword mode)
-                if (!viewModel.isKeywordMode && filterState.needsDiscoverApi) {
+                // Active filter chips strip (not shown in keyword or genre mode)
+                if (!viewModel.isKeywordMode && !viewModel.isGenreMode && filterState.needsDiscoverApi) {
                     ActiveFilterStrip(
                         filterState = filterState,
                         onChipClick = { showBottomSheet = true }
@@ -147,7 +147,7 @@ fun MovieListingScreen(
         }
     }
 
-    if (showBottomSheet && !viewModel.isKeywordMode) {
+    if (showBottomSheet && !viewModel.isKeywordMode && !viewModel.isGenreMode) {
         MovieFilterSortBottomSheet(
             currentFilters = filterState,
             onApply = { newFilters ->

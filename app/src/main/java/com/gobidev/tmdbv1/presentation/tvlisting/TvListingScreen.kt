@@ -91,7 +91,7 @@ fun TvListingScreen(
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     actions = {
-                        if (!viewModel.isKeywordMode) {
+                        if (!viewModel.isKeywordMode && !viewModel.isGenreMode) {
                             BadgedBox(
                                 badge = {
                                     if (filterState.activeFilterCount > 0) {
@@ -122,7 +122,7 @@ fun TvListingScreen(
                     }
                 )
 
-                if (!viewModel.isKeywordMode && filterState.needsDiscoverApi) {
+                if (!viewModel.isKeywordMode && !viewModel.isGenreMode && filterState.needsDiscoverApi) {
                     TvActiveFilterStrip(
                         filterState = filterState,
                         onChipClick = { showBottomSheet = true }
@@ -183,7 +183,7 @@ fun TvListingScreen(
         }
     }
 
-    if (showBottomSheet && !viewModel.isKeywordMode) {
+    if (showBottomSheet && !viewModel.isKeywordMode && !viewModel.isGenreMode) {
         TvFilterSortBottomSheet(
             currentFilters = filterState,
             onApply = { newFilters ->

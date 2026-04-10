@@ -145,6 +145,22 @@ sealed class Screen(val route: String) {
     }
 
     /**
+     * Genre Movies screen — movies filtered by a single genre.
+     */
+    data object GenreMoviesNav : Screen("movies/genre/{genreId}?genreName={genreName}") {
+        fun createRoute(genreId: Int, genreName: String) =
+            "movies/genre/$genreId?genreName=${Uri.encode(genreName)}"
+    }
+
+    /**
+     * Genre TV Shows screen — TV shows filtered by a single genre.
+     */
+    data object GenreTvShowsNav : Screen("tv/genre/{genreId}?genreName={genreName}") {
+        fun createRoute(genreId: Int, genreName: String) =
+            "tv/genre/$genreId?genreName=${Uri.encode(genreName)}"
+    }
+
+    /**
      * Login screen.
      */
     data object LoginNav : Screen("login")
@@ -258,6 +274,7 @@ fun TMDBNavGraph(
                         is MovieDetailsEvent.CollectionClick -> navController.navigate(Screen.CollectionDetailsNav.createRoute(event.collectionId, event.collectionName))
                         is MovieDetailsEvent.RecommendationClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
                         is MovieDetailsEvent.KeywordClick -> navController.navigate(Screen.KeywordMoviesNav.createRoute(event.keywordId, event.keywordName))
+                        is MovieDetailsEvent.GenreClick -> navController.navigate(Screen.GenreMoviesNav.createRoute(event.genreId, event.genreName))
                     }
                 }
             )
@@ -366,6 +383,7 @@ fun TMDBNavGraph(
                         is TvDetailsEvent.CastMemberClick -> navController.navigate(Screen.PersonDetailsNav.createRoute(event.personId))
                         is TvDetailsEvent.RecommendationClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
                         is TvDetailsEvent.KeywordClick -> navController.navigate(Screen.KeywordTvShowsNav.createRoute(event.keywordId, event.keywordName))
+                        is TvDetailsEvent.GenreClick -> navController.navigate(Screen.GenreTvShowsNav.createRoute(event.genreId, event.genreName))
                     }
                 }
             )
@@ -377,6 +395,50 @@ fun TMDBNavGraph(
             arguments = listOf(
                 navArgument("keywordId") { type = NavType.IntType },
                 navArgument("keywordName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                }
+            )
+        ) {
+            TvListingScreen(
+                onEvent = { event ->
+                    when (event) {
+                        is TvListingEvent.BackClick -> navController.popBackStack()
+                        is TvListingEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
+                    }
+                }
+            )
+        }
+
+        // Genre Movies Screen — reuses MovieListingScreen with genre pre-filter
+        composable(
+            route = Screen.GenreMoviesNav.route,
+            arguments = listOf(
+                navArgument("genreId") { type = NavType.IntType },
+                navArgument("genreName") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                }
+            )
+        ) {
+            MovieListingScreen(
+                onEvent = { event ->
+                    when (event) {
+                        is MovieListingEvent.BackClick -> navController.popBackStack()
+                        is MovieListingEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                    }
+                }
+            )
+        }
+
+        // Genre TV Shows Screen — reuses TvListingScreen with genre pre-filter
+        composable(
+            route = Screen.GenreTvShowsNav.route,
+            arguments = listOf(
+                navArgument("genreId") { type = NavType.IntType },
+                navArgument("genreName") {
                     type = NavType.StringType
                     nullable = true
                     defaultValue = ""
