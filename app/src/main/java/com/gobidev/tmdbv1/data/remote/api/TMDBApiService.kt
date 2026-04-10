@@ -157,6 +157,9 @@ interface TMDBApiService {
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1,
         @Query("sort_by") sortBy: String = "popularity.desc",
+        @Query("with_genres") withGenres: String? = null,
+        @Query("vote_average.gte") voteAverageGte: Double? = null,
+        @Query("first_air_date_year") firstAirDateYear: Int? = null,
         @Query("with_keywords") withKeywords: Int? = null
     ): TvListPagedResponse
 
