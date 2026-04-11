@@ -55,11 +55,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.TvFilterState
 import com.gobidev.tmdbv1.domain.model.TvGenreItem
 import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.presentation.movielisting.ErrorItem
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
 
 sealed interface TvListingEvent {
@@ -352,6 +356,36 @@ fun TvShowItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+        }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "TvShowItem", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewTvShowItem() {
+    TMDBTheme {
+        TvShowItem(
+            show = PreviewData.sampleTvShows.first(),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "TvShowItem – list", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewTvShowItemList() {
+    TMDBTheme {
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(PreviewData.sampleTvShows) { show ->
+                TvShowItem(show = show, onClick = {})
             }
         }
     }

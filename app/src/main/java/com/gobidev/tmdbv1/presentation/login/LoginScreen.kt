@@ -34,8 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 
 sealed interface LoginEvent {
     data object BackClick : LoginEvent
@@ -149,6 +152,98 @@ fun LoginScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
+                    Text("Sign In", style = MaterialTheme.typography.labelLarge)
+                }
+            }
+        }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "LoginScreen – idle", showBackground = true,
+    device = Devices.PIXEL_5, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewLoginScreenIdle() {
+    TMDBTheme {
+        Scaffold(
+            topBar = {
+                androidx.compose.material3.TopAppBar(
+                    title = { Text("Sign In") },
+                    navigationIcon = {
+                        IconButton(onClick = {}) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        }
+                    },
+                    colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        ) { pv ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(pv).padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("TMDB", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Sign in with your TMDB account", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(32.dp))
+                OutlinedTextField(value = "moviefan99", onValueChange = {}, label = { Text("Username") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(value = "••••••••", onValueChange = {}, label = { Text("Password") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = {}, modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                    Text("Sign In", style = MaterialTheme.typography.labelLarge)
+                }
+            }
+        }
+    }
+}
+
+@Preview(name = "LoginScreen – error", showBackground = true,
+    device = Devices.PIXEL_5, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewLoginScreenError() {
+    TMDBTheme {
+        Scaffold(
+            topBar = {
+                androidx.compose.material3.TopAppBar(
+                    title = { Text("Sign In") },
+                    navigationIcon = {
+                        IconButton(onClick = {}) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        }
+                    },
+                    colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        ) { pv ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(pv).padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("TMDB", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Sign in with your TMDB account", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(32.dp))
+                OutlinedTextField(value = "wronguser", onValueChange = {}, label = { Text("Username") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(value = "••••••••", onValueChange = {}, label = { Text("Password") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Invalid username or password.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = {}, modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
                     Text("Sign In", style = MaterialTheme.typography.labelLarge)
                 }
             }

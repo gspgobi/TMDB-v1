@@ -43,9 +43,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.CrewMember
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 
 sealed interface TvFullCastCrewEvent {
     data object BackClick : TvFullCastCrewEvent
@@ -260,5 +263,25 @@ private fun TvCrewMemberRow(crewMember: CrewMember, onClick: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "TvCastMemberRow", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewTvCastMemberRow() {
+    TMDBTheme {
+        TvCastMemberRow(castMember = PreviewData.sampleCastMembers.first(), onClick = {})
+    }
+}
+
+@Preview(name = "TvCrewMemberRow", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewTvCrewMemberRow() {
+    TMDBTheme {
+        TvCrewMemberRow(crewMember = PreviewData.sampleCrewMembers.first(), onClick = {})
     }
 }

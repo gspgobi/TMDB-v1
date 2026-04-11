@@ -33,10 +33,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.MovieCollectionDetails
 import com.gobidev.tmdbv1.presentation.movielisting.MovieItem
 import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 
 sealed interface CollectionDetailsEvent {
     data object BackClick : CollectionDetailsEvent
@@ -188,5 +192,19 @@ private fun CollectionDetailsContent(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "CollectionDetailsContent", showBackground = true,
+    device = Devices.PIXEL_5, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewCollectionDetailsContent() {
+    TMDBTheme {
+        CollectionDetailsContent(
+            collection = PreviewData.sampleCollection,
+            onEvent = {}
+        )
     }
 }

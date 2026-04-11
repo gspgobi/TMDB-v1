@@ -60,6 +60,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import android.content.res.Configuration
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -1001,8 +1003,19 @@ private fun PosterThumbnail(
 
 // ==================== Previews ====================
 
+private val allSuccessStates = Triple(
+    MovieRecommendationsUiState.Success(PreviewData.sampleMovies),
+    ExternalIdsUiState.Success(PreviewData.sampleExternalIds),
+    MovieImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters)
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(
+    name = "Movie Details — Dark (Pixel 5)",
+    showSystemUi = true,
+    device = Devices.PIXEL_5,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
 @Composable
 fun PreviewMovieDetailsScreen() {
     TMDBTheme {
@@ -1029,6 +1042,11 @@ fun PreviewMovieDetailsScreen() {
                 movie = PreviewData.sampleMovieDetails,
                 castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
                 reviewState = MovieReviewUiState.Success(PreviewData.sampleReview),
+                recommendationsState = allSuccessStates.first,
+                externalIdsState = allSuccessStates.second,
+                imagesState = allSuccessStates.third,
+                videosState = MovieVideosUiState.Success(PreviewData.sampleVideos),
+                keywordsState = MovieKeywordsUiState.Success(PreviewData.sampleKeywords),
                 onEvent = {},
                 modifier = Modifier.padding(paddingValues),
             )
@@ -1036,7 +1054,7 @@ fun PreviewMovieDetailsScreen() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Movie Details Content — Full", showBackground = true)
 @Composable
 fun PreviewMovieDetailsContent() {
     TMDBTheme {
@@ -1044,12 +1062,17 @@ fun PreviewMovieDetailsContent() {
             movie = PreviewData.sampleMovieDetails,
             castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
             reviewState = MovieReviewUiState.Success(PreviewData.sampleReview),
+            recommendationsState = allSuccessStates.first,
+            externalIdsState = allSuccessStates.second,
+            imagesState = allSuccessStates.third,
+            videosState = MovieVideosUiState.Success(PreviewData.sampleVideos),
+            keywordsState = MovieKeywordsUiState.Success(PreviewData.sampleKeywords),
             onEvent = {},
         )
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Movie Details Content — Loading", showBackground = true)
 @Composable
 fun PreviewMovieDetailsContentLoading() {
     TMDBTheme {
@@ -1057,12 +1080,17 @@ fun PreviewMovieDetailsContentLoading() {
             movie = PreviewData.sampleMovieDetails,
             castState = MovieCastUiState.Loading,
             reviewState = MovieReviewUiState.Loading,
+            recommendationsState = MovieRecommendationsUiState.Loading,
+            externalIdsState = ExternalIdsUiState.Loading,
+            imagesState = MovieImagesUiState.Loading,
+            videosState = MovieVideosUiState.Loading,
+            keywordsState = MovieKeywordsUiState.Loading,
             onEvent = {},
         )
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Movie Details Content — Error", showBackground = true)
 @Composable
 fun PreviewMovieDetailsContentError() {
     TMDBTheme {
@@ -1075,7 +1103,7 @@ fun PreviewMovieDetailsContentError() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Cast Member — With Image", showBackground = true)
 @Composable
 fun PreviewCastMemberItem() {
     TMDBTheme {
@@ -1083,7 +1111,7 @@ fun PreviewCastMemberItem() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Cast Member — No Image", showBackground = true)
 @Composable
 fun PreviewCastMemberItemNoImage() {
     TMDBTheme {
@@ -1125,7 +1153,7 @@ fun KeywordsSection(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360)
+@Preview(name = "Cast Section — Success", showBackground = true, widthDp = 360)
 @Composable
 fun PreviewCastSection() {
     TMDBTheme {
@@ -1140,7 +1168,7 @@ fun PreviewCastSection() {
     }
 }
 
-@Preview(showBackground = true, widthDp = 360)
+@Preview(name = "Cast Section — Loading", showBackground = true, widthDp = 360)
 @Composable
 fun PreviewCastSectionLoading() {
     TMDBTheme {
@@ -1155,7 +1183,7 @@ fun PreviewCastSectionLoading() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Info Row", showBackground = true)
 @Composable
 fun PreviewInfoRow() {
     TMDBTheme {

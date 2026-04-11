@@ -39,12 +39,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.SearchResult
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 
 sealed interface SearchEvent {
     data class MovieClick(val movieId: Int) : SearchEvent
@@ -282,5 +285,43 @@ private fun SearchResultItem(
                 )
             }
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "SearchResult – Movie", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewSearchResultMovie() {
+    TMDBTheme {
+        SearchResultItem(
+            result = PreviewData.sampleSearchResults[0],
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "SearchResult – TV", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewSearchResultTv() {
+    TMDBTheme {
+        SearchResultItem(
+            result = PreviewData.sampleSearchResults[1],
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "SearchResult – Person", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewSearchResultPerson() {
+    TMDBTheme {
+        SearchResultItem(
+            result = PreviewData.sampleSearchResults[2],
+            onClick = {}
+        )
     }
 }

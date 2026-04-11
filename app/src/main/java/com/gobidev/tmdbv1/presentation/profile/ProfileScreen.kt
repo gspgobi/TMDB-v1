@@ -46,8 +46,11 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.UserAccount
+import androidx.compose.ui.tooling.preview.Preview
 import com.gobidev.tmdbv1.presentation.movielisting.ErrorItem
 import com.gobidev.tmdbv1.presentation.movielisting.MovieItem
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 
 sealed interface ProfileEvent {
     data object LoginClick : ProfileEvent
@@ -319,5 +322,19 @@ private fun LoggedInContent(
                 }
             }
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "Profile – logged out", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewLoggedOutContent() {
+    TMDBTheme {
+        LoggedOutContent(
+            onLoginClick = {},
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }

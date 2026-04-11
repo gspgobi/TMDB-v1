@@ -39,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,6 +51,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -71,6 +74,8 @@ import com.gobidev.tmdbv1.presentation.moviedetails.MovieVideosUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.VideosSection
 import com.gobidev.tmdbv1.presentation.tvdetails.TvImagesUiState
 import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
 
 sealed interface TvDetailsEvent {
@@ -687,5 +692,103 @@ private fun EpisodeItem(episode: Episode) {
                 )
             }
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(
+    name = "TV Details — Dark (Pixel 5)",
+    showSystemUi = true,
+    device = Devices.PIXEL_5,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun PreviewTvDetailsScreen() {
+    TMDBTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("TV Details") },
+                    navigationIcon = {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        ) { paddingValues ->
+            TvDetailsContent(
+                tvShow = PreviewData.sampleTvShowDetails,
+                castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+                selectedSeasonIndex = 0,
+                episodesState = EpisodesUiState.Success(
+                    episodes = PreviewData.sampleEpisodes,
+                    totalCount = PreviewData.sampleEpisodes.size
+                ),
+                externalIdsState = ExternalIdsUiState.Success(PreviewData.sampleTvExternalIds),
+                imagesState = MovieImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters),
+                videosState = MovieVideosUiState.Success(PreviewData.sampleVideos),
+                keywordsState = MovieKeywordsUiState.Success(PreviewData.sampleKeywords),
+                recommendationsState = TvRecommendationsUiState.Success(PreviewData.sampleTvShows),
+                onSeasonSelect = {},
+                onLoadMore = {},
+                onEvent = {},
+                modifier = Modifier.padding(paddingValues)
+            )
+        }
+    }
+}
+
+@Preview(name = "TV Details Content — Full", showBackground = true)
+@Composable
+private fun PreviewTvDetailsContent() {
+    TMDBTheme {
+        TvDetailsContent(
+            tvShow = PreviewData.sampleTvShowDetails,
+            castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+            selectedSeasonIndex = 0,
+            episodesState = EpisodesUiState.Success(
+                episodes = PreviewData.sampleEpisodes,
+                totalCount = PreviewData.sampleEpisodes.size
+            ),
+            externalIdsState = ExternalIdsUiState.Success(PreviewData.sampleTvExternalIds),
+            imagesState = MovieImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters),
+            videosState = MovieVideosUiState.Success(PreviewData.sampleVideos),
+            keywordsState = MovieKeywordsUiState.Success(PreviewData.sampleKeywords),
+            recommendationsState = TvRecommendationsUiState.Success(PreviewData.sampleTvShows),
+            onSeasonSelect = {},
+            onLoadMore = {},
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(name = "TV Details Content — Loading", showBackground = true)
+@Composable
+private fun PreviewTvDetailsContentLoading() {
+    TMDBTheme {
+        TvDetailsContent(
+            tvShow = PreviewData.sampleTvShowDetails,
+            castState = MovieCastUiState.Loading,
+            selectedSeasonIndex = 0,
+            episodesState = EpisodesUiState.Loading,
+            externalIdsState = ExternalIdsUiState.Loading,
+            imagesState = MovieImagesUiState.Loading,
+            videosState = MovieVideosUiState.Loading,
+            keywordsState = MovieKeywordsUiState.Loading,
+            recommendationsState = TvRecommendationsUiState.Loading,
+            onSeasonSelect = {},
+            onLoadMore = {},
+            onEvent = {}
+        )
     }
 }
