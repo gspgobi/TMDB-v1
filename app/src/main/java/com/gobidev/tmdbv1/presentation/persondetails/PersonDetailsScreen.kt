@@ -49,9 +49,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.PersonCastCredit
 import com.gobidev.tmdbv1.domain.model.PersonDetails
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 
 sealed interface PersonDetailsEvent {
     data object BackClick : PersonDetailsEvent
@@ -314,5 +318,45 @@ private fun CreditCard(
                 }
             }
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "PersonDetailsContent – success", showBackground = true,
+    device = Devices.PIXEL_5, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewPersonDetailsContent() {
+    TMDBTheme {
+        PersonDetailsContent(
+            person = PreviewData.samplePersonDetails,
+            creditsState = PersonCreditsUiState.Success(PreviewData.samplePersonCredits),
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(name = "PersonDetailsContent – loading credits", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewPersonDetailsLoading() {
+    TMDBTheme {
+        PersonDetailsContent(
+            person = PreviewData.samplePersonDetails,
+            creditsState = PersonCreditsUiState.Loading,
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(name = "CreditCard", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewCreditCard() {
+    TMDBTheme {
+        CreditCard(
+            credit = PreviewData.samplePersonCredits.first(),
+            onClick = {}
+        )
     }
 }
