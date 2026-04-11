@@ -46,8 +46,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.Review
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -211,5 +214,33 @@ fun ExpandableReviewCard(
                 }
             }
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "ReviewCard – collapsed", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewReviewCardCollapsed() {
+    TMDBTheme {
+        ExpandableReviewCard(review = PreviewData.sampleReview)
+    }
+}
+
+@Preview(name = "ReviewCard – long content", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewReviewCardLong() {
+    TMDBTheme {
+        ExpandableReviewCard(
+            review = PreviewData.sampleReview.copy(
+                content = "In my top 5 of all time favourite movies. Great story line and a movie you can watch over and over again. " +
+                    "The performances by Edward Norton and Brad Pitt are absolutely outstanding. " +
+                    "David Fincher has created a masterpiece that challenges our understanding of identity and consumerism. " +
+                    "The twist at the end is legendary and completely reframes everything you thought you knew. " +
+                    "The cinematography, score, and pacing are all perfect. This film will stand the test of time as one of cinema's greatest achievements."
+            )
+        )
     }
 }
