@@ -53,6 +53,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.MovieListType
@@ -61,6 +63,8 @@ import com.gobidev.tmdbv1.domain.model.TrendingItem
 import com.gobidev.tmdbv1.domain.model.TvListType
 import com.gobidev.tmdbv1.presentation.util.FeaturedHeroShimmer
 import com.gobidev.tmdbv1.presentation.util.PosterShimmerRow
+import com.gobidev.tmdbv1.presentation.util.PreviewData
+import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
 import kotlinx.coroutines.delay
 
@@ -654,5 +658,42 @@ private fun PosterCard(
                 )
             }
         }
+    }
+}
+
+// ==================== Previews ====================
+
+@Preview(name = "PosterCard – dark", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewPosterCard() {
+    TMDBTheme {
+        PosterCard(
+            posterUrl = PreviewData.sampleMovie.posterUrl,
+            contentDescription = PreviewData.sampleMovie.title,
+            rating = PreviewData.sampleMovie.rating,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "PersonCard – dark", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewPersonCard() {
+    TMDBTheme {
+        PersonCard(
+            person = PreviewData.samplePerson,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "SectionHeader – dark", showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewSectionHeader() {
+    TMDBTheme {
+        SectionHeader(title = "Popular Movies", onViewAll = {})
     }
 }
