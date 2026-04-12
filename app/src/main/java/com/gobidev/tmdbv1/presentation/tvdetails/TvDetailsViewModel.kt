@@ -19,7 +19,7 @@ import com.gobidev.tmdbv1.domain.usecase.GetTvImagesUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvKeywordsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvVideosUseCase
-import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
+import com.gobidev.tmdbv1.presentation.components.ExternalIdsUiState
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
