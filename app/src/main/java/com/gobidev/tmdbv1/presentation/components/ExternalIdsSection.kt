@@ -21,7 +21,13 @@ import androidx.annotation.DrawableRes
 import androidx.compose.ui.platform.LocalUriHandler
 import com.gobidev.tmdbv1.R
 import com.gobidev.tmdbv1.domain.model.ExternalIds
-import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
+
+sealed class ExternalIdsUiState {
+    data object Loading : ExternalIdsUiState()
+    data class Success(val externalIds: ExternalIds) : ExternalIdsUiState()
+    data object Empty : ExternalIdsUiState()
+    data class Error(val message: String) : ExternalIdsUiState()
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
