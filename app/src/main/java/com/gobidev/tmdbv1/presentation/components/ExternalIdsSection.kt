@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import com.gobidev.tmdbv1.R
 import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
-import com.gobidev.tmdbv1.presentation.moviedetails.SectionTitle
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
