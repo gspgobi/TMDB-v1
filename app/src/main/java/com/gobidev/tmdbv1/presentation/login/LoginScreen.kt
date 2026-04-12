@@ -161,6 +161,7 @@ fun LoginScreen(
 
 // ==================== Previews ====================
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(name = "LoginScreen – idle", showBackground = true,
     device = Devices.PIXEL_5, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -168,14 +169,14 @@ private fun PreviewLoginScreenIdle() {
     TMDBTheme {
         Scaffold(
             topBar = {
-                androidx.compose.material3.TopAppBar(
+                TopAppBar(
                     title = { Text("Sign In") },
                     navigationIcon = {
                         IconButton(onClick = {}) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                         }
                     },
-                    colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -197,7 +198,7 @@ private fun PreviewLoginScreenIdle() {
                 OutlinedTextField(value = "••••••••", onValueChange = {}, label = { Text("Password") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = {}, modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
                     Text("Sign In", style = MaterialTheme.typography.labelLarge)
                 }
             }
@@ -205,6 +206,7 @@ private fun PreviewLoginScreenIdle() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(name = "LoginScreen – error", showBackground = true,
     device = Devices.PIXEL_5, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -212,14 +214,14 @@ private fun PreviewLoginScreenError() {
     TMDBTheme {
         Scaffold(
             topBar = {
-                androidx.compose.material3.TopAppBar(
+                TopAppBar(
                     title = { Text("Sign In") },
                     navigationIcon = {
                         IconButton(onClick = {}) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                         }
                     },
-                    colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -243,7 +245,7 @@ private fun PreviewLoginScreenError() {
                 Text("Invalid username or password.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = {}, modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
                     Text("Sign In", style = MaterialTheme.typography.labelLarge)
                 }
             }

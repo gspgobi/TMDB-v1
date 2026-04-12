@@ -1,7 +1,5 @@
 package com.gobidev.tmdbv1.presentation.moviedetails
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,20 +19,24 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+
+import com.gobidev.tmdbv1.presentation.components.CastMemberItem
+import com.gobidev.tmdbv1.presentation.components.CastSection
+import com.gobidev.tmdbv1.presentation.components.CastUiState
 import com.gobidev.tmdbv1.presentation.components.ExternalIdsSection
+import com.gobidev.tmdbv1.presentation.components.ExternalIdsUiState
+import com.gobidev.tmdbv1.presentation.components.ImagesSection
+import com.gobidev.tmdbv1.presentation.components.ImagesUiState
+import com.gobidev.tmdbv1.presentation.components.KeywordsSection
+import com.gobidev.tmdbv1.presentation.components.KeywordsUiState
+import com.gobidev.tmdbv1.presentation.components.VideosSection
+import com.gobidev.tmdbv1.presentation.components.VideosUiState
 import com.gobidev.tmdbv1.presentation.util.CastCarouselShimmer
 import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
 import com.gobidev.tmdbv1.presentation.util.ReviewCardShimmer
@@ -51,7 +53,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,14 +70,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.gobidev.tmdbv1.domain.model.CastMember
-import com.gobidev.tmdbv1.domain.model.Keyword
+
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieBelongsToCollection
 import com.gobidev.tmdbv1.domain.model.MovieDetails
-import com.gobidev.tmdbv1.domain.model.MovieImage
-import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.Review
+import com.gobidev.tmdbv1.presentation.components.InfoRow
+import com.gobidev.tmdbv1.presentation.components.SectionTitle
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
@@ -92,9 +92,6 @@ import java.util.Locale
  * - Cast members
  * - Loading and error states
  *
- * @param onBackClick Callback when back button is clicked
- * @param onViewFullCastClick Callback when "View Full Cast & Crew" button is clicked
- * @param viewModel ViewModel provided by Hilt
  */
 sealed interface MovieDetailsEvent {
     data object BackClick : MovieDetailsEvent
@@ -198,13 +195,13 @@ fun MovieDetailsScreen(
 @Composable
 fun MovieDetailsContent(
     movie: MovieDetails,
-    castState: MovieCastUiState,
+    castState: CastUiState,
     reviewState: MovieReviewUiState,
     recommendationsState: MovieRecommendationsUiState = MovieRecommendationsUiState.Loading,
     externalIdsState: ExternalIdsUiState = ExternalIdsUiState.Loading,
-    imagesState: MovieImagesUiState = MovieImagesUiState.Loading,
-    videosState: MovieVideosUiState = MovieVideosUiState.Loading,
-    keywordsState: MovieKeywordsUiState = MovieKeywordsUiState.Loading,
+    imagesState: ImagesUiState = ImagesUiState.Loading,
+    videosState: VideosUiState = VideosUiState.Loading,
+    keywordsState: KeywordsUiState = KeywordsUiState.Loading,
     onEvent: (MovieDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -438,184 +435,6 @@ private fun BelongsToCollectionSection(
     }
 }
 
-/**
- * Helper composable for displaying label-value pairs.
- */
-@Composable
-fun InfoRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier.padding(vertical = 4.dp)
-    ) {
-        Text(
-            text = "$label: ",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
-
-/**
- * Shared section header composable with a colored left accent bar.
- * Used across movie and TV detail screens for consistent section styling.
- */
-@Composable
-fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(20.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(2.dp)
-                )
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-/**
- * Cast section displaying movie cast members.
- * Handles different states: Loading, Success, Error, and Idle.
- */
-@Composable
-fun CastSection(
-    castState: MovieCastUiState,
-    onViewFullCastClick: () -> Unit,
-    onCastMemberClick: (personId: Int) -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        when (castState) {
-            is MovieCastUiState.Loading -> {
-                SectionTitle("Cast")
-                Spacer(modifier = Modifier.height(12.dp))
-                CastCarouselShimmer()
-            }
-
-            is MovieCastUiState.Success -> {
-                if (castState.cast.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        SectionTitle("Cast")
-                        TextButton(onClick = onViewFullCastClick) {
-                            Text("Full Cast & Crew")
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(end = 16.dp)
-                    ) {
-                        items(castState.cast) { castMember ->
-                            CastMemberItem(
-                                castMember = castMember,
-                                onClick = { onCastMemberClick(castMember.id) }
-                            )
-                        }
-                    }
-                }
-            }
-
-            is MovieCastUiState.Error -> {
-                SectionTitle("Cast")
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "Unable to load cast information",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-    }
-}
-
-/**
- * Individual cast member card with profile image, name, and character.
- */
-@Composable
-fun CastMemberItem(
-    castMember: CastMember,
-    onClick: () -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .width(100.dp)
-            .clickable { onClick() },
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Profile Image
-        if (castMember.profileUrl != null) {
-            AsyncImage(
-                model = castMember.profileUrl,
-                contentDescription = castMember.name,
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            // Placeholder for cast members without profile images
-            Surface(
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape),
-                color = MaterialTheme.colorScheme.surfaceVariant
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = castMember.name.take(1),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Cast Member Name
-        Text(
-            text = castMember.name,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
-        )
-
-        // Character Name
-        Text(
-            text = castMember.character,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center
-        )
-    }
-}
 
 @Composable
 fun ReviewSection(
@@ -809,204 +628,12 @@ private fun RecommendationCard(
     }
 }
 
-@Composable
-fun VideosSection(
-    videosState: MovieVideosUiState,
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-
-    when (videosState) {
-        is MovieVideosUiState.Loading -> {
-            SectionTitle("Videos")
-            Spacer(modifier = Modifier.height(12.dp))
-            CastCarouselShimmer()
-        }
-
-        is MovieVideosUiState.Success -> {
-            SectionTitle("Videos")
-            Spacer(modifier = Modifier.height(12.dp))
-            LazyRow(
-                modifier = modifier,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(end = 16.dp)
-            ) {
-                items(videosState.videos) { video ->
-                    VideoThumbnailCard(
-                        video = video,
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(video.youtubeUrl))
-                            context.startActivity(intent)
-                        }
-                    )
-                }
-            }
-        }
-
-        is MovieVideosUiState.Empty -> { /* nothing to show */ }
-
-        is MovieVideosUiState.Error -> { /* silently skip */ }
-    }
-}
-
-@Composable
-private fun VideoThumbnailCard(
-    video: com.gobidev.tmdbv1.domain.model.MovieVideo,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.width(200.dp).clickable { onClick() }
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(112.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                AsyncImage(
-                    model = video.thumbnailUrl,
-                    contentDescription = video.name,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.PlayArrow,
-                        contentDescription = "Play",
-                        tint = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = video.name,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = video.type,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-fun ImagesSection(
-    imagesState: MovieImagesUiState,
-    modifier: Modifier = Modifier
-) {
-    when (imagesState) {
-        is MovieImagesUiState.Loading -> {
-            SectionTitle("Images")
-            Spacer(modifier = Modifier.height(12.dp))
-            CastCarouselShimmer()
-        }
-
-        is MovieImagesUiState.Success -> {
-            if (imagesState.backdrops.isNotEmpty() || imagesState.posters.isNotEmpty()) {
-                var selectedTab by remember { mutableIntStateOf(0) }
-                val tabs = listOf("Backdrops", "Posters")
-
-                SectionTitle("Images")
-                Spacer(modifier = Modifier.height(12.dp))
-                SecondaryTabRow(selectedTabIndex = selectedTab) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            text = { Text(title) }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                val images = if (selectedTab == 0) imagesState.backdrops else imagesState.posters
-                if (images.isNotEmpty()) {
-                    LazyRow(
-                        modifier = modifier,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(end = 16.dp)
-                    ) {
-                        items(images) { image ->
-                            if (selectedTab == 0) {
-                                BackdropThumbnail(image = image)
-                            } else {
-                                PosterThumbnail(image = image)
-                            }
-                        }
-                    }
-                } else {
-                    Text(
-                        text = "No ${tabs[selectedTab].lowercase()} available",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-
-        is MovieImagesUiState.Empty -> { /* nothing to show */ }
-
-        is MovieImagesUiState.Error -> { /* silently skip */ }
-    }
-}
-
-@Composable
-private fun BackdropThumbnail(
-    image: MovieImage,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .width(240.dp)
-            .height(135.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        AsyncImage(
-            model = image.url,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-    }
-}
-
-@Composable
-private fun PosterThumbnail(
-    image: MovieImage,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .width(90.dp)
-            .height(135.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        AsyncImage(
-            model = image.url,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-    }
-}
-
 // ==================== Previews ====================
 
 private val allSuccessStates = Triple(
     MovieRecommendationsUiState.Success(PreviewData.sampleMovies),
     ExternalIdsUiState.Success(PreviewData.sampleExternalIds),
-    MovieImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters)
+    ImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1040,13 +667,13 @@ fun PreviewMovieDetailsScreen() {
         ) { paddingValues ->
             MovieDetailsContent(
                 movie = PreviewData.sampleMovieDetails,
-                castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+                castState = CastUiState.Success(PreviewData.sampleCastMembers),
                 reviewState = MovieReviewUiState.Success(PreviewData.sampleReview),
                 recommendationsState = allSuccessStates.first,
                 externalIdsState = allSuccessStates.second,
                 imagesState = allSuccessStates.third,
-                videosState = MovieVideosUiState.Success(PreviewData.sampleVideos),
-                keywordsState = MovieKeywordsUiState.Success(PreviewData.sampleKeywords),
+                videosState = VideosUiState.Success(PreviewData.sampleVideos),
+                keywordsState = KeywordsUiState.Success(PreviewData.sampleKeywords),
                 onEvent = {},
                 modifier = Modifier.padding(paddingValues),
             )
@@ -1060,13 +687,13 @@ fun PreviewMovieDetailsContent() {
     TMDBTheme {
         MovieDetailsContent(
             movie = PreviewData.sampleMovieDetails,
-            castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+            castState = CastUiState.Success(PreviewData.sampleCastMembers),
             reviewState = MovieReviewUiState.Success(PreviewData.sampleReview),
             recommendationsState = allSuccessStates.first,
             externalIdsState = allSuccessStates.second,
             imagesState = allSuccessStates.third,
-            videosState = MovieVideosUiState.Success(PreviewData.sampleVideos),
-            keywordsState = MovieKeywordsUiState.Success(PreviewData.sampleKeywords),
+            videosState = VideosUiState.Success(PreviewData.sampleVideos),
+            keywordsState = KeywordsUiState.Success(PreviewData.sampleKeywords),
             onEvent = {},
         )
     }
@@ -1078,13 +705,13 @@ fun PreviewMovieDetailsContentLoading() {
     TMDBTheme {
         MovieDetailsContent(
             movie = PreviewData.sampleMovieDetails,
-            castState = MovieCastUiState.Loading,
+            castState = CastUiState.Loading,
             reviewState = MovieReviewUiState.Loading,
             recommendationsState = MovieRecommendationsUiState.Loading,
             externalIdsState = ExternalIdsUiState.Loading,
-            imagesState = MovieImagesUiState.Loading,
-            videosState = MovieVideosUiState.Loading,
-            keywordsState = MovieKeywordsUiState.Loading,
+            imagesState = ImagesUiState.Loading,
+            videosState = VideosUiState.Loading,
+            keywordsState = KeywordsUiState.Loading,
             onEvent = {},
         )
     }
@@ -1096,7 +723,7 @@ fun PreviewMovieDetailsContentError() {
     TMDBTheme {
         MovieDetailsContent(
             movie = PreviewData.sampleMovieDetails,
-            castState = MovieCastUiState.Error("Failed to load cast"),
+            castState = CastUiState.Error("Failed to load cast"),
             reviewState = MovieReviewUiState.Error("Failed to load reviews"),
             onEvent = {},
         )
@@ -1116,70 +743,6 @@ fun PreviewCastMemberItem() {
 fun PreviewCastMemberItemNoImage() {
     TMDBTheme {
         CastMemberItem(castMember = PreviewData.sampleCastMembers[3])
-    }
-}
-
-@Composable
-fun KeywordsSection(
-    keywordsState: MovieKeywordsUiState,
-    onKeywordClick: (Keyword) -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    when (keywordsState) {
-        is MovieKeywordsUiState.Loading -> { /* silently skip while loading */ }
-
-        is MovieKeywordsUiState.Success -> {
-            Column(modifier = modifier) {
-                SectionTitle("Keywords")
-                Spacer(modifier = Modifier.height(12.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    keywordsState.keywords.forEach { keyword ->
-                        SuggestionChip(
-                            onClick = { onKeywordClick(keyword) },
-                            label = { Text(keyword.name, style = MaterialTheme.typography.bodySmall) }
-                        )
-                    }
-                }
-            }
-        }
-
-        is MovieKeywordsUiState.Empty -> { /* nothing to show */ }
-
-        is MovieKeywordsUiState.Error -> { /* silently skip */ }
-    }
-}
-
-@Preview(name = "Cast Section — Success", showBackground = true, widthDp = 360)
-@Composable
-fun PreviewCastSection() {
-    TMDBTheme {
-        Surface {
-            Column(modifier = Modifier.padding(16.dp)) {
-                CastSection(
-                    castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
-                    onViewFullCastClick = {}
-                )
-            }
-        }
-    }
-}
-
-@Preview(name = "Cast Section — Loading", showBackground = true, widthDp = 360)
-@Composable
-fun PreviewCastSectionLoading() {
-    TMDBTheme {
-        Surface {
-            Column(modifier = Modifier.padding(16.dp)) {
-                CastSection(
-                    castState = MovieCastUiState.Loading,
-                    onViewFullCastClick = {}
-                )
-            }
-        }
     }
 }
 

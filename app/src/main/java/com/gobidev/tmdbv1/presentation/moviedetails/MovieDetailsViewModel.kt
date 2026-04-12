@@ -3,13 +3,8 @@ package com.gobidev.tmdbv1.presentation.moviedetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gobidev.tmdbv1.domain.model.CastMember
-import com.gobidev.tmdbv1.domain.model.ExternalIds
-import com.gobidev.tmdbv1.domain.model.Keyword
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieDetails
-import com.gobidev.tmdbv1.domain.model.MovieImage
-import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.Review
 import com.gobidev.tmdbv1.domain.usecase.GetLatestReviewUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieCreditsUseCase
@@ -20,6 +15,11 @@ import com.gobidev.tmdbv1.domain.usecase.GetMovieKeywordsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieVideosUseCase
 import com.gobidev.tmdbv1.domain.util.Result
+import com.gobidev.tmdbv1.presentation.components.CastUiState
+import com.gobidev.tmdbv1.presentation.components.ExternalIdsUiState
+import com.gobidev.tmdbv1.presentation.components.ImagesUiState
+import com.gobidev.tmdbv1.presentation.components.KeywordsUiState
+import com.gobidev.tmdbv1.presentation.components.VideosUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,12 +41,6 @@ sealed class MovieDetailsUiState {
     data class Error(val message: String) : MovieDetailsUiState()
 }
 
-sealed class MovieCastUiState {
-    data object Loading : MovieCastUiState()
-    data class Success(val cast: List<CastMember>) : MovieCastUiState()
-    data class Error(val message: String) : MovieCastUiState()
-}
-
 sealed class MovieReviewUiState {
     data object Loading : MovieReviewUiState()
     data class Success(val review: Review) : MovieReviewUiState()
@@ -59,34 +53,6 @@ sealed class MovieRecommendationsUiState {
     data class Success(val movies: List<Movie>) : MovieRecommendationsUiState()
     data object Empty : MovieRecommendationsUiState()
     data class Error(val message: String) : MovieRecommendationsUiState()
-}
-
-sealed class ExternalIdsUiState {
-    data object Loading : ExternalIdsUiState()
-    data class Success(val externalIds: ExternalIds) : ExternalIdsUiState()
-    data object Empty : ExternalIdsUiState()
-    data class Error(val message: String) : ExternalIdsUiState()
-}
-
-sealed class MovieVideosUiState {
-    data object Loading : MovieVideosUiState()
-    data class Success(val videos: List<MovieVideo>) : MovieVideosUiState()
-    data object Empty : MovieVideosUiState()
-    data class Error(val message: String) : MovieVideosUiState()
-}
-
-sealed class MovieKeywordsUiState {
-    data object Loading : MovieKeywordsUiState()
-    data class Success(val keywords: List<Keyword>) : MovieKeywordsUiState()
-    data object Empty : MovieKeywordsUiState()
-    data class Error(val message: String) : MovieKeywordsUiState()
-}
-
-sealed class MovieImagesUiState {
-    data object Loading : MovieImagesUiState()
-    data class Success(val backdrops: List<MovieImage>, val posters: List<MovieImage>) : MovieImagesUiState()
-    data object Empty : MovieImagesUiState()
-    data class Error(val message: String) : MovieImagesUiState()
 }
 
 /**
@@ -120,8 +86,8 @@ class MovieDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<MovieDetailsUiState>(MovieDetailsUiState.Loading)
     val uiState: StateFlow<MovieDetailsUiState> = _uiState.asStateFlow()
 
-    private val _castState = MutableStateFlow<MovieCastUiState>(MovieCastUiState.Loading)
-    val castState: StateFlow<MovieCastUiState> = _castState.asStateFlow()
+    private val _castState = MutableStateFlow<CastUiState>(CastUiState.Loading)
+    val castState: StateFlow<CastUiState> = _castState.asStateFlow()
 
     private val _reviewState = MutableStateFlow<MovieReviewUiState>(MovieReviewUiState.Loading)
     val reviewState: StateFlow<MovieReviewUiState> = _reviewState.asStateFlow()
@@ -132,14 +98,14 @@ class MovieDetailsViewModel @Inject constructor(
     private val _externalIdsState = MutableStateFlow<ExternalIdsUiState>(ExternalIdsUiState.Loading)
     val externalIdsState: StateFlow<ExternalIdsUiState> = _externalIdsState.asStateFlow()
 
-    private val _imagesState = MutableStateFlow<MovieImagesUiState>(MovieImagesUiState.Loading)
-    val imagesState: StateFlow<MovieImagesUiState> = _imagesState.asStateFlow()
+    private val _imagesState = MutableStateFlow<ImagesUiState>(ImagesUiState.Loading)
+    val imagesState: StateFlow<ImagesUiState> = _imagesState.asStateFlow()
 
-    private val _videosState = MutableStateFlow<MovieVideosUiState>(MovieVideosUiState.Loading)
-    val videosState: StateFlow<MovieVideosUiState> = _videosState.asStateFlow()
+    private val _videosState = MutableStateFlow<VideosUiState>(VideosUiState.Loading)
+    val videosState: StateFlow<VideosUiState> = _videosState.asStateFlow()
 
-    private val _keywordsState = MutableStateFlow<MovieKeywordsUiState>(MovieKeywordsUiState.Loading)
-    val keywordsState: StateFlow<MovieKeywordsUiState> = _keywordsState.asStateFlow()
+    private val _keywordsState = MutableStateFlow<KeywordsUiState>(KeywordsUiState.Loading)
+    val keywordsState: StateFlow<KeywordsUiState> = _keywordsState.asStateFlow()
 
     init {
         val movieId = savedStateHandle.get<Int>("movieId") ?: -1
@@ -175,7 +141,7 @@ class MovieDetailsViewModel @Inject constructor(
 
     private fun loadMovieCredits(movieId: Int) {
         viewModelScope.launch {
-            _castState.value = MovieCastUiState.Loading
+            _castState.value = CastUiState.Loading
 
             when (val result = getMovieCreditsUseCase(movieId)) {
                 is Result.Success -> {
@@ -183,11 +149,11 @@ class MovieDetailsViewModel @Inject constructor(
                     val topCast = result.data.cast
                         .sortedBy { it.order }
                         .take(10)
-                    _castState.value = MovieCastUiState.Success(topCast)
+                    _castState.value = CastUiState.Success(topCast)
                 }
 
                 is Result.Error -> {
-                    _castState.value = MovieCastUiState.Error(result.message)
+                    _castState.value = CastUiState.Error(result.message)
                 }
             }
         }
@@ -255,12 +221,12 @@ class MovieDetailsViewModel @Inject constructor(
                     val backdrops = result.data.backdrops
                     val posters = result.data.posters
                     if (backdrops.isEmpty() && posters.isEmpty()) {
-                        _imagesState.value = MovieImagesUiState.Empty
+                        _imagesState.value = ImagesUiState.Empty
                     } else {
-                        _imagesState.value = MovieImagesUiState.Success(backdrops, posters)
+                        _imagesState.value = ImagesUiState.Success(backdrops, posters)
                     }
                 }
-                is Result.Error -> _imagesState.value = MovieImagesUiState.Error(result.message)
+                is Result.Error -> _imagesState.value = ImagesUiState.Error(result.message)
             }
         }
     }
@@ -270,12 +236,12 @@ class MovieDetailsViewModel @Inject constructor(
             when (val result = getMovieVideosUseCase(movieId)) {
                 is Result.Success -> {
                     _videosState.value = if (result.data.isEmpty()) {
-                        MovieVideosUiState.Empty
+                        VideosUiState.Empty
                     } else {
-                        MovieVideosUiState.Success(result.data)
+                        VideosUiState.Success(result.data)
                     }
                 }
-                is Result.Error -> _videosState.value = MovieVideosUiState.Error(result.message)
+                is Result.Error -> _videosState.value = VideosUiState.Error(result.message)
             }
         }
     }
@@ -285,12 +251,12 @@ class MovieDetailsViewModel @Inject constructor(
             when (val result = getMovieKeywordsUseCase(movieId)) {
                 is Result.Success -> {
                     _keywordsState.value = if (result.data.isEmpty()) {
-                        MovieKeywordsUiState.Empty
+                        KeywordsUiState.Empty
                     } else {
-                        MovieKeywordsUiState.Success(result.data)
+                        KeywordsUiState.Success(result.data)
                     }
                 }
-                is Result.Error -> _keywordsState.value = MovieKeywordsUiState.Error(result.message)
+                is Result.Error -> _keywordsState.value = KeywordsUiState.Error(result.message)
             }
         }
     }

@@ -23,8 +23,6 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import com.gobidev.tmdbv1.presentation.util.MediaListShimmer
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,7 +47,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -57,14 +54,13 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.tooling.preview.Preview
-import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.TvFilterState
 import com.gobidev.tmdbv1.domain.model.TvGenreItem
 import com.gobidev.tmdbv1.domain.model.TvShow
-import com.gobidev.tmdbv1.presentation.movielisting.ErrorItem
+import com.gobidev.tmdbv1.presentation.components.ErrorItem
+import com.gobidev.tmdbv1.presentation.components.MediaListItem
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
-import java.util.Locale
 
 sealed interface TvListingEvent {
     data object BackClick : TvListingEvent
@@ -306,59 +302,16 @@ fun TvShowItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth().clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp)
-        ) {
-            AsyncImage(
-                model = show.posterUrl,
-                contentDescription = show.name,
-                modifier = Modifier.width(100.dp).height(150.dp),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = show.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = show.firstAirDate,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = show.overview,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "⭐", style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = String.format(Locale.getDefault(), "%.1f", show.rating),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "(${show.voteCount})",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
+    MediaListItem(
+        title = show.name,
+        posterUrl = show.posterUrl,
+        date = show.firstAirDate,
+        overview = show.overview,
+        rating = show.rating,
+        voteCount = show.voteCount,
+        onClick = onClick,
+        modifier = modifier
+    )
 }
 
 // ==================== Previews ====================

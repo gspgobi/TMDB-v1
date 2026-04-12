@@ -60,19 +60,18 @@ import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.Season
 import com.gobidev.tmdbv1.domain.model.TvShowDetails
+import com.gobidev.tmdbv1.presentation.components.CastSection
+import com.gobidev.tmdbv1.presentation.components.CastUiState
 import com.gobidev.tmdbv1.presentation.components.ExternalIdsSection
-import com.gobidev.tmdbv1.presentation.moviedetails.CastSection
-import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
-import com.gobidev.tmdbv1.presentation.moviedetails.ImagesSection
-import com.gobidev.tmdbv1.presentation.moviedetails.InfoRow
-import com.gobidev.tmdbv1.presentation.moviedetails.MovieCastUiState
-import com.gobidev.tmdbv1.presentation.moviedetails.MovieImagesUiState
-import com.gobidev.tmdbv1.presentation.moviedetails.KeywordsSection
-import com.gobidev.tmdbv1.presentation.moviedetails.SectionTitle
-import com.gobidev.tmdbv1.presentation.moviedetails.MovieKeywordsUiState
-import com.gobidev.tmdbv1.presentation.moviedetails.MovieVideosUiState
-import com.gobidev.tmdbv1.presentation.moviedetails.VideosSection
-import com.gobidev.tmdbv1.presentation.tvdetails.TvImagesUiState
+import com.gobidev.tmdbv1.presentation.components.ExternalIdsUiState
+import com.gobidev.tmdbv1.presentation.components.ImagesSection
+import com.gobidev.tmdbv1.presentation.components.ImagesUiState
+import com.gobidev.tmdbv1.presentation.components.InfoRow
+import com.gobidev.tmdbv1.presentation.components.KeywordsSection
+import com.gobidev.tmdbv1.presentation.components.KeywordsUiState
+import com.gobidev.tmdbv1.presentation.components.SectionTitle
+import com.gobidev.tmdbv1.presentation.components.VideosSection
+import com.gobidev.tmdbv1.presentation.components.VideosUiState
 import com.gobidev.tmdbv1.presentation.util.DetailsMainShimmer
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
@@ -103,31 +102,31 @@ fun TvDetailsScreen(
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val keywordsState by viewModel.keywordsState.collectAsStateWithLifecycle()
 
-    val mappedImagesState: MovieImagesUiState = when (val s = imagesState) {
-        is TvImagesUiState.Loading -> MovieImagesUiState.Loading
-        is TvImagesUiState.Success -> MovieImagesUiState.Success(s.backdrops, s.posters)
-        is TvImagesUiState.Empty -> MovieImagesUiState.Empty
-        is TvImagesUiState.Error -> MovieImagesUiState.Error(s.message)
+    val mappedImagesState: ImagesUiState = when (val s = imagesState) {
+        is TvImagesUiState.Loading -> ImagesUiState.Loading
+        is TvImagesUiState.Success -> ImagesUiState.Success(s.backdrops, s.posters)
+        is TvImagesUiState.Empty -> ImagesUiState.Empty
+        is TvImagesUiState.Error -> ImagesUiState.Error(s.message)
     }
 
-    val mappedCastState: MovieCastUiState = when (val cs = castState) {
-        is TvCastUiState.Loading -> MovieCastUiState.Loading
-        is TvCastUiState.Success -> MovieCastUiState.Success(cs.cast)
-        is TvCastUiState.Error -> MovieCastUiState.Error(cs.message)
+    val mappedCastState: CastUiState = when (val cs = castState) {
+        is TvCastUiState.Loading -> CastUiState.Loading
+        is TvCastUiState.Success -> CastUiState.Success(cs.cast)
+        is TvCastUiState.Error -> CastUiState.Error(cs.message)
     }
 
-    val mappedVideosState: MovieVideosUiState = when (val v = videosState) {
-        is TvVideosUiState.Loading -> MovieVideosUiState.Loading
-        is TvVideosUiState.Success -> MovieVideosUiState.Success(v.videos)
-        is TvVideosUiState.Empty -> MovieVideosUiState.Empty
-        is TvVideosUiState.Error -> MovieVideosUiState.Error(v.message)
+    val mappedVideosState: VideosUiState = when (val v = videosState) {
+        is TvVideosUiState.Loading -> VideosUiState.Loading
+        is TvVideosUiState.Success -> VideosUiState.Success(v.videos)
+        is TvVideosUiState.Empty -> VideosUiState.Empty
+        is TvVideosUiState.Error -> VideosUiState.Error(v.message)
     }
 
-    val mappedKeywordsState: MovieKeywordsUiState = when (val k = keywordsState) {
-        is TvKeywordsUiState.Loading -> MovieKeywordsUiState.Loading
-        is TvKeywordsUiState.Success -> MovieKeywordsUiState.Success(k.keywords)
-        is TvKeywordsUiState.Empty -> MovieKeywordsUiState.Empty
-        is TvKeywordsUiState.Error -> MovieKeywordsUiState.Error(k.message)
+    val mappedKeywordsState: KeywordsUiState = when (val k = keywordsState) {
+        is TvKeywordsUiState.Loading -> KeywordsUiState.Loading
+        is TvKeywordsUiState.Success -> KeywordsUiState.Success(k.keywords)
+        is TvKeywordsUiState.Empty -> KeywordsUiState.Empty
+        is TvKeywordsUiState.Error -> KeywordsUiState.Error(k.message)
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -203,13 +202,13 @@ fun TvDetailsScreen(
 @Composable
 private fun TvDetailsContent(
     tvShow: TvShowDetails,
-    castState: MovieCastUiState,
+    castState: CastUiState,
     selectedSeasonIndex: Int,
     episodesState: EpisodesUiState,
     externalIdsState: ExternalIdsUiState,
-    imagesState: MovieImagesUiState,
-    videosState: MovieVideosUiState,
-    keywordsState: MovieKeywordsUiState,
+    imagesState: ImagesUiState,
+    videosState: VideosUiState,
+    keywordsState: KeywordsUiState,
     recommendationsState: TvRecommendationsUiState,
     onSeasonSelect: (Int) -> Unit,
     onLoadMore: () -> Unit,
@@ -728,16 +727,16 @@ private fun PreviewTvDetailsScreen() {
         ) { paddingValues ->
             TvDetailsContent(
                 tvShow = PreviewData.sampleTvShowDetails,
-                castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+                castState = CastUiState.Success(PreviewData.sampleCastMembers),
                 selectedSeasonIndex = 0,
                 episodesState = EpisodesUiState.Success(
                     episodes = PreviewData.sampleEpisodes,
                     totalCount = PreviewData.sampleEpisodes.size
                 ),
                 externalIdsState = ExternalIdsUiState.Success(PreviewData.sampleTvExternalIds),
-                imagesState = MovieImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters),
-                videosState = MovieVideosUiState.Success(PreviewData.sampleVideos),
-                keywordsState = MovieKeywordsUiState.Success(PreviewData.sampleKeywords),
+                imagesState = ImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters),
+                videosState = VideosUiState.Success(PreviewData.sampleVideos),
+                keywordsState = KeywordsUiState.Success(PreviewData.sampleKeywords),
                 recommendationsState = TvRecommendationsUiState.Success(PreviewData.sampleTvShows),
                 onSeasonSelect = {},
                 onLoadMore = {},
@@ -754,16 +753,16 @@ private fun PreviewTvDetailsContent() {
     TMDBTheme {
         TvDetailsContent(
             tvShow = PreviewData.sampleTvShowDetails,
-            castState = MovieCastUiState.Success(PreviewData.sampleCastMembers),
+            castState = CastUiState.Success(PreviewData.sampleCastMembers),
             selectedSeasonIndex = 0,
             episodesState = EpisodesUiState.Success(
                 episodes = PreviewData.sampleEpisodes,
                 totalCount = PreviewData.sampleEpisodes.size
             ),
             externalIdsState = ExternalIdsUiState.Success(PreviewData.sampleTvExternalIds),
-            imagesState = MovieImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters),
-            videosState = MovieVideosUiState.Success(PreviewData.sampleVideos),
-            keywordsState = MovieKeywordsUiState.Success(PreviewData.sampleKeywords),
+            imagesState = ImagesUiState.Success(PreviewData.sampleImages, PreviewData.samplePosters),
+            videosState = VideosUiState.Success(PreviewData.sampleVideos),
+            keywordsState = KeywordsUiState.Success(PreviewData.sampleKeywords),
             recommendationsState = TvRecommendationsUiState.Success(PreviewData.sampleTvShows),
             onSeasonSelect = {},
             onLoadMore = {},
@@ -778,13 +777,13 @@ private fun PreviewTvDetailsContentLoading() {
     TMDBTheme {
         TvDetailsContent(
             tvShow = PreviewData.sampleTvShowDetails,
-            castState = MovieCastUiState.Loading,
+            castState = CastUiState.Loading,
             selectedSeasonIndex = 0,
             episodesState = EpisodesUiState.Loading,
             externalIdsState = ExternalIdsUiState.Loading,
-            imagesState = MovieImagesUiState.Loading,
-            videosState = MovieVideosUiState.Loading,
-            keywordsState = MovieKeywordsUiState.Loading,
+            imagesState = ImagesUiState.Loading,
+            videosState = VideosUiState.Loading,
+            keywordsState = KeywordsUiState.Loading,
             recommendationsState = TvRecommendationsUiState.Loading,
             onSeasonSelect = {},
             onLoadMore = {},
