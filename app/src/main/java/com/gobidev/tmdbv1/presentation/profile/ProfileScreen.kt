@@ -47,7 +47,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.UserAccount
 import androidx.compose.ui.tooling.preview.Preview
-import com.gobidev.tmdbv1.presentation.movielisting.ErrorItem
+import com.gobidev.tmdbv1.presentation.components.ErrorItem
 import com.gobidev.tmdbv1.presentation.movielisting.MovieItem
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
