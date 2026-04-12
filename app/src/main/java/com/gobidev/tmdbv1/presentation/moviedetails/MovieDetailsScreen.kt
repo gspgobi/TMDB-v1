@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -77,6 +76,8 @@ import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.MovieImage
 import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.Review
+import com.gobidev.tmdbv1.presentation.components.InfoRow
+import com.gobidev.tmdbv1.presentation.components.SectionTitle
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import java.util.Locale
@@ -438,57 +439,6 @@ private fun BelongsToCollectionSection(
     }
 }
 
-/**
- * Helper composable for displaying label-value pairs.
- */
-@Composable
-fun InfoRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier.padding(vertical = 4.dp)
-    ) {
-        Text(
-            text = "$label: ",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
-
-/**
- * Shared section header composable with a colored left accent bar.
- * Used across movie and TV detail screens for consistent section styling.
- */
-@Composable
-fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(20.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(2.dp)
-                )
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
 
 /**
  * Cast section displaying movie cast members.
