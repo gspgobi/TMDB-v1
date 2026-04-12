@@ -64,11 +64,11 @@ import com.gobidev.tmdbv1.presentation.components.ExternalIdsSection
 import com.gobidev.tmdbv1.presentation.moviedetails.CastSection
 import com.gobidev.tmdbv1.presentation.moviedetails.ExternalIdsUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.ImagesSection
-import com.gobidev.tmdbv1.presentation.moviedetails.InfoRow
+import com.gobidev.tmdbv1.presentation.components.InfoRow
+import com.gobidev.tmdbv1.presentation.components.SectionTitle
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieCastUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieImagesUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.KeywordsSection
-import com.gobidev.tmdbv1.presentation.moviedetails.SectionTitle
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieKeywordsUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.MovieVideosUiState
 import com.gobidev.tmdbv1.presentation.moviedetails.VideosSection
