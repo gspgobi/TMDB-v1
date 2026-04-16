@@ -1,5 +1,6 @@
 package com.gobidev.tmdbv1.domain.repository
 
+import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.PersonCastCredit
 import com.gobidev.tmdbv1.domain.model.PersonDetails
@@ -9,4 +10,5 @@ interface PersonRepository {
     suspend fun getPersonDetails(personId: Int): Result<PersonDetails>
     suspend fun getPersonCredits(personId: Int): Result<List<PersonCastCredit>>
     suspend fun getPopularPeople(): Result<List<Person>>
+    suspend fun getPersonExternalIds(personId: Int): Result<ExternalIds>
 }
