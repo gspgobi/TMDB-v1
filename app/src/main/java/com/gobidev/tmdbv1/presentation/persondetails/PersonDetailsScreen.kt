@@ -54,6 +54,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.PersonCastCredit
 import com.gobidev.tmdbv1.domain.model.PersonDetails
+import com.gobidev.tmdbv1.presentation.components.ExternalIdsSection
+import com.gobidev.tmdbv1.presentation.components.ExternalIdsUiState
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 
@@ -71,6 +73,7 @@ fun PersonDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val creditsState by viewModel.creditsState.collectAsStateWithLifecycle()
+    val externalIdsState by viewModel.externalIdsState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -119,6 +122,7 @@ fun PersonDetailsScreen(
                 PersonDetailsContent(
                     person = state.person,
                     creditsState = creditsState,
+                    externalIdsState = externalIdsState,
                     onEvent = onEvent,
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -131,6 +135,7 @@ fun PersonDetailsScreen(
 private fun PersonDetailsContent(
     person: PersonDetails,
     creditsState: PersonCreditsUiState,
+    externalIdsState: ExternalIdsUiState,
     onEvent: (PersonDetailsEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -274,6 +279,13 @@ private fun PersonDetailsContent(
             }
         }
 
+        // External links
+        ExternalIdsSection(
+            state = externalIdsState,
+            isPersonProfile = true,
+            modifier = Modifier.padding(top = 20.dp)
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -331,6 +343,7 @@ private fun PreviewPersonDetailsContent() {
         PersonDetailsContent(
             person = PreviewData.samplePersonDetails,
             creditsState = PersonCreditsUiState.Success(PreviewData.samplePersonCredits),
+            externalIdsState = ExternalIdsUiState.Empty,
             onEvent = {}
         )
     }
@@ -344,6 +357,7 @@ private fun PreviewPersonDetailsLoading() {
         PersonDetailsContent(
             person = PreviewData.samplePersonDetails,
             creditsState = PersonCreditsUiState.Loading,
+            externalIdsState = ExternalIdsUiState.Loading,
             onEvent = {}
         )
     }
