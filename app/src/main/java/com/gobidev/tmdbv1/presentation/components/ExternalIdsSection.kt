@@ -33,11 +33,12 @@ sealed class ExternalIdsUiState {
 @Composable
 fun ExternalIdsSection(
     state: ExternalIdsUiState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isPersonProfile: Boolean = false
 ) {
     if (state !is ExternalIdsUiState.Success) return
 
-    val links = buildExternalLinks(state.externalIds)
+    val links = buildExternalLinks(state.externalIds, isPersonProfile)
     if (links.isEmpty()) return
 
     val uriHandler = LocalUriHandler.current
@@ -73,9 +74,11 @@ private data class ExternalLink(
     @DrawableRes val iconRes: Int
 )
 
-private fun buildExternalLinks(ids: ExternalIds): List<ExternalLink> = buildList {
+private fun buildExternalLinks(ids: ExternalIds, isPersonProfile: Boolean): List<ExternalLink> = buildList {
     ids.imdbId?.let {
-        add(ExternalLink("IMDb", "https://www.imdb.com/title/$it", R.drawable.ic_imdb))
+        val imdbUrl = if (isPersonProfile) "https://www.imdb.com/name/$it"
+                      else "https://www.imdb.com/title/$it"
+        add(ExternalLink("IMDb", imdbUrl, R.drawable.ic_imdb))
     }
     ids.tvdbId?.let {
         add(ExternalLink("TVDB", "https://thetvdb.com/?id=$it&tab=series", R.drawable.ic_tvdb))

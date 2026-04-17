@@ -262,6 +262,11 @@ interface TMDBApiService {
         @Query("language") language: String = "en-US"
     ): PersonCombinedCreditsResponse
 
+    @GET("person/{person_id}/external_ids")
+    suspend fun getPersonExternalIds(
+        @Path("person_id") personId: Int
+    ): ExternalIdsResponse
+
     // ── Search ───────────────────────────────────────────────────────────────
 
     @GET("search/multi")

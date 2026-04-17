@@ -2,8 +2,10 @@ package com.gobidev.tmdbv1.data.repository
 
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.mapper.toPerson
+import com.gobidev.tmdbv1.data.remote.mapper.toExternalIds
 import com.gobidev.tmdbv1.data.remote.mapper.toPersonCastCredit
 import com.gobidev.tmdbv1.data.remote.mapper.toPersonDetails
+import com.gobidev.tmdbv1.domain.model.ExternalIds
 import com.gobidev.tmdbv1.domain.model.Person
 import com.gobidev.tmdbv1.domain.model.PersonCastCredit
 import com.gobidev.tmdbv1.domain.model.PersonDetails
@@ -31,5 +33,9 @@ class PersonRepositoryImpl @Inject constructor(
             .filter { it.mediaType == "movie" || it.mediaType == "tv" }
             .sortedByDescending { it.popularity ?: 0.0 }
             .map { it.toPersonCastCredit() }
+    }
+
+    override suspend fun getPersonExternalIds(personId: Int): Result<ExternalIds> = safeCall {
+        api.getPersonExternalIds(personId).toExternalIds()
     }
 }
