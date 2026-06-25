@@ -55,7 +55,8 @@ fun MovieDto.toMovie(): Movie {
         backdropUrl = backdropPath?.let { "$IMAGE_BASE_URL$BACKDROP_SIZE$it" },
         releaseDate = releaseDate?.toFormattedDate() ?: "Unknown",
         rating = voteAverage,
-        voteCount = voteCount
+        voteCount = voteCount,
+        releaseDateIso = releaseDate ?: ""
     )
 }
 
