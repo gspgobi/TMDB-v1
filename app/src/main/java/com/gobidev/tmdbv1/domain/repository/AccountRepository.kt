@@ -10,4 +10,6 @@ interface AccountRepository {
     suspend fun getAccount(): Result<UserAccount>
     fun getFavoriteMovies(): Flow<PagingData<Movie>>
     fun getWatchlistMovies(): Flow<PagingData<Movie>>
+    suspend fun setFavorite(movieId: Int, favorite: Boolean): Result<Unit>
+    suspend fun setWatchlist(movieId: Int, watchlist: Boolean): Result<Unit>
 }
