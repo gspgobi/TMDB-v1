@@ -1,6 +1,10 @@
 package com.gobidev.tmdbv1
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
+import androidx.core.content.getSystemService
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
@@ -25,4 +29,26 @@ class TMDBApplication : Application(), Configuration.Provider {
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .build()
+
+    override fun onCreate() {
+        super.onCreate()
+        createReleaseNotificationChannel()
+    }
+
+    private fun createReleaseNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+
+        val channel = NotificationChannel(
+            RELEASE_CHANNEL_ID,
+            "Watchlist releases",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Notifies you when a watchlisted movie is released"
+        }
+        getSystemService<NotificationManager>()?.createNotificationChannel(channel)
+    }
+
+    companion object {
+        const val RELEASE_CHANNEL_ID = "watchlist_releases"
+    }
 }
