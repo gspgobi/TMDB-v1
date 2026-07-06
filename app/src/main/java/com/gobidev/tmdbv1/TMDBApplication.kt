@@ -7,6 +7,8 @@ import android.os.Build
 import androidx.core.content.getSystemService
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.gobidev.tmdbv1.data.local.SessionManager
+import com.gobidev.tmdbv1.data.worker.ReleaseCheckScheduler
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -25,6 +27,12 @@ class TMDBApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
+    @Inject
+    lateinit var sessionManager: SessionManager
+
+    @Inject
+    lateinit var releaseCheckScheduler: ReleaseCheckScheduler
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -33,6 +41,9 @@ class TMDBApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         createReleaseNotificationChannel()
+        if (sessionManager.isLoggedIn) {
+            releaseCheckScheduler.enqueuePeriodic()
+        }
     }
 
     private fun createReleaseNotificationChannel() {
