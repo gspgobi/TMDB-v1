@@ -8,11 +8,14 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.Operation
 import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 /**
  * Wraps [WorkManager] enqueue/cancel calls for [ReleaseCheckWorker] so the
@@ -55,4 +58,8 @@ class ReleaseCheckScheduler @Inject constructor(
             request
         )
     }
+
+    fun observeOneTimeWorkInfo(): Flow<WorkInfo?> =
+        workManager.getWorkInfosForUniqueWorkFlow(ReleaseCheckWorker.ONE_TIME_WORK_NAME)
+            .map { it.firstOrNull() }
 }
