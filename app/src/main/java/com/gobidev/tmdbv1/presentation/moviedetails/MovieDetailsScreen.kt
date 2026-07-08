@@ -22,6 +22,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.getValue
@@ -118,6 +122,8 @@ fun MovieDetailsScreen(
     val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val keywordsState by viewModel.keywordsState.collectAsStateWithLifecycle()
+    val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
+    val isInWatchlist by viewModel.isInWatchlist.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
@@ -133,9 +139,24 @@ fun MovieDetailsScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = { viewModel.toggleWatchlist() }) {
+                        Icon(
+                            imageVector = if (isInWatchlist) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                            contentDescription = "Toggle watchlist"
+                        )
+                    }
+                    IconButton(onClick = { viewModel.toggleFavorite() }) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = "Toggle favorite"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 scrollBehavior = scrollBehavior
             )
@@ -658,9 +679,24 @@ fun PreviewMovieDetailsScreen() {
                             )
                         }
                     },
+                    actions = {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Filled.BookmarkBorder,
+                                contentDescription = "Toggle watchlist"
+                            )
+                        }
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = "Toggle favorite"
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 )
             }

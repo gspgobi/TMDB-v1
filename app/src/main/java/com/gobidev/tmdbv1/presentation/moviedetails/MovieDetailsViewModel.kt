@@ -3,6 +3,7 @@ package com.gobidev.tmdbv1.presentation.moviedetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gobidev.tmdbv1.data.local.SessionManager
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.MovieDetails
 import com.gobidev.tmdbv1.domain.model.Review
@@ -14,6 +15,8 @@ import com.gobidev.tmdbv1.domain.usecase.GetMovieImagesUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieKeywordsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieVideosUseCase
+import com.gobidev.tmdbv1.domain.usecase.SetFavoriteUseCase
+import com.gobidev.tmdbv1.domain.usecase.SetWatchlistUseCase
 import com.gobidev.tmdbv1.domain.util.Result
 import com.gobidev.tmdbv1.presentation.components.CastUiState
 import com.gobidev.tmdbv1.presentation.components.ExternalIdsUiState
@@ -80,11 +83,22 @@ class MovieDetailsViewModel @Inject constructor(
     private val getMovieExternalIdsUseCase: GetMovieExternalIdsUseCase,
     private val getMovieImagesUseCase: GetMovieImagesUseCase,
     private val getMovieVideosUseCase: GetMovieVideosUseCase,
-    private val getMovieKeywordsUseCase: GetMovieKeywordsUseCase
+    private val getMovieKeywordsUseCase: GetMovieKeywordsUseCase,
+    private val setFavoriteUseCase: SetFavoriteUseCase,
+    private val setWatchlistUseCase: SetWatchlistUseCase,
+    val sessionManager: SessionManager
 ) : ViewModel() {
+
+    private val movieId: Int = savedStateHandle.get<Int>("movieId") ?: -1
 
     private val _uiState = MutableStateFlow<MovieDetailsUiState>(MovieDetailsUiState.Loading)
     val uiState: StateFlow<MovieDetailsUiState> = _uiState.asStateFlow()
+
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+
+    private val _isInWatchlist = MutableStateFlow(false)
+    val isInWatchlist: StateFlow<Boolean> = _isInWatchlist.asStateFlow()
 
     private val _castState = MutableStateFlow<CastUiState>(CastUiState.Loading)
     val castState: StateFlow<CastUiState> = _castState.asStateFlow()
@@ -108,7 +122,6 @@ class MovieDetailsViewModel @Inject constructor(
     val keywordsState: StateFlow<KeywordsUiState> = _keywordsState.asStateFlow()
 
     init {
-        val movieId = savedStateHandle.get<Int>("movieId") ?: -1
         if (movieId != -1) {
             loadMovieDetails(movieId)
             loadMovieCredits(movieId)
@@ -257,6 +270,28 @@ class MovieDetailsViewModel @Inject constructor(
                     }
                 }
                 is Result.Error -> _keywordsState.value = KeywordsUiState.Error(result.message)
+            }
+        }
+    }
+
+    fun toggleFavorite() {
+        val newValue = !_isFavorite.value
+        _isFavorite.value = newValue
+        viewModelScope.launch {
+            when (setFavoriteUseCase(movieId, newValue)) {
+                is Result.Success -> {}
+                is Result.Error -> _isFavorite.value = !newValue
+            }
+        }
+    }
+
+    fun toggleWatchlist() {
+        val newValue = !_isInWatchlist.value
+        _isInWatchlist.value = newValue
+        viewModelScope.launch {
+            when (setWatchlistUseCase(movieId, newValue)) {
+                is Result.Success -> {}
+                is Result.Error -> _isInWatchlist.value = !newValue
             }
         }
     }
