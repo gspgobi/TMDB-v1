@@ -106,6 +106,7 @@ sealed interface MovieDetailsEvent {
     data class RecommendationClick(val movieId: Int) : MovieDetailsEvent
     data class KeywordClick(val keywordId: Int, val keywordName: String) : MovieDetailsEvent
     data class GenreClick(val genreId: Int, val genreName: String) : MovieDetailsEvent
+    data object LoginRequired : MovieDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,13 +141,25 @@ fun MovieDetailsScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.toggleWatchlist() }) {
+                    IconButton(onClick = {
+                        if (viewModel.sessionManager.isLoggedIn) {
+                            viewModel.toggleWatchlist()
+                        } else {
+                            onEvent(MovieDetailsEvent.LoginRequired)
+                        }
+                    }) {
                         Icon(
                             imageVector = if (isInWatchlist) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
                             contentDescription = "Toggle watchlist"
                         )
                     }
-                    IconButton(onClick = { viewModel.toggleFavorite() }) {
+                    IconButton(onClick = {
+                        if (viewModel.sessionManager.isLoggedIn) {
+                            viewModel.toggleFavorite()
+                        } else {
+                            onEvent(MovieDetailsEvent.LoginRequired)
+                        }
+                    }) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = "Toggle favorite"
