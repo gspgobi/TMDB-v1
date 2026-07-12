@@ -2,6 +2,7 @@ package com.gobidev.tmdbv1.di
 
 import android.content.Context
 import androidx.room.Room
+import com.gobidev.tmdbv1.data.local.db.AccountMediaDao
 import com.gobidev.tmdbv1.data.local.db.NotifiedMovieDao
 import com.gobidev.tmdbv1.data.local.db.TMDBDatabase
 import dagger.Module
@@ -21,12 +22,20 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideTMDBDatabase(@ApplicationContext context: Context): TMDBDatabase {
-        return Room.databaseBuilder(context, TMDBDatabase::class.java, "tmdb.db").build()
+        return Room.databaseBuilder(context, TMDBDatabase::class.java, "tmdb.db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
     }
 
     @Provides
     @Singleton
     fun provideNotifiedMovieDao(database: TMDBDatabase): NotifiedMovieDao {
         return database.notifiedMovieDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountMediaDao(database: TMDBDatabase): AccountMediaDao {
+        return database.accountMediaDao()
     }
 }
