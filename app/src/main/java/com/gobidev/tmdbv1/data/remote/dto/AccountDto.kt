@@ -33,3 +33,9 @@ data class WatchlistRequestBody(
     @SerializedName("media_id") val mediaId: Int,
     @SerializedName("watchlist") val watchlist: Boolean
 )
+
+data class AccountStatesResponse(
+    @SerializedName("id") val id: Int,
+    @SerializedName("favorite") val favorite: Boolean,
+    @SerializedName("watchlist") val watchlist: Boolean
+)

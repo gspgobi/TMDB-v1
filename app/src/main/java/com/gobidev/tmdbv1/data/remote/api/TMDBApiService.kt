@@ -9,6 +9,7 @@ import com.gobidev.tmdbv1.data.remote.dto.TrendingResponseDto
 import com.gobidev.tmdbv1.data.remote.dto.PersonCombinedCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.PersonDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.AccountResponse
+import com.gobidev.tmdbv1.data.remote.dto.AccountStatesResponse
 import com.gobidev.tmdbv1.data.remote.dto.DeleteSessionBody
 import com.gobidev.tmdbv1.data.remote.dto.FavoriteRequestBody
 import com.gobidev.tmdbv1.data.remote.dto.WatchlistRequestBody
@@ -146,6 +147,12 @@ interface TMDBApiService {
         @Query("page") page: Int = 1
     ): MovieListPagedResponse
 
+    @GET("movie/{movie_id}/account_states")
+    suspend fun getMovieAccountStates(
+        @Path("movie_id") movieId: Int,
+        @Query("session_id") sessionId: String
+    ): AccountStatesResponse
+
     @GET("collection/{collectionId}")
     suspend fun getCollectionDetails(
         @Path("collectionId") collectionId: Int,
@@ -228,6 +235,12 @@ interface TMDBApiService {
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
     ): TvListPagedResponse
+
+    @GET("tv/{tv_id}/account_states")
+    suspend fun getTvAccountStates(
+        @Path("tv_id") tvId: Int,
+        @Query("session_id") sessionId: String
+    ): AccountStatesResponse
 
     @GET("tv/{tv_id}/season/{season_number}")
     suspend fun getSeasonDetails(
@@ -312,6 +325,20 @@ interface TMDBApiService {
         @Query("session_id") sessionId: String,
         @Query("page") page: Int = 1
     ): MovieListPagedResponse
+
+    @GET("account/{account_id}/favorite/tv")
+    suspend fun getFavoriteTv(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("page") page: Int = 1
+    ): TvListPagedResponse
+
+    @GET("account/{account_id}/watchlist/tv")
+    suspend fun getWatchlistTv(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Query("page") page: Int = 1
+    ): TvListPagedResponse
 
     @POST("account/{account_id}/favorite")
     suspend fun markAsFavorite(
