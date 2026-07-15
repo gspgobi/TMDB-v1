@@ -386,6 +386,7 @@ fun TMDBNavGraph(
                         is TvDetailsEvent.RecommendationClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
                         is TvDetailsEvent.KeywordClick -> navController.navigate(Screen.KeywordTvShowsNav.createRoute(event.keywordId, event.keywordName))
                         is TvDetailsEvent.GenreClick -> navController.navigate(Screen.GenreTvShowsNav.createRoute(event.genreId, event.genreName))
+                        is TvDetailsEvent.LoginRequired -> navController.navigate(Screen.LoginNav.route)
                     }
                 }
             )
