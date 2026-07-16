@@ -13,6 +13,7 @@ import com.gobidev.tmdbv1.domain.usecase.GetMovieDetailsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieExternalIdsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieImagesUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieKeywordsUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetMovieAccountStateUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetMovieVideosUseCase
 import com.gobidev.tmdbv1.domain.usecase.SetFavoriteUseCase
@@ -86,6 +87,7 @@ class MovieDetailsViewModel @Inject constructor(
     private val getMovieKeywordsUseCase: GetMovieKeywordsUseCase,
     private val setFavoriteUseCase: SetFavoriteUseCase,
     private val setWatchlistUseCase: SetWatchlistUseCase,
+    private val getMovieAccountStateUseCase: GetMovieAccountStateUseCase,
     val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -131,8 +133,22 @@ class MovieDetailsViewModel @Inject constructor(
             loadImages(movieId)
             loadVideos(movieId)
             loadKeywords(movieId)
+            loadAccountState()
         } else {
             _uiState.value = MovieDetailsUiState.Error("Invalid movie ID")
+        }
+    }
+
+    private fun loadAccountState() {
+        if (!sessionManager.isLoggedIn) return
+        viewModelScope.launch {
+            when (val result = getMovieAccountStateUseCase(movieId)) {
+                is Result.Success -> {
+                    _isFavorite.value = result.data.favorite
+                    _isInWatchlist.value = result.data.watchlist
+                }
+                is Result.Error -> {}
+            }
         }
     }
 
