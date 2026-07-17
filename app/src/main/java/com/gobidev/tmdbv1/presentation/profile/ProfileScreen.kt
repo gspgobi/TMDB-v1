@@ -22,6 +22,7 @@ import com.gobidev.tmdbv1.presentation.util.ProfileLoadingShimmer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,13 +54,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.work.WorkInfo
 import coil.compose.AsyncImage
+import com.gobidev.tmdbv1.data.local.db.MediaType
 import com.gobidev.tmdbv1.domain.model.UserAccount
 import androidx.compose.ui.tooling.preview.Preview
 import com.gobidev.tmdbv1.presentation.components.ErrorItem
 import com.gobidev.tmdbv1.presentation.movielisting.MovieItem
+import com.gobidev.tmdbv1.presentation.tvlisting.TvShowItem
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
 import kotlinx.coroutines.launch
@@ -66,6 +71,7 @@ import kotlinx.coroutines.launch
 sealed interface ProfileEvent {
     data object LoginClick : ProfileEvent
     data class MovieClick(val movieId: Int) : ProfileEvent
+    data class TvClick(val tvId: Int) : ProfileEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -153,6 +159,7 @@ fun ProfileScreen(
                 LoggedInContent(
                     account = state.account,
                     onMovieClick = { id -> onEvent(ProfileEvent.MovieClick(id)) },
+                    onTvClick = { id -> onEvent(ProfileEvent.TvClick(id)) },
                     viewModel = viewModel,
                     modifier = Modifier.padding(paddingValues)
                 )
@@ -209,12 +216,12 @@ private fun LoggedOutContent(
 private fun LoggedInContent(
     account: UserAccount,
     onMovieClick: (Int) -> Unit,
+    onTvClick: (Int) -> Unit,
     viewModel: ProfileViewModel,
     modifier: Modifier = Modifier
 ) {
+    var selectedMediaType by rememberSaveable { mutableStateOf(MediaType.MOVIE) }
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-    val favorites = viewModel.favorites.collectAsLazyPagingItems()
-    val watchlist = viewModel.watchlist.collectAsLazyPagingItems()
 
     Column(modifier = modifier.fillMaxSize()) {
         // Account header
@@ -267,6 +274,25 @@ private fun LoggedInContent(
             }
         }
 
+        // Media type toggle
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FilterChip(
+                selected = selectedMediaType == MediaType.MOVIE,
+                onClick = { selectedMediaType = MediaType.MOVIE },
+                label = { Text("Movies") }
+            )
+            FilterChip(
+                selected = selectedMediaType == MediaType.TV,
+                onClick = { selectedMediaType = MediaType.TV },
+                label = { Text("TV") }
+            )
+        }
+
         // Tabs
         TabRow(selectedTabIndex = selectedTab) {
             Tab(
@@ -282,78 +308,105 @@ private fun LoggedInContent(
         }
 
         // Tab content
-        val items = if (selectedTab == 0) favorites else watchlist
+        val emptyMessage = if (selectedTab == 0) "No favorites yet" else "Watchlist is empty"
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            when (items.loadState.refresh) {
-                is LoadState.Loading -> {
-                    MediaListShimmer(modifier = Modifier.fillMaxSize())
+        when (selectedMediaType) {
+            MediaType.MOVIE -> {
+                val items = if (selectedTab == 0) {
+                    viewModel.favorites.collectAsLazyPagingItems()
+                } else {
+                    viewModel.watchlist.collectAsLazyPagingItems()
+                }
+                MediaPagingList(
+                    items = items,
+                    emptyMessage = emptyMessage,
+                    itemContent = { movie -> MovieItem(movie = movie, onClick = { onMovieClick(movie.id) }) }
+                )
+            }
+
+            MediaType.TV -> {
+                val items = if (selectedTab == 0) {
+                    viewModel.tvFavorites.collectAsLazyPagingItems()
+                } else {
+                    viewModel.tvWatchlist.collectAsLazyPagingItems()
+                }
+                MediaPagingList(
+                    items = items,
+                    emptyMessage = emptyMessage,
+                    itemContent = { show -> TvShowItem(show = show, onClick = { onTvClick(show.id) }) }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Renders a [LazyPagingItems] list with loading/empty/error states.
+ * A refresh error only blocks the whole screen when there's nothing cached to show
+ * ([LazyPagingItems.itemCount] == 0) — with a [RemoteMediator]-backed source (TV feeds),
+ * Room can still hold valid cached items while a background sync fails.
+ */
+@Composable
+private fun <T : Any> MediaPagingList(
+    items: LazyPagingItems<T>,
+    emptyMessage: String,
+    itemContent: @Composable (T) -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (items.loadState.refresh is LoadState.Loading && items.itemCount == 0) {
+            MediaListShimmer(modifier = Modifier.fillMaxSize())
+        } else if (items.loadState.refresh is LoadState.Error && items.itemCount == 0) {
+            val error = (items.loadState.refresh as LoadState.Error).error
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                ErrorItem(
+                    message = error.message ?: "Unknown error",
+                    onRetry = { items.retry() }
+                )
+            }
+        } else if (items.itemCount == 0 && items.loadState.refresh !is LoadState.Loading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = emptyMessage,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(items.itemCount) { index ->
+                    items[index]?.let { itemContent(it) }
                 }
 
-                is LoadState.Error -> {
-                    val error = (items.loadState.refresh as LoadState.Error).error
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        ErrorItem(
-                            message = error.message ?: "Unknown error",
-                            onRetry = { items.retry() }
-                        )
-                    }
-                }
+                item {
+                    when (items.loadState.append) {
+                        is LoadState.Loading -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) { CircularProgressIndicator() }
+                        }
 
-                else -> {
-                    if (items.itemCount == 0 && items.loadState.refresh !is LoadState.Loading) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = if (selectedTab == 0) "No favorites yet" else "Watchlist is empty",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                        is LoadState.Error -> {
+                            val error = (items.loadState.append as LoadState.Error).error
+                            ErrorItem(
+                                message = error.message ?: "Unknown error",
+                                onRetry = { items.retry() }
                             )
                         }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(items.itemCount) { index ->
-                                items[index]?.let { movie ->
-                                    MovieItem(
-                                        movie = movie,
-                                        onClick = { onMovieClick(movie.id) }
-                                    )
-                                }
-                            }
 
-                            item {
-                                when (items.loadState.append) {
-                                    is LoadState.Loading -> {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) { CircularProgressIndicator() }
-                                    }
-
-                                    is LoadState.Error -> {
-                                        val error =
-                                            (items.loadState.append as LoadState.Error).error
-                                        ErrorItem(
-                                            message = error.message ?: "Unknown error",
-                                            onRetry = { items.retry() }
-                                        )
-                                    }
-
-                                    else -> {}
-                                }
-                            }
-                        }
+                        else -> {}
                     }
                 }
             }

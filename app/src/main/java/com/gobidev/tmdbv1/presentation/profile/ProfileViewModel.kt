@@ -8,9 +8,12 @@ import androidx.work.WorkInfo
 import com.gobidev.tmdbv1.data.local.SessionManager
 import com.gobidev.tmdbv1.data.worker.ReleaseCheckScheduler
 import com.gobidev.tmdbv1.domain.model.Movie
+import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.domain.model.UserAccount
 import com.gobidev.tmdbv1.domain.usecase.GetAccountUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetFavoriteTvUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetFavoritesUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetWatchlistTvUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetWatchlistUseCase
 import com.gobidev.tmdbv1.domain.usecase.LogoutUseCase
 import com.gobidev.tmdbv1.domain.util.Result
@@ -38,7 +41,9 @@ class ProfileViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val releaseCheckScheduler: ReleaseCheckScheduler,
     getFavoritesUseCase: GetFavoritesUseCase,
-    getWatchlistUseCase: GetWatchlistUseCase
+    getWatchlistUseCase: GetWatchlistUseCase,
+    getFavoriteTvUseCase: GetFavoriteTvUseCase,
+    getWatchlistTvUseCase: GetWatchlistTvUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(
@@ -48,6 +53,8 @@ class ProfileViewModel @Inject constructor(
 
     val favorites: Flow<PagingData<Movie>> = getFavoritesUseCase().cachedIn(viewModelScope)
     val watchlist: Flow<PagingData<Movie>> = getWatchlistUseCase().cachedIn(viewModelScope)
+    val tvFavorites: Flow<PagingData<TvShow>> = getFavoriteTvUseCase().cachedIn(viewModelScope)
+    val tvWatchlist: Flow<PagingData<TvShow>> = getWatchlistTvUseCase().cachedIn(viewModelScope)
 
     val releaseCheckWorkInfo: StateFlow<WorkInfo?> = releaseCheckScheduler.observeOneTimeWorkInfo()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

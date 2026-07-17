@@ -218,6 +218,7 @@ fun TMDBNavGraph(
                     when (event) {
                         is ProfileEvent.LoginClick -> navController.navigate(Screen.LoginNav.route)
                         is ProfileEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                        is ProfileEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
                     }
                 }
             )
