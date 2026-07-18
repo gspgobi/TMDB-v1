@@ -41,9 +41,31 @@ class AccountRepositoryImpl @Inject constructor(
     private val accountMediaDao: AccountMediaDao
 ) : AccountRepository {
 
-    override suspend fun getAccount(): Result<UserAccount> = safeCall {
-        val sessionId = sessionManager.sessionId ?: error("Not logged in")
-        api.getAccount(sessionId = sessionId).toUserAccount()
+    override suspend fun getAccount(): Result<UserAccount> {
+        val sessionId = sessionManager.sessionId ?: return Result.Error("Not logged in")
+        return when (val result = safeCall { api.getAccount(sessionId = sessionId).toUserAccount() }) {
+            is Result.Success -> {
+                sessionManager.cachedUsername = result.data.username
+                sessionManager.cachedName = result.data.name
+                sessionManager.cachedAvatarUrl = result.data.avatarUrl
+                result
+            }
+            is Result.Error -> {
+                val cachedUsername = sessionManager.cachedUsername
+                if (cachedUsername != null) {
+                    Result.Success(
+                        UserAccount(
+                            id = sessionManager.accountId,
+                            username = cachedUsername,
+                            name = sessionManager.cachedName ?: "",
+                            avatarUrl = sessionManager.cachedAvatarUrl
+                        )
+                    )
+                } else {
+                    result
+                }
+            }
+        }
     }
 
     override fun getFavoriteMovies(): Flow<PagingData<Movie>> = Pager(

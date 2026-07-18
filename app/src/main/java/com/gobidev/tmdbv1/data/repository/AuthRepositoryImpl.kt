@@ -1,6 +1,7 @@
 package com.gobidev.tmdbv1.data.repository
 
 import com.gobidev.tmdbv1.data.local.SessionManager
+import com.gobidev.tmdbv1.data.local.db.AccountMediaDao
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.dto.DeleteSessionBody
 import com.gobidev.tmdbv1.data.remote.dto.LoginRequestBody
@@ -16,7 +17,8 @@ import javax.inject.Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val api: TMDBApiService,
     private val sessionManager: SessionManager,
-    private val releaseCheckScheduler: ReleaseCheckScheduler
+    private val releaseCheckScheduler: ReleaseCheckScheduler,
+    private val accountMediaDao: AccountMediaDao
 ) : AuthRepository {
 
     override suspend fun login(username: String, password: String): Result<Unit> = safeCall {
@@ -46,8 +48,11 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun logout(): Result<Unit> = safeCall {
         val sessionId = sessionManager.sessionId ?: return@safeCall
+        val accountId = sessionManager.accountId
         api.deleteSession(DeleteSessionBody(sessionId = sessionId))
         sessionManager.clearSession()
         releaseCheckScheduler.cancelPeriodic()
+        accountMediaDao.clearAllForAccount(accountId)
+        accountMediaDao.clearAllRemoteKeysForAccount(accountId)
     }
 }

@@ -20,6 +20,18 @@ class SessionManager @Inject constructor(
         get() = prefs.getInt("account_id", -1)
         set(value) = prefs.edit { putInt("account_id", value) }
 
+    var cachedUsername: String?
+        get() = prefs.getString("cached_username", null)
+        set(value) = prefs.edit { putString("cached_username", value) }
+
+    var cachedName: String?
+        get() = prefs.getString("cached_name", null)
+        set(value) = prefs.edit { putString("cached_name", value) }
+
+    var cachedAvatarUrl: String?
+        get() = prefs.getString("cached_avatar_url", null)
+        set(value) = prefs.edit { putString("cached_avatar_url", value) }
+
     val isLoggedIn: Boolean
         get() = sessionId != null
 
@@ -27,6 +39,9 @@ class SessionManager @Inject constructor(
         prefs.edit {
             remove("session_id")
             remove("account_id")
+            remove("cached_username")
+            remove("cached_name")
+            remove("cached_avatar_url")
         }
     }
 }
