@@ -1,5 +1,8 @@
 package com.gobidev.tmdbv1.data.remote.mapper
 
+import com.gobidev.tmdbv1.data.local.db.AccountListType
+import com.gobidev.tmdbv1.data.local.db.AccountMediaEntity
+import com.gobidev.tmdbv1.data.local.db.MediaType
 import com.gobidev.tmdbv1.data.remote.dto.EpisodeDto
 import com.gobidev.tmdbv1.data.remote.dto.SeasonDto
 import com.gobidev.tmdbv1.data.remote.dto.TvCreditsResponse
@@ -28,6 +31,22 @@ fun TvDto.toTvShow(): TvShow = TvShow(
     rating = voteAverage,
     voteCount = voteCount
 )
+
+fun TvDto.toAccountMediaEntity(accountId: Int, listType: AccountListType, position: Int): AccountMediaEntity =
+    AccountMediaEntity(
+        accountId = accountId,
+        mediaType = MediaType.TV.name,
+        listType = listType.name,
+        mediaId = id,
+        title = name,
+        overview = overview ?: "",
+        posterUrl = posterPath?.let { "$IMAGE_BASE_URL$POSTER_SIZE$it" },
+        backdropUrl = backdropPath?.let { "$IMAGE_BASE_URL$BACKDROP_SIZE$it" },
+        dateLabel = firstAirDate?.toFormattedDate() ?: "Unknown",
+        rating = voteAverage,
+        voteCount = voteCount,
+        position = position
+    )
 
 fun SeasonDto.toSeason(): Season = Season(
     id = id,

@@ -3,6 +3,7 @@ package com.gobidev.tmdbv1.presentation.tvdetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gobidev.tmdbv1.data.local.SessionManager
 import com.gobidev.tmdbv1.domain.model.CastMember
 import com.gobidev.tmdbv1.domain.model.Episode
 import com.gobidev.tmdbv1.domain.model.ExternalIds
@@ -12,6 +13,7 @@ import com.gobidev.tmdbv1.domain.model.MovieVideo
 import com.gobidev.tmdbv1.domain.model.TvShow
 import com.gobidev.tmdbv1.domain.model.TvShowDetails
 import com.gobidev.tmdbv1.domain.usecase.GetSeasonEpisodesUseCase
+import com.gobidev.tmdbv1.domain.usecase.GetTvAccountStateUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvCreditsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvDetailsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvExternalIdsUseCase
@@ -19,6 +21,8 @@ import com.gobidev.tmdbv1.domain.usecase.GetTvImagesUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvKeywordsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvRecommendationsUseCase
 import com.gobidev.tmdbv1.domain.usecase.GetTvVideosUseCase
+import com.gobidev.tmdbv1.domain.usecase.SetFavoriteTvUseCase
+import com.gobidev.tmdbv1.domain.usecase.SetWatchlistTvUseCase
 import com.gobidev.tmdbv1.presentation.components.ExternalIdsUiState
 import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -87,13 +91,23 @@ class TvDetailsViewModel @Inject constructor(
     private val getTvImagesUseCase: GetTvImagesUseCase,
     private val getTvRecommendationsUseCase: GetTvRecommendationsUseCase,
     private val getTvVideosUseCase: GetTvVideosUseCase,
-    private val getTvKeywordsUseCase: GetTvKeywordsUseCase
+    private val getTvKeywordsUseCase: GetTvKeywordsUseCase,
+    private val setFavoriteTvUseCase: SetFavoriteTvUseCase,
+    private val setWatchlistTvUseCase: SetWatchlistTvUseCase,
+    private val getTvAccountStateUseCase: GetTvAccountStateUseCase,
+    val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val tvId = savedStateHandle.get<Int>("tvId") ?: -1
 
     private val _uiState = MutableStateFlow<TvDetailsUiState>(TvDetailsUiState.Loading)
     val uiState: StateFlow<TvDetailsUiState> = _uiState.asStateFlow()
+
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+
+    private val _isInWatchlist = MutableStateFlow(false)
+    val isInWatchlist: StateFlow<Boolean> = _isInWatchlist.asStateFlow()
 
     private val _castState = MutableStateFlow<TvCastUiState>(TvCastUiState.Loading)
     val castState: StateFlow<TvCastUiState> = _castState.asStateFlow()
@@ -131,8 +145,44 @@ class TvDetailsViewModel @Inject constructor(
             loadRecommendations()
             loadVideos()
             loadKeywords()
+            loadAccountState()
         } else {
             _uiState.value = TvDetailsUiState.Error("Invalid TV show ID")
+        }
+    }
+
+    private fun loadAccountState() {
+        if (!sessionManager.isLoggedIn) return
+        viewModelScope.launch {
+            when (val result = getTvAccountStateUseCase(tvId)) {
+                is Result.Success -> {
+                    _isFavorite.value = result.data.favorite
+                    _isInWatchlist.value = result.data.watchlist
+                }
+                is Result.Error -> {}
+            }
+        }
+    }
+
+    fun toggleFavorite() {
+        val newValue = !_isFavorite.value
+        _isFavorite.value = newValue
+        viewModelScope.launch {
+            when (setFavoriteTvUseCase(tvId, newValue)) {
+                is Result.Success -> {}
+                is Result.Error -> _isFavorite.value = !newValue
+            }
+        }
+    }
+
+    fun toggleWatchlist() {
+        val newValue = !_isInWatchlist.value
+        _isInWatchlist.value = newValue
+        viewModelScope.launch {
+            when (setWatchlistTvUseCase(tvId, newValue)) {
+                is Result.Success -> {}
+                is Result.Error -> _isInWatchlist.value = !newValue
+            }
         }
     }
 

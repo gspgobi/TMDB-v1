@@ -218,6 +218,7 @@ fun TMDBNavGraph(
                     when (event) {
                         is ProfileEvent.LoginClick -> navController.navigate(Screen.LoginNav.route)
                         is ProfileEvent.MovieClick -> navController.navigate(Screen.MovieDetailsNav.createRoute(event.movieId))
+                        is ProfileEvent.TvClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
                     }
                 }
             )
@@ -386,6 +387,7 @@ fun TMDBNavGraph(
                         is TvDetailsEvent.RecommendationClick -> navController.navigate(Screen.TvDetailsNav.createRoute(event.tvId))
                         is TvDetailsEvent.KeywordClick -> navController.navigate(Screen.KeywordTvShowsNav.createRoute(event.keywordId, event.keywordName))
                         is TvDetailsEvent.GenreClick -> navController.navigate(Screen.GenreTvShowsNav.createRoute(event.genreId, event.genreName))
+                        is TvDetailsEvent.LoginRequired -> navController.navigate(Screen.LoginNav.route)
                     }
                 }
             )
