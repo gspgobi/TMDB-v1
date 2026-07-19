@@ -21,3 +21,15 @@ data class TmdbAvatarDto(
 data class GravatarDto(
     @SerializedName("hash") val hash: String?
 )
+
+data class FavoriteRequestBody(
+    @SerializedName("media_type") val mediaType: String = "movie",
+    @SerializedName("media_id") val mediaId: Int,
+    @SerializedName("favorite") val favorite: Boolean
+)
+
+data class WatchlistRequestBody(
+    @SerializedName("media_type") val mediaType: String = "movie",
+    @SerializedName("media_id") val mediaId: Int,
+    @SerializedName("watchlist") val watchlist: Boolean
+)

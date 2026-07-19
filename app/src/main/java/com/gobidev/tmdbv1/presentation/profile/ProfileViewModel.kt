@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.work.WorkInfo
 import com.gobidev.tmdbv1.data.local.SessionManager
+import com.gobidev.tmdbv1.data.worker.ReleaseCheckScheduler
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.UserAccount
 import com.gobidev.tmdbv1.domain.usecase.GetAccountUseCase
@@ -15,8 +17,10 @@ import com.gobidev.tmdbv1.domain.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,6 +36,7 @@ class ProfileViewModel @Inject constructor(
     val sessionManager: SessionManager,
     private val getAccountUseCase: GetAccountUseCase,
     private val logoutUseCase: LogoutUseCase,
+    private val releaseCheckScheduler: ReleaseCheckScheduler,
     getFavoritesUseCase: GetFavoritesUseCase,
     getWatchlistUseCase: GetWatchlistUseCase
 ) : ViewModel() {
@@ -43,6 +48,13 @@ class ProfileViewModel @Inject constructor(
 
     val favorites: Flow<PagingData<Movie>> = getFavoritesUseCase().cachedIn(viewModelScope)
     val watchlist: Flow<PagingData<Movie>> = getWatchlistUseCase().cachedIn(viewModelScope)
+
+    val releaseCheckWorkInfo: StateFlow<WorkInfo?> = releaseCheckScheduler.observeOneTimeWorkInfo()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun checkForReleasesNow() {
+        releaseCheckScheduler.enqueueOneTime()
+    }
 
     init {
         if (sessionManager.isLoggedIn) loadAccount()

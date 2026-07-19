@@ -22,6 +22,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.getValue
@@ -102,6 +106,7 @@ sealed interface MovieDetailsEvent {
     data class RecommendationClick(val movieId: Int) : MovieDetailsEvent
     data class KeywordClick(val keywordId: Int, val keywordName: String) : MovieDetailsEvent
     data class GenreClick(val genreId: Int, val genreName: String) : MovieDetailsEvent
+    data object LoginRequired : MovieDetailsEvent
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -118,6 +123,8 @@ fun MovieDetailsScreen(
     val imagesState by viewModel.imagesState.collectAsStateWithLifecycle()
     val videosState by viewModel.videosState.collectAsStateWithLifecycle()
     val keywordsState by viewModel.keywordsState.collectAsStateWithLifecycle()
+    val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
+    val isInWatchlist by viewModel.isInWatchlist.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
@@ -133,9 +140,36 @@ fun MovieDetailsScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = {
+                        if (viewModel.sessionManager.isLoggedIn) {
+                            viewModel.toggleWatchlist()
+                        } else {
+                            onEvent(MovieDetailsEvent.LoginRequired)
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (isInWatchlist) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                            contentDescription = "Toggle watchlist"
+                        )
+                    }
+                    IconButton(onClick = {
+                        if (viewModel.sessionManager.isLoggedIn) {
+                            viewModel.toggleFavorite()
+                        } else {
+                            onEvent(MovieDetailsEvent.LoginRequired)
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = "Toggle favorite"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 scrollBehavior = scrollBehavior
             )
@@ -658,9 +692,24 @@ fun PreviewMovieDetailsScreen() {
                             )
                         }
                     },
+                    actions = {
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Filled.BookmarkBorder,
+                                contentDescription = "Toggle watchlist"
+                            )
+                        }
+                        IconButton(onClick = { }) {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = "Toggle favorite"
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 )
             }

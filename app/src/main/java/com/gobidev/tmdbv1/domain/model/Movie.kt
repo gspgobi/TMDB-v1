@@ -12,7 +12,8 @@ data class Movie(
     val backdropUrl: String?,
     val releaseDate: String,
     val rating: Double,
-    val voteCount: Int
+    val voteCount: Int,
+    val releaseDateIso: String = ""
 )
 
 /**

@@ -19,9 +19,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import com.gobidev.tmdbv1.presentation.util.MediaListShimmer
 import com.gobidev.tmdbv1.presentation.util.ProfileLoadingShimmer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -29,8 +35,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -44,6 +53,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.work.WorkInfo
 import coil.compose.AsyncImage
 import com.gobidev.tmdbv1.domain.model.UserAccount
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,6 +61,7 @@ import com.gobidev.tmdbv1.presentation.components.ErrorItem
 import com.gobidev.tmdbv1.presentation.movielisting.MovieItem
 import com.gobidev.tmdbv1.presentation.util.PreviewData
 import com.gobidev.tmdbv1.ui.theme.TMDBTheme
+import kotlinx.coroutines.launch
 
 sealed interface ProfileEvent {
     data object LoginClick : ProfileEvent
@@ -64,6 +75,9 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val releaseCheckWorkInfo by viewModel.releaseCheckWorkInfo.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     LifecycleResumeEffect(Unit) {
         if (viewModel.sessionManager.isLoggedIn && viewModel.uiState.value is ProfileUiState.LoggedOut) {
@@ -72,8 +86,23 @@ fun ProfileScreen(
         onPauseOrDispose { }
     }
 
+    LaunchedEffect(releaseCheckWorkInfo?.state, releaseCheckWorkInfo?.id) {
+        val info = releaseCheckWorkInfo ?: return@LaunchedEffect
+        val message = when (info.state) {
+            WorkInfo.State.RUNNING, WorkInfo.State.ENQUEUED -> "Checking watchlist for releases…"
+            WorkInfo.State.SUCCEEDED -> {
+                val count = info.outputData.getInt("new_releases_count", 0)
+                if (count > 0) "$count new release(s) found" else "No new releases"
+            }
+            WorkInfo.State.FAILED -> "Couldn't check for releases"
+            else -> null
+        }
+        message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Profile") },
@@ -84,6 +113,13 @@ fun ProfileScreen(
                 ),
                 actions = {
                     if (uiState is ProfileUiState.LoggedIn) {
+                        IconButton(onClick = { viewModel.checkForReleasesNow() }) {
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = "Check for releases",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                         TextButton(onClick = { viewModel.logout() }) {
                             Text(
                                 "Sign Out",

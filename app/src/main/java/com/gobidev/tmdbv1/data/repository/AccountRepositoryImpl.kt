@@ -7,6 +7,9 @@ import com.gobidev.tmdbv1.data.local.SessionManager
 import com.gobidev.tmdbv1.data.paging.AccountMovieListType
 import com.gobidev.tmdbv1.data.paging.AccountMoviesPagingSource
 import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
+import com.gobidev.tmdbv1.data.remote.dto.FavoriteRequestBody
+import com.gobidev.tmdbv1.data.remote.dto.WatchlistRequestBody
+import com.gobidev.tmdbv1.data.remote.mapper.toMovie
 import com.gobidev.tmdbv1.data.remote.mapper.toUserAccount
 import com.gobidev.tmdbv1.domain.model.Movie
 import com.gobidev.tmdbv1.domain.model.UserAccount
@@ -51,4 +54,37 @@ class AccountRepositoryImpl @Inject constructor(
             )
         }
     ).flow
+
+    override suspend fun getWatchlistMoviesSnapshot(maxPages: Int): Result<List<Movie>> = safeCall {
+        val sessionId = sessionManager.sessionId ?: error("Not logged in")
+        val movies = mutableListOf<Movie>()
+        for (page in 1..maxPages) {
+            val response = api.getWatchlistMovies(
+                accountId = sessionManager.accountId,
+                sessionId = sessionId,
+                page = page
+            )
+            movies += response.results.map { it.toMovie() }
+            if (page >= response.totalPages) break
+        }
+        movies
+    }
+
+    override suspend fun setFavorite(movieId: Int, favorite: Boolean): Result<Unit> = safeCall {
+        val sessionId = sessionManager.sessionId ?: error("Not logged in")
+        api.markAsFavorite(
+            accountId = sessionManager.accountId,
+            sessionId = sessionId,
+            body = FavoriteRequestBody(mediaId = movieId, favorite = favorite)
+        )
+    }
+
+    override suspend fun setWatchlist(movieId: Int, watchlist: Boolean): Result<Unit> = safeCall {
+        val sessionId = sessionManager.sessionId ?: error("Not logged in")
+        api.markAsWatchlist(
+            accountId = sessionManager.accountId,
+            sessionId = sessionId,
+            body = WatchlistRequestBody(mediaId = movieId, watchlist = watchlist)
+        )
+    }
 }

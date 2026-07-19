@@ -10,6 +10,8 @@ import com.gobidev.tmdbv1.data.remote.dto.PersonCombinedCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.PersonDetailsResponse
 import com.gobidev.tmdbv1.data.remote.dto.AccountResponse
 import com.gobidev.tmdbv1.data.remote.dto.DeleteSessionBody
+import com.gobidev.tmdbv1.data.remote.dto.FavoriteRequestBody
+import com.gobidev.tmdbv1.data.remote.dto.WatchlistRequestBody
 import com.gobidev.tmdbv1.data.remote.dto.LoginRequestBody
 import com.gobidev.tmdbv1.data.remote.dto.MovieCreditsResponse
 import com.gobidev.tmdbv1.data.remote.dto.MovieDetailsResponse
@@ -310,4 +312,18 @@ interface TMDBApiService {
         @Query("session_id") sessionId: String,
         @Query("page") page: Int = 1
     ): MovieListPagedResponse
+
+    @POST("account/{account_id}/favorite")
+    suspend fun markAsFavorite(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Body body: FavoriteRequestBody
+    )
+
+    @POST("account/{account_id}/watchlist")
+    suspend fun markAsWatchlist(
+        @Path("account_id") accountId: Int,
+        @Query("session_id") sessionId: String,
+        @Body body: WatchlistRequestBody
+    )
 }

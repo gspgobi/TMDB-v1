@@ -5,6 +5,7 @@ import com.gobidev.tmdbv1.data.remote.api.TMDBApiService
 import com.gobidev.tmdbv1.data.remote.dto.DeleteSessionBody
 import com.gobidev.tmdbv1.data.remote.dto.LoginRequestBody
 import com.gobidev.tmdbv1.data.remote.dto.SessionRequestBody
+import com.gobidev.tmdbv1.data.worker.ReleaseCheckScheduler
 import com.gobidev.tmdbv1.domain.repository.AuthRepository
 import com.gobidev.tmdbv1.domain.util.Result
 import com.gobidev.tmdbv1.domain.util.safeCall
@@ -14,7 +15,8 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val api: TMDBApiService,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val releaseCheckScheduler: ReleaseCheckScheduler
 ) : AuthRepository {
 
     override suspend fun login(username: String, password: String): Result<Unit> = safeCall {
@@ -38,11 +40,14 @@ class AuthRepositoryImpl @Inject constructor(
         // Step 4: Fetch and store account ID
         val account = api.getAccount(sessionId = sessionResponse.sessionId)
         sessionManager.accountId = account.id
+
+        releaseCheckScheduler.enqueuePeriodic()
     }
 
     override suspend fun logout(): Result<Unit> = safeCall {
         val sessionId = sessionManager.sessionId ?: return@safeCall
         api.deleteSession(DeleteSessionBody(sessionId = sessionId))
         sessionManager.clearSession()
+        releaseCheckScheduler.cancelPeriodic()
     }
 }
